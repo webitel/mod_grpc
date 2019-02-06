@@ -1,0 +1,5 @@
+<configuration name="grpc.conf" description="mod_grpc">
+    <settings>
+        <param name="server_address" value="0.0.0.0:50051"/>
+    </settings>
+</configuration>

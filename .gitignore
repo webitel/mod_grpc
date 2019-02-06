@@ -1,0 +1,7 @@
+.idea/
+grpc/
+build
+cmake-build-debug
+Makefile
+src/generated
+docker
