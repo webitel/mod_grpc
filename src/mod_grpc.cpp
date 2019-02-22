@@ -82,6 +82,7 @@ namespace mod_grpc {
     Status ApiServiceImpl::Originate(ServerContext *ctx, const fs::OriginateRequest *request,
                                      fs::OriginateResponse *reply) {
         switch_channel_t *caller_channel;
+        switch_event_t *var_event = NULL;
         switch_core_session_t *caller_session = nullptr;
         uint32_t timeout = 60;
         switch_call_cause_t cause = SWITCH_CAUSE_NORMAL_CLEARING;
@@ -106,28 +107,40 @@ namespace mod_grpc {
         }
 
         std::stringstream aleg;
+
         for(size_t i = 0; i < request->endpoints().size(); ++i) {
             if(i != 0)
                 aleg << ",";
             aleg << request->endpoints()[i];
         }
 
+        if (request->variables_size() > 0) {
+            if (switch_event_create_plain(&var_event, SWITCH_EVENT_CHANNEL_DATA) != SWITCH_STATUS_SUCCESS) {
+                std::string msg("Can't create variable event");
+                return Status(StatusCode::INTERNAL, msg);
+            }
+
+            for (const auto& kv: request->variables()) {
+                switch_event_add_header_string(var_event, SWITCH_STACK_BOTTOM, kv.first.c_str(), kv.second.c_str());
+            }
+        }
+
         if (switch_ivr_originate(nullptr, &caller_session, &cause, aleg.str().c_str(), timeout, nullptr,
-                                 request->callername().c_str(), request->callernumber().c_str(), nullptr, nullptr,
+                                 request->callername().c_str(), request->callernumber().c_str(), nullptr, var_event,
                                  SOF_NONE, nullptr) != SWITCH_STATUS_SUCCESS
             || !caller_session) {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
             reply->mutable_error()->set_message(switch_channel_cause2str(cause));
-            return Status::OK;
+        } else {
+
+            switch_ivr_session_transfer(caller_session, request->destination().c_str(), dp, context);
+            reply->set_uuid(switch_core_session_get_uuid(caller_session));
+            switch_core_session_rwunlock(caller_session);
         }
 
-        //TODO add inline dialplan & execute extension
-        //caller_channel = switch_core_session_get_channel(caller_session);
-
-        switch_ivr_session_transfer(caller_session, request->destination().c_str(), dp, context);
-
-        reply->set_uuid(switch_core_session_get_uuid(caller_session));
-        switch_core_session_rwunlock(caller_session);
+        if (var_event) {
+            switch_event_destroy(&var_event);
+        }
         return Status::OK;
     }
 
