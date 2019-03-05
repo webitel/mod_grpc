@@ -87,6 +87,7 @@ namespace mod_grpc {
         uint32_t timeout = 60;
         switch_call_cause_t cause = SWITCH_CAUSE_NORMAL_CLEARING;
         const char *dp, *context;
+        const char *separator;
 
         if (request->timeout()) {
             timeout = static_cast<uint32_t>(request->timeout());
@@ -106,11 +107,23 @@ namespace mod_grpc {
             dp = "XML";
         }
 
+        switch (request->strategy()) {
+            case fs::OriginateRequest_Strategy_FAILOVER:
+                separator = "|";
+                break;
+            case fs::OriginateRequest_Strategy_MULTIPLE:
+                separator = ":_:";
+                break;
+            default:
+                separator = ",";
+                break;
+        }
+
         std::stringstream aleg;
 
         for(size_t i = 0; i < request->endpoints().size(); ++i) {
             if(i != 0)
-                aleg << ",";
+                aleg << separator;
             aleg << request->endpoints()[i];
         }
 
@@ -131,13 +144,38 @@ namespace mod_grpc {
             || !caller_session) {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
             reply->mutable_error()->set_message(switch_channel_cause2str(cause));
-        } else {
 
-            switch_ivr_session_transfer(caller_session, request->destination().c_str(), dp, context);
-            reply->set_uuid(switch_core_session_get_uuid(caller_session));
-            switch_core_session_rwunlock(caller_session);
+            goto done;
         }
 
+        caller_channel = switch_core_session_get_channel(caller_session);
+
+        if (!request->extensions().empty()) {
+            switch_caller_extension_t *extension = nullptr;
+            if ((extension = switch_caller_extension_new(caller_session,
+                                                         "GRPC",
+                                                         "GRPC")) == 0) {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Memory Error!\n");
+                abort();
+            }
+
+            for (const auto &ex : request->extensions()) {
+                switch_caller_extension_add_application(caller_session, extension,
+                                                        ex.appname().c_str(),
+                                                        ex.args().c_str());
+            }
+
+            switch_channel_set_caller_extension(caller_channel, extension);
+            switch_channel_set_state(caller_channel, CS_EXECUTE);
+        } else {
+            switch_ivr_session_transfer(caller_session, request->destination().c_str(), dp, context);
+        }
+
+        reply->set_uuid(switch_core_session_get_uuid(caller_session));
+
+        switch_core_session_rwunlock(caller_session);
+
+done:
         if (var_event) {
             switch_event_destroy(&var_event);
         }
