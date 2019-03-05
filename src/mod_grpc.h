@@ -33,6 +33,9 @@ namespace mod_grpc {
         Status Originate(ServerContext* context, const fs::OriginateRequest* request,
                         fs::OriginateResponse* reply) override;
 
+        Status Bridge(ServerContext* context, const fs::BridgeRequest* request,
+                        fs::BridgeResponse* reply) override;
+
     };
 
     struct Config {

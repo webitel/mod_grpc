@@ -6,6 +6,7 @@ service Api {
     rpc Execute(ExecuteRequest) returns (ExecuteResponse) {}
     rpc Hangup(HangupRequest) returns (HangupResponse) {}
     rpc Originate(OriginateRequest) returns (OriginateResponse) {}
+    rpc Bridge(BridgeRequest) returns (BridgeResponse) {}
 }
 
 message ErrorExecute {
@@ -60,6 +61,17 @@ message OriginateRequest {
 }
 
 message OriginateResponse {
+    string uuid = 1;
+    ErrorExecute error = 2;
+}
+
+message BridgeRequest {
+    string leg_a_id = 1;
+    string leg_b_id = 2;
+    string leg_b_reserve_id = 3;
+}
+
+message BridgeResponse {
     string uuid = 1;
     ErrorExecute error = 2;
 }

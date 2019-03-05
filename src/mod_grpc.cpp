@@ -182,6 +182,35 @@ done:
         return Status::OK;
     }
 
+    Status ApiServiceImpl::Bridge(ServerContext *context, const fs::BridgeRequest *request,
+                                  fs::BridgeResponse *reply) {
+        switch_status_t status;
+        if (request->leg_b_id().empty() || request->leg_b_id().empty()) {
+            std::string msg("Bridge error: leg_a_id or leg_b_id is required");
+            return Status(StatusCode::INVALID_ARGUMENT, msg);
+        }
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive bridge request %s & %s\n",
+                          request->leg_a_id().c_str(), request->leg_b_id().c_str());
+
+        if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str())) != SWITCH_STATUS_SUCCESS) {
+            if (!request->leg_b_reserve_id().empty()) {
+                if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_reserve_id().c_str())) == SWITCH_STATUS_SUCCESS) {
+                    reply->set_uuid(request->leg_b_reserve_id());
+                }
+            }
+        } else {
+            reply->set_uuid(request->leg_b_id());
+        }
+
+        if (status != SWITCH_STATUS_SUCCESS) {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("Invalid id");
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) : server_address_(config_.server_address) { }
 
     void ServerImpl::Run() {
