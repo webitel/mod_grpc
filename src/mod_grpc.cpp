@@ -138,9 +138,10 @@ namespace mod_grpc {
             }
         }
 
+        // todo check version
         if (switch_ivr_originate(nullptr, &caller_session, &cause, aleg.str().c_str(), timeout, nullptr,
                                  request->callername().c_str(), request->callernumber().c_str(), nullptr, var_event,
-                                 SOF_NONE, nullptr) != SWITCH_STATUS_SUCCESS
+                                 SOF_NONE, nullptr, nullptr) != SWITCH_STATUS_SUCCESS
             || !caller_session) {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
             reply->mutable_error()->set_message(switch_channel_cause2str(cause));
