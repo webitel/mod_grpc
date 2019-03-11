@@ -7,9 +7,6 @@ project(mod_grpc C CXX)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-gnu-unique")
 
-find_package(PkgConfig REQUIRED)
-
-
 add_subdirectory(grpc EXCLUDE_FROM_ALL)
 message(STATUS "Using gRPC via add_subdirectory.")
 
@@ -20,8 +17,13 @@ set(_PROTOBUF_PROTOC $<TARGET_FILE:protoc>)
 set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
-pkg_check_modules(FREESWITCH REQUIRED freeswitch)
-set(FS_MOD_DIR /usr/local/freeswitch/mod/)
+
+set(FREESWITCH_INCLUDE_DIR "" CACHE PATH "Location of FreeSWITCH headers")
+set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
+
+if (NOT EXISTS "${FREESWITCH_INCLUDE_DIR}")
+    message( SEND_ERROR "Not exists FREESWITCH_INCLUDE_DIR = ${FREESWITCH_INCLUDE_DIR}" )
+endif()
 
 set(PROTO_PATH "${CMAKE_SOURCE_DIR}/src/protos")
 set(FS_PROTO "${PROTO_PATH}/fs.proto")
@@ -48,11 +50,11 @@ set(GENERATED_PROTOBUF_FILES ${FS_PB_H_FILE} ${FS_PB_CPP_FILE}
 
 
 add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp ${FS_PB_CPP_FILE} ${FS_PB_H_FILE} ${FS_GRPC_PB_CPP_FILE} ${FS_GRPC_PB_H_FILE})
-target_include_directories(mod_grpc PRIVATE ${GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIRS} )
+target_include_directories(mod_grpc PRIVATE ${GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE}
         -pthread)
 
 set_target_properties(mod_grpc PROPERTIES PREFIX "")
 set_target_properties(mod_grpc PROPERTIES OUTPUT_NAME "mod_grpc")
 
-install(TARGETS mod_grpc DESTINATION ${FS_MOD_DIR})
+install(TARGETS mod_grpc DESTINATION ${INSTALL_MOD_DIR})
