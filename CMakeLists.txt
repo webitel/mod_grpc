@@ -6,8 +6,26 @@ set(CMAKE_CXX_COMPILER "g++")
 project(mod_grpc C CXX)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-gnu-unique")
+set(third_party_DIR "${CMAKE_SOURCE_DIR}/third_party")
 
-add_subdirectory(grpc EXCLUDE_FROM_ALL)
+set(USE_GRPC_VERSION "v1.19.0" CACHE STRING "GRPC version")
+set(FREESWITCH_INCLUDE_DIR "" CACHE PATH "Location of FreeSWITCH headers")
+set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
+
+file(MAKE_DIRECTORY ${third_party_DIR})
+
+if (NOT EXISTS "${third_party_DIR}/grpc")
+    execute_process(
+            COMMAND git clone -b ${USE_GRPC_VERSION} "https://github.com/grpc/grpc.git" grpc
+            WORKING_DIRECTORY ${third_party_DIR})
+
+    execute_process(
+            COMMAND git submodule update --init --recursive
+            WORKING_DIRECTORY ${third_party_DIR}/grpc)
+endif()
+
+
+add_subdirectory(${third_party_DIR}/grpc EXCLUDE_FROM_ALL)
 message(STATUS "Using gRPC via add_subdirectory.")
 
 # After using add_subdirectory, we can now use the grpc targets directly from
@@ -17,9 +35,6 @@ set(_PROTOBUF_PROTOC $<TARGET_FILE:protoc>)
 set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
-
-set(FREESWITCH_INCLUDE_DIR "" CACHE PATH "Location of FreeSWITCH headers")
-set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
 
 if (NOT EXISTS "${FREESWITCH_INCLUDE_DIR}")
     message( SEND_ERROR "Not exists FREESWITCH_INCLUDE_DIR = ${FREESWITCH_INCLUDE_DIR}" )
