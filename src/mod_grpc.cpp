@@ -8,6 +8,8 @@
 #include <grpc/support/log.h>
 #include "generated/fs.grpc.pb.h"
 
+#define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
+
 using namespace std;
 
 
@@ -150,6 +152,7 @@ namespace mod_grpc {
         }
 
         caller_channel = switch_core_session_get_channel(caller_session);
+        switch_channel_set_variable(caller_channel, GRPC_SUCCESS_ORIGINATE, "true");
 
         if (!request->extensions().empty()) {
             switch_caller_extension_t *extension = nullptr;
