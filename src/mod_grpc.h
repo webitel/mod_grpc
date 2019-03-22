@@ -30,6 +30,9 @@ namespace mod_grpc {
         Status Hangup(ServerContext* context, const fs::HangupRequest* request,
                         fs::HangupResponse* reply) override;
 
+        Status HangupMatchingVars(ServerContext* context, const fs::HangupMatchingVarsReqeust* request,
+                                  fs::HangupMatchingVarsResponse* reply) override;
+
         Status Originate(ServerContext* context, const fs::OriginateRequest* request,
                         fs::OriginateResponse* reply) override;
 

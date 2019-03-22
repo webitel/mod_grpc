@@ -81,6 +81,38 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::HangupMatchingVars(ServerContext *context, const fs::HangupMatchingVarsReqeust *request,
+                                              fs::HangupMatchingVarsResponse *reply) {
+        switch_call_cause_t cause = SWITCH_CAUSE_MANAGER_REQUEST;
+        switch_event_t *vars = nullptr;
+        uint32_t count = 0;
+
+        if (request->variables().empty()) {
+            std::string msg("Variables is required");
+            return Status(StatusCode::INVALID_ARGUMENT, msg);
+        }
+
+        if (!request->cause().empty()) {
+            cause = switch_channel_str2cause(request->cause().c_str());
+        }
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive hangup matching variables request\n");
+
+        switch_event_create(&vars, SWITCH_EVENT_CLONE);
+
+        for (const auto& kv: request->variables()) {
+            switch_event_add_header_string(vars, SWITCH_STACK_BOTTOM, kv.first.c_str(), kv.second.c_str());
+        }
+
+        count = switch_core_session_hupall_matching_vars_ans(vars, cause, static_cast<switch_hup_type_t>(SHT_UNANSWERED | SHT_ANSWERED));
+        reply->set_count(count);
+
+        if (vars) {
+            switch_event_destroy(&vars);
+        }
+        return Status::OK;
+    }
+
     Status ApiServiceImpl::Originate(ServerContext *ctx, const fs::OriginateRequest *request,
                                      fs::OriginateResponse *reply) {
         switch_channel_t *caller_channel;
