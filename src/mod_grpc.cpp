@@ -157,8 +157,8 @@ namespace mod_grpc {
         if (!request->extensions().empty()) {
             switch_caller_extension_t *extension = nullptr;
             if ((extension = switch_caller_extension_new(caller_session,
-                                                         "GRPC",
-                                                         "GRPC")) == 0) {
+                                                         request->callername().c_str(),
+                                                         request->callernumber().c_str())) == 0) {
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Memory Error!\n");
                 abort();
             }
