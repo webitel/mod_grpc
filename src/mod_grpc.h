@@ -24,20 +24,23 @@ namespace mod_grpc {
 
     // Logic and data behind the server's behavior.
     class ApiServiceImpl final : public fs::Api::Service {
+        Status Originate(ServerContext* context, const fs::OriginateRequest* request,
+                         fs::OriginateResponse* reply) override;
+
         Status Execute(ServerContext* context, const fs::ExecuteRequest* request,
                         fs::ExecuteResponse* reply) override;
+
+        Status SetVariables(ServerContext* context, const fs::SetVariablesReqeust* request,
+                            fs::SetVariablesResponse* reply) override;
+
+        Status Bridge(ServerContext* context, const fs::BridgeRequest* request,
+                      fs::BridgeResponse* reply) override;
 
         Status Hangup(ServerContext* context, const fs::HangupRequest* request,
                         fs::HangupResponse* reply) override;
 
         Status HangupMatchingVars(ServerContext* context, const fs::HangupMatchingVarsReqeust* request,
                                   fs::HangupMatchingVarsResponse* reply) override;
-
-        Status Originate(ServerContext* context, const fs::OriginateRequest* request,
-                        fs::OriginateResponse* reply) override;
-
-        Status Bridge(ServerContext* context, const fs::BridgeRequest* request,
-                        fs::BridgeResponse* reply) override;
 
     };
 

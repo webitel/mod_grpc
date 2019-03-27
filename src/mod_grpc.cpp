@@ -23,96 +23,6 @@ using grpc::StatusCode;
 
 namespace mod_grpc {
 
-    Status ApiServiceImpl::Execute(ServerContext *context, const fs::ExecuteRequest *request,
-                                   fs::ExecuteResponse *reply)  {
-        switch_stream_handle_t stream = { 0 };
-
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive execute cmd: %s [%s]\n",
-                          request->command().c_str(), request->args().c_str());
-
-
-        if (request->command().length() <= 3) {
-            std::string msg("Length of `Command` cannot be less than 3 characters");
-            return Status(StatusCode::INVALID_ARGUMENT, msg);
-        }
-
-        SWITCH_STANDARD_STREAM(stream);
-
-        if (switch_api_execute(request->command().c_str(), request->args().c_str(), nullptr, &stream) == SWITCH_STATUS_FALSE) {
-            std::string msg("Command cannot be execute");
-            return Status(StatusCode::INTERNAL, msg);
-        } else if (stream.data) {
-            auto result = std::string((const char*)stream.data);
-
-            if (!result.compare(0, 4, "-ERR")) {
-                reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
-                reply->mutable_error()->set_message(result.substr(4));
-
-            } else if (!result.compare(0, 6, "-USAGE")) {
-                reply->mutable_error()->set_type(fs::ErrorExecute_Type_USAGE);
-                reply->mutable_error()->set_message(result.substr(6));
-            } else {
-                reply->set_data(result);
-            }
-
-        } else {
-            reply->set_data("todo: empty response");
-        }
-        switch_safe_free(stream.data);
-        return Status::OK;
-    }
-
-    Status ApiServiceImpl::Hangup(ServerContext *context, const fs::HangupRequest *request,
-                                  fs::HangupResponse *reply) {
-        switch_call_cause_t cause = SWITCH_CAUSE_NORMAL_CLEARING;
-
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive hangup %s [%s]\n",
-                          request->uuid().c_str(), request->cause().c_str());
-
-        if (!request->cause().empty()) {
-            cause = switch_channel_str2cause(request->cause().c_str());
-        }
-
-        if (switch_ivr_kill_uuid(request->uuid().c_str(), cause) != SWITCH_STATUS_SUCCESS) {
-            reply->mutable_error()->set_message("No such channel!");
-            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
-        }
-
-        return Status::OK;
-    }
-
-    Status ApiServiceImpl::HangupMatchingVars(ServerContext *context, const fs::HangupMatchingVarsReqeust *request,
-                                              fs::HangupMatchingVarsResponse *reply) {
-        switch_call_cause_t cause = SWITCH_CAUSE_MANAGER_REQUEST;
-        switch_event_t *vars = nullptr;
-        uint32_t count = 0;
-
-        if (request->variables().empty()) {
-            std::string msg("Variables is required");
-            return Status(StatusCode::INVALID_ARGUMENT, msg);
-        }
-
-        if (!request->cause().empty()) {
-            cause = switch_channel_str2cause(request->cause().c_str());
-        }
-
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive hangup matching variables request\n");
-
-        switch_event_create(&vars, SWITCH_EVENT_CLONE);
-
-        for (const auto& kv: request->variables()) {
-            switch_event_add_header_string(vars, SWITCH_STACK_BOTTOM, kv.first.c_str(), kv.second.c_str());
-        }
-
-        count = switch_core_session_hupall_matching_vars_ans(vars, cause, static_cast<switch_hup_type_t>(SHT_UNANSWERED | SHT_ANSWERED));
-        reply->set_count(count);
-
-        if (vars) {
-            switch_event_destroy(&vars);
-        }
-        return Status::OK;
-    }
-
     Status ApiServiceImpl::Originate(ServerContext *ctx, const fs::OriginateRequest *request,
                                      fs::OriginateResponse *reply) {
         switch_channel_t *caller_channel;
@@ -211,18 +121,83 @@ namespace mod_grpc {
 
         switch_core_session_rwunlock(caller_session);
 
-done:
+        done:
         if (var_event) {
             switch_event_destroy(&var_event);
         }
         return Status::OK;
     }
 
+    Status ApiServiceImpl::Execute(ServerContext *context, const fs::ExecuteRequest *request,
+                                   fs::ExecuteResponse *reply)  {
+        switch_stream_handle_t stream = { 0 };
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive execute cmd: %s [%s]\n",
+                          request->command().c_str(), request->args().c_str());
+
+
+        if (request->command().length() <= 3) {
+            std::string msg("Length of `Command` cannot be less than 3 characters");
+            return Status(StatusCode::INVALID_ARGUMENT, msg);
+        }
+
+        SWITCH_STANDARD_STREAM(stream);
+
+        if (switch_api_execute(request->command().c_str(), request->args().c_str(), nullptr, &stream) == SWITCH_STATUS_FALSE) {
+            std::string msg("Command cannot be execute");
+            return Status(StatusCode::INTERNAL, msg);
+        } else if (stream.data) {
+            auto result = std::string((const char*)stream.data);
+
+            if (!result.compare(0, 4, "-ERR")) {
+                reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+                reply->mutable_error()->set_message(result.substr(4));
+
+            } else if (!result.compare(0, 6, "-USAGE")) {
+                reply->mutable_error()->set_type(fs::ErrorExecute_Type_USAGE);
+                reply->mutable_error()->set_message(result.substr(6));
+            } else {
+                reply->set_data(result);
+            }
+
+        } else {
+            reply->set_data("todo: empty response");
+        }
+        switch_safe_free(stream.data);
+        return Status::OK;
+    }
+
+    Status ApiServiceImpl::SetVariables(ServerContext *context, const fs::SetVariablesReqeust *request,
+                                        fs::SetVariablesResponse *reply) {
+
+        switch_core_session_t *psession = nullptr;
+
+        if (request->uuid().empty() || request->variables().empty()) {
+            std::string msg("uuid or variables is required");
+            return Status(StatusCode::INVALID_ARGUMENT, msg);
+        }
+
+        if ((psession = switch_core_session_locate(request->uuid().c_str()))) {
+            switch_channel_t *channel = switch_core_session_get_channel(psession);
+
+            for (const auto& kv: request->variables()) {
+                switch_channel_set_variable(channel, kv.first.c_str(), kv.second.c_str());
+            }
+            switch_core_session_rwunlock(psession);
+        } else {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("no such channel");
+        }
+
+        return Status::OK;
+
+    }
+
     Status ApiServiceImpl::Bridge(ServerContext *context, const fs::BridgeRequest *request,
                                   fs::BridgeResponse *reply) {
         switch_status_t status;
         if (request->leg_b_id().empty() || request->leg_b_id().empty()) {
-            std::string msg("Bridge error: leg_a_id or leg_b_id is required");
+            std::string msg("leg_a_id or leg_b_id is required");
             return Status(StatusCode::INVALID_ARGUMENT, msg);
         }
 
@@ -244,6 +219,57 @@ done:
             reply->mutable_error()->set_message("Invalid id");
         }
 
+        return Status::OK;
+    }
+
+    Status ApiServiceImpl::Hangup(ServerContext *context, const fs::HangupRequest *request,
+                                  fs::HangupResponse *reply) {
+        switch_call_cause_t cause = SWITCH_CAUSE_NORMAL_CLEARING;
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive hangup %s [%s]\n",
+                          request->uuid().c_str(), request->cause().c_str());
+
+        if (!request->cause().empty()) {
+            cause = switch_channel_str2cause(request->cause().c_str());
+        }
+
+        if (switch_ivr_kill_uuid(request->uuid().c_str(), cause) != SWITCH_STATUS_SUCCESS) {
+            reply->mutable_error()->set_message("No such channel!");
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+        }
+
+        return Status::OK;
+    }
+
+    Status ApiServiceImpl::HangupMatchingVars(ServerContext *context, const fs::HangupMatchingVarsReqeust *request,
+                                              fs::HangupMatchingVarsResponse *reply) {
+        switch_call_cause_t cause = SWITCH_CAUSE_MANAGER_REQUEST;
+        switch_event_t *vars = nullptr;
+        uint32_t count = 0;
+
+        if (request->variables().empty()) {
+            std::string msg("variables is required");
+            return Status(StatusCode::INVALID_ARGUMENT, msg);
+        }
+
+        if (!request->cause().empty()) {
+            cause = switch_channel_str2cause(request->cause().c_str());
+        }
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive hangup matching variables request\n");
+
+        switch_event_create(&vars, SWITCH_EVENT_CLONE);
+
+        for (const auto& kv: request->variables()) {
+            switch_event_add_header_string(vars, SWITCH_STACK_BOTTOM, kv.first.c_str(), kv.second.c_str());
+        }
+
+        count = switch_core_session_hupall_matching_vars_ans(vars, cause, static_cast<switch_hup_type_t>(SHT_UNANSWERED | SHT_ANSWERED));
+        reply->set_count(count);
+
+        if (vars) {
+            switch_event_destroy(&vars);
+        }
         return Status::OK;
     }
 
