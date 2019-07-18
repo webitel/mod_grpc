@@ -9,7 +9,9 @@ extern "C" {
 
 #include <grpcpp/grpcpp.h>
 #include <grpc/support/log.h>
+
 #include "generated/fs.grpc.pb.h"
+#include "Cluster.h"
 
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
@@ -45,7 +47,9 @@ namespace mod_grpc {
     };
 
     struct Config {
-        char const *server_address;
+        char const *consul_address;
+        char const *grpc_host;
+        int grpc_port;
     };
 
     Config loadConfig();
@@ -58,6 +62,7 @@ namespace mod_grpc {
         void Shutdown();
     private:
         std::unique_ptr<Server> server_;
+        Cluster *cluster_;
         std::string server_address_;
         std::thread thread_;
     };

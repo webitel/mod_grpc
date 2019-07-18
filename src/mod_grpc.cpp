@@ -8,6 +8,8 @@
 #include <grpc/support/log.h>
 #include "generated/fs.grpc.pb.h"
 
+#include "Cluster.h"
+
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
 
 using namespace std;
@@ -273,11 +275,21 @@ namespace mod_grpc {
         return Status::OK;
     }
 
-    ServerImpl::ServerImpl(Config config_) : server_address_(config_.server_address) { }
+    ServerImpl::ServerImpl(Config config_) {
+        if (!config_.grpc_host) {
+            char ipV4_[80];
+            switch_find_local_ip(ipV4_, sizeof(ipV4_), nullptr, AF_INET);
+            config_.grpc_host = std::string(ipV4_).c_str();
+        }
+        server_address_ = std::string(config_.grpc_host)  + ":" + std::to_string(config_.grpc_port);
+
+        if (config_.consul_address) {
+            cluster_ = new Cluster(config_.consul_address, config_.grpc_host, config_.grpc_port);
+        }
+    }
 
     void ServerImpl::Run() {
         thread_ = std::thread([&](){
-
             ApiServiceImpl api;
             ServerBuilder builder;
             // Listen on the given address without any authentication mechanism.
@@ -300,6 +312,9 @@ namespace mod_grpc {
         if (thread_.joinable()) {
             thread_.join();
         }
+        if (cluster_) {
+            delete cluster_;
+        }
         server_.reset();
     }
 
@@ -308,17 +323,30 @@ namespace mod_grpc {
         auto config  = Config();
         static switch_xml_config_item_t instructions[] = {
                 SWITCH_CONFIG_ITEM(
-                        "server_address",
+                        "grpc_host",
                         SWITCH_CONFIG_STRING,
                         CONFIG_RELOADABLE,
-                        &config.server_address,
-                        "0.0.0.0:50051",
-                        nullptr, "server_address", "GRPC server address"),
+                        &config.grpc_host,
+                        nullptr,
+                        nullptr, "grpc_host", "GRPC server address"),
+                SWITCH_CONFIG_ITEM(
+                        "grpc_port",
+                        SWITCH_CONFIG_INT,
+                        CONFIG_RELOADABLE,
+                        &config.grpc_port,
+                        (void *) 50051,
+                        nullptr, nullptr, "GRPC server port"),
+                SWITCH_CONFIG_ITEM(
+                        "consul_address",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.consul_address,
+                        nullptr,
+                        nullptr, "consul_address", "Consul address"),
                 SWITCH_CONFIG_ITEM_END()
         };
 
         if (switch_xml_config_parse_module_settings("grpc.conf", SWITCH_FALSE, instructions) != SWITCH_STATUS_SUCCESS) {
-            config.server_address = "0.0.0.0:50051";
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "Can't load grpc.conf. Use default GRPC config\n");
         }
 
