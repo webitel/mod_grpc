@@ -284,7 +284,8 @@ namespace mod_grpc {
         server_address_ = std::string(config_.grpc_host)  + ":" + std::to_string(config_.grpc_port);
 
         if (config_.consul_address) {
-            cluster_ = new Cluster(config_.consul_address, config_.grpc_host, config_.grpc_port);
+            cluster_ = new Cluster(config_.consul_address, config_.grpc_host, config_.grpc_port,
+                                   config_.consul_tts_sec, config_.consul_deregister_critical_tts_sec);
         }
     }
 
@@ -329,6 +330,20 @@ namespace mod_grpc {
                         &config.grpc_host,
                         nullptr,
                         nullptr, "grpc_host", "GRPC server address"),
+                SWITCH_CONFIG_ITEM(
+                        "consul_ttl_sec",
+                        SWITCH_CONFIG_INT,
+                        CONFIG_RELOADABLE,
+                        &config.consul_tts_sec,
+                        (void *) 60,
+                        nullptr, nullptr, "GRPC TTL"),
+                SWITCH_CONFIG_ITEM(
+                        "consul_deregister_critical_ttl_sec",
+                        SWITCH_CONFIG_INT,
+                        CONFIG_RELOADABLE,
+                        &config.consul_deregister_critical_tts_sec,
+                        (void *) 120,
+                        nullptr, nullptr, "GRPC degeregister critical TTL"),
                 SWITCH_CONFIG_ITEM(
                         "grpc_port",
                         SWITCH_CONFIG_INT,

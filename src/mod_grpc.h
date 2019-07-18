@@ -48,6 +48,8 @@ namespace mod_grpc {
 
     struct Config {
         char const *consul_address;
+        int consul_tts_sec;
+        int consul_deregister_critical_tts_sec;
         char const *grpc_host;
         int grpc_port;
     };

@@ -52,7 +52,7 @@ namespace mod_grpc {
     }
 
 
-    Cluster::Cluster(const std::string &server, const std::string &address, const int &port) : address_(address), port_(port) {
+    Cluster::Cluster(const std::string &server, const std::string &address, const int &port, const int &ttl, const int &deregister_ttl) : address_(address), port_(port) {
 
         timer_ = new Timer();
         id_ = std::string(switch_core_get_switchname());
@@ -61,7 +61,7 @@ namespace mod_grpc {
         deregister_uri =  server + UN_REGISTER_PATH;
         check_uri =  server + CHECK_PATH + id_;
 
-        registerService();
+        registerService(ttl, deregister_ttl);
     }
 
     Cluster::~Cluster() {
@@ -69,11 +69,12 @@ namespace mod_grpc {
         unregisterService();
     }
 
-    void Cluster::registerService() {
+    void Cluster::registerService(const int &ttl_s, const int &deregister_ttl) {
 
         std::string body = R"({"Name" : ")" + std::string(SERVICE_NAME) + R"(", "ID": ")" + id_ + R"(", "Address": ")" + address_ +
                            R"(", "Port": )" + std::to_string(port_) + ","
-                                                                      "\"Check\": {\"DeregisterCriticalServiceAfter\": \"120s\",\"TTL\": \"60s\"}" + "}";
+                           "\"Check\": {\"DeregisterCriticalServiceAfter\": \"" + std::to_string(deregister_ttl) +
+                           R"(s","TTL": ")" + std::to_string(ttl_s) + "s\"}" + "}";
 
         if (sendRequest(register_uri.c_str(), body.c_str()) != 200) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cluster] error register\n");
@@ -81,7 +82,7 @@ namespace mod_grpc {
         };
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[cluster]  registered: %s\n", body.c_str());
         ttl();
-        timer_->setTimeout(std::bind(&Cluster::ttl, this), 30000);
+        timer_->setTimeout(std::bind(&Cluster::ttl, this), (ttl_s * 1000) / 2);
     }
 
     void Cluster::unregisterService() {

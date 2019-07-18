@@ -44,10 +44,10 @@ namespace mod_grpc {
         std::string check_uri;
 
         void ttl();
-        void registerService();
+        void registerService(const int &ttl, const int &deregister_ttl);
         void unregisterService();
     public:
-        explicit Cluster(const std::string &server, const std::string &address, const int &port);
+        explicit Cluster(const std::string &server, const std::string &address, const int &port, const int &ttl, const int &deregister_ttl);
         ~Cluster();
     };
 
