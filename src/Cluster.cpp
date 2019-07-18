@@ -77,7 +77,7 @@ namespace mod_grpc {
 
         if (sendRequest(register_uri.c_str(), body.c_str()) != 200) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cluster] error register\n");
-            throw;
+            throw -1;
         };
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "[cluster]  registered: %s\n", body.c_str());
         ttl();
