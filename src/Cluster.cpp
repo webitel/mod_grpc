@@ -73,7 +73,7 @@ namespace mod_grpc {
 
         std::string body = R"({"Name" : ")" + std::string(SERVICE_NAME) + R"(", "ID": ")" + id_ + R"(", "Address": ")" + address_ +
                            R"(", "Port": )" + std::to_string(port_) + ","
-                                                                      "\"Check\": {\"TTL\": \"60s\"}" + "}";
+                                                                      "\"Check\": {\"DeregisterCriticalServiceAfter\": \"120s\",\"TTL\": \"60s\"}" + "}";
 
         if (sendRequest(register_uri.c_str(), body.c_str()) != 200) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "[cluster] error register\n");
