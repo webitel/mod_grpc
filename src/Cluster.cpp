@@ -106,7 +106,9 @@ namespace mod_grpc {
             headers = switch_curl_slist_append(headers, "Content-Type: application/json");
             switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
 
+#ifdef DEBUG_CURL
             switch_curl_easy_setopt(cli, CURLOPT_VERBOSE, 1L);
+#endif
             switch_curl_easy_setopt(cli, CURLOPT_CUSTOMREQUEST, "PUT");
 
             if (body) {
