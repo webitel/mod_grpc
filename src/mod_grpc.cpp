@@ -290,16 +290,8 @@ namespace mod_grpc {
     }
 
     void ServerImpl::Run() {
+        initServer();
         thread_ = std::thread([&](){
-            ApiServiceImpl api;
-            ServerBuilder builder;
-            // Listen on the given address without any authentication mechanism.
-            builder.AddListeningPort(server_address_, grpc::InsecureServerCredentials());
-            // Register "service" as the instance through which we'll communicate with
-            // clients. In this case it corresponds to an *synchronous* service.
-            builder.RegisterService(&api);
-            // Finally assemble the server.
-            server_ = builder.BuildAndStart();
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Server listening on %s\n", server_address_.c_str());
             server_->Wait();
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Server shutdown\n");
@@ -317,6 +309,23 @@ namespace mod_grpc {
             delete cluster_;
         }
         server_.reset();
+    }
+
+    void ServerImpl::initServer() {
+        ApiServiceImpl api;
+        ServerBuilder builder;
+        // Listen on the given address without any authentication mechanism.
+        builder.AddListeningPort(server_address_, grpc::InsecureServerCredentials());
+        // Register "service" as the instance through which we'll communicate with
+        // clients. In this case it corresponds to an *synchronous* service.
+        builder.RegisterService(&api);
+        // Finally assemble the server.
+        server_ = builder.BuildAndStart();
+
+        if (!server_) {
+            this->Shutdown();
+            throw "Can't bind to address: " + server_address_;
+        }
     }
 
     Config loadConfig() {

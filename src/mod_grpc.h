@@ -63,6 +63,7 @@ namespace mod_grpc {
         void Run();
         void Shutdown();
     private:
+        void initServer();
         std::unique_ptr<Server> server_;
         Cluster *cluster_;
         std::string server_address_;
