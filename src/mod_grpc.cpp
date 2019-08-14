@@ -299,26 +299,26 @@ namespace mod_grpc {
     }
 
     void ServerImpl::Shutdown() {
+
         if (server_) {
             server_->Shutdown();
         }
+
         if (thread_.joinable()) {
             thread_.join();
         }
-        if (cluster_) {
-            delete cluster_;
-        }
+
+        delete cluster_;
         server_.reset();
     }
 
     void ServerImpl::initServer() {
-        ApiServiceImpl api;
         ServerBuilder builder;
         // Listen on the given address without any authentication mechanism.
         builder.AddListeningPort(server_address_, grpc::InsecureServerCredentials());
         // Register "service" as the instance through which we'll communicate with
         // clients. In this case it corresponds to an *synchronous* service.
-        builder.RegisterService(&api);
+        builder.RegisterService(&api_);
         // Finally assemble the server.
         server_ = builder.BuildAndStart();
 

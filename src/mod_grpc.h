@@ -65,6 +65,7 @@ namespace mod_grpc {
     private:
         void initServer();
         std::unique_ptr<Server> server_;
+        ApiServiceImpl api_;
         Cluster *cluster_;
         std::string server_address_;
         std::thread thread_;
