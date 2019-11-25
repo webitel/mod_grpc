@@ -14,6 +14,7 @@ extern "C" {
 #include <mutex>
 #include <condition_variable>
 #include "switch_curl.h"
+#include "CallManager.h"
 
 namespace mod_grpc {
     static long sendRequest(const char *uri, const char *body);
@@ -46,6 +47,8 @@ namespace mod_grpc {
         void ttl();
         void registerService(const int &ttl, const int &deregister_ttl);
         void unregisterService();
+
+        CallManager *cm;
     public:
         explicit Cluster(const std::string &server, const std::string &address, const int &port, const int &ttl, const int &deregister_ttl);
         ~Cluster();

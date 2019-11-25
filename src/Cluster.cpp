@@ -51,11 +51,12 @@ namespace mod_grpc {
         stop();
     }
 
-
     Cluster::Cluster(const std::string &server, const std::string &address, const int &port, const int &ttl, const int &deregister_ttl) : address_(address), port_(port) {
 
         timer_ = new Timer();
         id_ = std::string(switch_core_get_switchname());
+
+        cm = new CallManager();
 
         register_uri =  server + REGISTER_PATH;
         deregister_uri =  server + UN_REGISTER_PATH;
@@ -66,6 +67,7 @@ namespace mod_grpc {
 
     Cluster::~Cluster() {
         delete timer_;
+        delete cm;
         unregisterService();
     }
 

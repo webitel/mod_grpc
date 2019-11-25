@@ -64,7 +64,7 @@ set(GENERATED_PROTOBUF_FILES ${FS_PB_H_FILE} ${FS_PB_CPP_FILE}
         ${FS_GRPC_PB_H_FILE} ${FS_GRPC_P_CPP_FILE})
 
 
-add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Cluster.cpp src/Cluster.h ${FS_PB_CPP_FILE} ${FS_PB_H_FILE} ${FS_GRPC_PB_CPP_FILE} ${FS_GRPC_PB_H_FILE})
+add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h  ${FS_PB_CPP_FILE} ${FS_PB_H_FILE} ${FS_GRPC_PB_CPP_FILE} ${FS_GRPC_PB_H_FILE})
 target_include_directories(mod_grpc PRIVATE ${GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE}
         -pthread)
