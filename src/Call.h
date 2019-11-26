@@ -27,6 +27,7 @@ extern "C" {
 #define HEADER_NAME_TO_NAME "to_name"
 #define HEADER_NAME_DTMF_DIGIT "digit"
 #define HEADER_NAME_PARENT_ID "parent_id"
+#define HEADER_NAME_GATEWAY_ID "gateway_id"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -107,6 +108,7 @@ protected:
         std::string to_number_;
         std::string to_name_;
         std::string parent_id_;
+        std::string gateway_id_;
 
         if (displayDirection && strlen(displayDirection) != 0) {
             direction_ = std::string(displayDirection);
@@ -117,6 +119,7 @@ protected:
         }
 
         parent_id_ = get_str(switch_event_get_header(e, "Other-Leg-Unique-ID"));
+        gateway_id_ = get_str(switch_event_get_header(e, "variable_sip_h_X-Webitel-Gateway-Id"));
 
         if ((tmp = switch_event_get_header(e, "Caller-Channel-Answered-Time") ) && strcmp(tmp, "0") != 0) {
             answered = true;
@@ -154,6 +157,9 @@ protected:
 
         if (!parent_id_.empty()) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_PARENT_ID, parent_id_.c_str());
+        }
+        if (!gateway_id_.empty()) {
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_GATEWAY_ID, gateway_id_.c_str());
         }
 
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_FROM_ID, from_number_.c_str());
