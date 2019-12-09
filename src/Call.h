@@ -6,6 +6,7 @@
 #define MOD_GRPC_CALL_H
 
 #include <bits/unique_ptr.h>
+#include <ctime>
 #include <iostream>
 
 extern "C" {
@@ -28,6 +29,7 @@ extern "C" {
 #define HEADER_NAME_DTMF_DIGIT "digit"
 #define HEADER_NAME_PARENT_ID "parent_id"
 #define HEADER_NAME_GATEWAY_ID "gateway_id"
+#define HEADER_NAME_ACTIVITY_AT "activity_at"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -61,6 +63,10 @@ static const char* callEventStr(CallActions e) {
     }
 }
 
+static long int unixTimestamp() {
+    return static_cast<long int> (std::time(nullptr)) * 1000;
+}
+
 class BaseCallEvent {
 public:
     std::string uuid_;
@@ -82,6 +88,7 @@ public:
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_NODE_NAME, node_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DOMAIN_ID, domain_id_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_USER_ID, user_id_.c_str());
+        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_ACTIVITY_AT, std::to_string(unixTimestamp()).c_str());
     }
 
     ~BaseCallEvent() {
