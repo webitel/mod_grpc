@@ -91,6 +91,7 @@ namespace mod_grpc {
             || !caller_session) {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
             reply->mutable_error()->set_message(switch_channel_cause2str(cause));
+            reply->set_error_code(static_cast<::google::protobuf::int32>(cause));
 
             goto done;
         }
