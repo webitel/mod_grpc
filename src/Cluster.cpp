@@ -2,7 +2,7 @@
 // Created by igor on 17.07.19.
 //
 
-
+#include <functional>
 #include "Cluster.h"
 
 #define SERVICE_NAME "freeswitch"
