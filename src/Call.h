@@ -30,6 +30,8 @@ extern "C" {
 #define HEADER_NAME_PARENT_ID "parent_id"
 #define HEADER_NAME_GATEWAY_ID "gateway_id"
 #define HEADER_NAME_ACTIVITY_AT "activity_at"
+#define HEADER_NAME_VIDEO_FLOW "video_flow"
+#define HEADER_NAME_VIDEO_REQUEST "video_request"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -96,7 +98,6 @@ public:
     }
 
     void fire() {
-//        DUMP_EVENT(out)
         switch_event_fire(&out);
     }
 
@@ -116,10 +117,12 @@ protected:
         std::string to_name_;
         std::string parent_id_;
         std::string gateway_id_;
+        std::string video_flow_;
+        std::string video_request_;
 
         if (displayDirection && strlen(displayDirection) != 0) {
             direction_ = std::string(displayDirection);
-        } else if (direction && strcmp(direction, "inbound") == 0) {
+        } else if (direction && ( strcmp(direction, "inbound") == 0 || strcmp(direction, "internal") == 0)) {
             direction_ = "inbound";
         } else {
             direction_ = "outbound";
@@ -127,6 +130,8 @@ protected:
 
         parent_id_ = get_str(switch_event_get_header(e, "Other-Leg-Unique-ID"));
         gateway_id_ = get_str(switch_event_get_header(e, "variable_sip_h_X-Webitel-Gateway-Id"));
+        video_flow_ = get_str(switch_event_get_header(e, "variable_video_media_flow"));
+        video_request_ = get_str(switch_event_get_header(e, "variable_video_request"));
 
         if ((tmp = switch_event_get_header(e, "Caller-Channel-Answered-Time") ) && strcmp(tmp, "0") != 0) {
             answered = true;
@@ -161,6 +166,14 @@ protected:
 
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DIRECTION, direction_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DESTINATION, destination_.c_str());
+
+        if (!video_flow_.empty()) {
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_VIDEO_FLOW, video_flow_.c_str());
+        }
+
+        if (!answered && video_request_ == "true") {
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_VIDEO_REQUEST, "true");
+        }
 
         if (!parent_id_.empty()) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_PARENT_ID, parent_id_.c_str());
