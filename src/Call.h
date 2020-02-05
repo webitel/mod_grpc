@@ -28,10 +28,12 @@ extern "C" {
 #define HEADER_NAME_TO_NAME "to_name"
 #define HEADER_NAME_DTMF_DIGIT "digit"
 #define HEADER_NAME_PARENT_ID "parent_id"
+#define HEADER_NAME_OWNER_ID "owner_id"
 #define HEADER_NAME_GATEWAY_ID "gateway_id"
 #define HEADER_NAME_ACTIVITY_AT "activity_at"
 #define HEADER_NAME_VIDEO_FLOW "video_flow"
 #define HEADER_NAME_VIDEO_REQUEST "video_request"
+#define HEADER_NAME_SCREEN_REQUEST "screen_request"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -119,6 +121,8 @@ protected:
         std::string gateway_id_;
         std::string video_flow_;
         std::string video_request_;
+        std::string screen_request_;
+        std::string owner_id_;
 
         if (displayDirection && strlen(displayDirection) != 0) {
             direction_ = std::string(displayDirection);
@@ -129,9 +133,12 @@ protected:
         }
 
         parent_id_ = get_str(switch_event_get_header(e, "Other-Leg-Unique-ID"));
+        owner_id_ = get_str(switch_event_get_header(e, "variable_request_parent_call_id"));
+
         gateway_id_ = get_str(switch_event_get_header(e, "variable_sip_h_X-Webitel-Gateway-Id"));
         video_flow_ = get_str(switch_event_get_header(e, "variable_video_media_flow"));
         video_request_ = get_str(switch_event_get_header(e, "variable_video_request"));
+        screen_request_ = get_str(switch_event_get_header(e, "variable_screen_request"));
 
         if ((tmp = switch_event_get_header(e, "Caller-Channel-Answered-Time") ) && strcmp(tmp, "0") != 0) {
             answered = true;
@@ -175,9 +182,19 @@ protected:
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_VIDEO_REQUEST, "true");
         }
 
+        if (!answered && screen_request_ == "true") {
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_SCREEN_REQUEST, "true");
+        }
+
         if (!parent_id_.empty()) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_PARENT_ID, parent_id_.c_str());
         }
+
+
+        if (!owner_id_.empty()) {
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_OWNER_ID, owner_id_.c_str());
+        }
+
         if (!gateway_id_.empty()) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_GATEWAY_ID, gateway_id_.c_str());
         }
