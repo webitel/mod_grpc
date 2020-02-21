@@ -6,6 +6,8 @@
 #define MOD_GRPC_CALL_H
 
 #include <bits/unique_ptr.h>
+#include <map>
+#include <iterator>
 #include <ctime>
 #include <iostream>
 
@@ -34,10 +36,12 @@ extern "C" {
 #define HEADER_NAME_VIDEO_FLOW "video_flow"
 #define HEADER_NAME_VIDEO_REQUEST "video_request"
 #define HEADER_NAME_SCREEN_REQUEST "screen_request"
+#define HEADER_NAME_QUEUE_NODE "queue_node"
+#define HEADER_NAME_DATA "data"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
-enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, Hangup };
+enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, Hangup };
 
 //TODO
 static const char* callEventStr(CallActions e) {
@@ -62,13 +66,17 @@ static const char* callEventStr(CallActions e) {
             return "update";
         case Hangup:
             return "hangup";
+        case JoinQueue:
+            return "join_queue";
+        case LeavingQueue:
+            return "leaving_queue";
         default:
             return "unknown";
     }
 }
 
 static long int unixTimestamp() {
-    return static_cast<long int> (std::time(nullptr)) * 1000;
+    return static_cast<long int> (std::time(nullptr)) * 1000; //FIXME
 }
 
 class BaseCallEvent {
@@ -77,34 +85,65 @@ public:
     std::string node_;
     std::string domain_id_;
     std::string user_id_;
+    std::string cc_node_;
 
     explicit BaseCallEvent(CallActions action, switch_event_t *e) {
         if (switch_event_create_subclass(&out, SWITCH_EVENT_CLONE, EVENT_NAME) != SWITCH_STATUS_SUCCESS) {
             throw std::overflow_error("Couldn't create event\n");
         }
+        body_ = cJSON_CreateObject();
+
         uuid_ = get_str(switch_event_get_header(e, "Unique-ID"));
         node_ = get_str(switch_event_get_header(e, "FreeSWITCH-Switchname"));
         domain_id_ = get_str(switch_event_get_header(e, "variable_sip_h_X-Webitel-Domain-Id"));
         user_id_ = get_str(switch_event_get_header(e, "variable_sip_h_X-Webitel-User-Id"));
+        cc_node_ = get_str(switch_event_get_header(e, "variable_cc_node_id"));
+
+        if (!cc_node_.empty()) {
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_QUEUE_NODE, cc_node_.c_str());
+        }
 
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_ACTION, callEventStr(action));
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_ID, uuid_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_NODE_NAME, node_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DOMAIN_ID, domain_id_.c_str());
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_USER_ID, user_id_.c_str());
+        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_USER_ID, user_id_.c_str()); // FIXME
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_ACTIVITY_AT, std::to_string(unixTimestamp()).c_str());
     }
 
     ~BaseCallEvent() {
+        cJSON_Delete(body_);
         switch_event_destroy(&out);
     }
 
+    void addAttribute(const char *header, const std::string &val) {
+        cJSON_AddItemToObject(body_, header, cJSON_CreateString(val.c_str()));
+    }
+
+    void addAttribute(const char *header, const bool &val) {
+        cJSON_AddItemToObject(body_, header, cJSON_CreateBool(val));
+    }
+
+    void addAttribute(const char *header, const double &number) {
+        cJSON_AddItemToObject(body_, header, cJSON_CreateNumber(number));
+    }
+
+    void addAttribute(const char *header, cJSON *attr) {
+        cJSON_AddItemToObject(body_, header, attr);
+    }
+
     void fire() {
+        if (body_->child) {
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DATA, cJSON_PrintUnformatted(body_));
+        }
+        DUMP_EVENT(out)
         switch_event_fire(&out);
     }
 
 protected:
     switch_event_t *out = nullptr;
+    cJSON *body_ = nullptr;
+
     void set_call_info(switch_event_t *e) {
         const char *tmp = nullptr;
         const char *displayDirection = switch_event_get_header(e, "variable_sip_h_X-Webitel-Display-Direction");
@@ -171,43 +210,80 @@ protected:
             to_name_ = to_number_;
         }
 
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DIRECTION, direction_.c_str());
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DESTINATION, destination_.c_str());
+        addAttribute(HEADER_NAME_DIRECTION, direction_);
+        addAttribute(HEADER_NAME_DESTINATION, destination_);
+
+        addAttribute(HEADER_NAME_FROM_ID, from_number_);
+        addAttribute(HEADER_NAME_FROM_NAME, from_name_);
+        addAttribute(HEADER_NAME_TO_ID, to_number_);
+        addAttribute(HEADER_NAME_TO_NAME, to_name_);
 
         if (!video_flow_.empty()) {
-            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_VIDEO_FLOW, video_flow_.c_str());
+            addAttribute(HEADER_NAME_VIDEO_FLOW, video_flow_);
         }
 
         if (!answered && video_request_ == "true") {
-            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_VIDEO_REQUEST, "true");
+            addAttribute(HEADER_NAME_VIDEO_REQUEST, "true");
         }
 
         if (!answered && screen_request_ == "true") {
-            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_SCREEN_REQUEST, "true");
+            addAttribute(HEADER_NAME_SCREEN_REQUEST, "true");
         }
 
         if (!parent_id_.empty()) {
-            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_PARENT_ID, parent_id_.c_str());
+            addAttribute(HEADER_NAME_PARENT_ID, parent_id_);
         }
 
-
         if (!owner_id_.empty()) {
-            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_OWNER_ID, owner_id_.c_str());
+            addAttribute(HEADER_NAME_OWNER_ID, owner_id_);
         }
 
         if (!gateway_id_.empty()) {
-            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_GATEWAY_ID, gateway_id_.c_str());
+            addAttribute(HEADER_NAME_GATEWAY_ID, gateway_id_);
         }
 
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_FROM_ID, from_number_.c_str());
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_FROM_NAME, from_name_.c_str());
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_TO_ID, to_number_.c_str());
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_TO_NAME, to_name_.c_str());
         set_data(e);
     }
 
     static bool prefix(const char *pre, const char *str) {
         return strncmp(str, pre, strlen(pre)) == 0;
+    }
+
+    void set_queue_data(switch_event_t *event) {
+        switch_event_header_t *hp;
+        cJSON *cj;
+        bool found(false);
+
+        cj = cJSON_CreateObject();
+
+        for (hp = event->headers; hp; hp = hp->next) {
+
+            if (!prefix("variable_cc_", hp->name) ) {
+                continue;
+            }
+            found = true;
+
+            auto name = std::string(hp->name);
+            name = name.substr(12, name.length());
+
+            if (hp->idx) {
+                cJSON *a = cJSON_CreateArray();
+                int i;
+
+                for(i = 0; i < hp->idx; i++) {
+                    cJSON_AddItemToArray(a, cJSON_CreateString(hp->array[i]));
+                }
+
+                cJSON_AddItemToObject(cj, name.c_str(), a);
+
+            } else {
+                cJSON_AddItemToObject(cj, name.c_str(), cJSON_CreateString(hp->value));
+            }
+        }
+
+        if (found) {
+            addAttribute("queue", cj);
+        }
     }
 
     void set_data (switch_event_t *event) {
@@ -243,10 +319,8 @@ protected:
         }
 
         if (found) {
-            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, "payload", cJSON_PrintUnformatted(cj));
+            addAttribute("payload", cj);
         }
-
-        cJSON_Delete(cj);
     }
 };
 
@@ -304,7 +378,7 @@ public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(DTMF, e) {
 
         auto digit =  get_str(switch_event_get_header(e, "DTMF-Digit"));
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DTMF_DIGIT, digit.c_str());
+        addAttribute(HEADER_NAME_DTMF_DIGIT, digit);
     };
 };
 
@@ -317,10 +391,18 @@ public:
 
 template <> class CallEvent<Hangup> : public BaseCallEvent {
 public:
-    std::string cause_;
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Hangup, e) {
-        cause_ = get_str(switch_event_get_header(e, "variable_hangup_cause"));
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_HANGUP_CAUSE, cause_.c_str());
+        auto cause_ = get_str(switch_event_get_header(e, "variable_hangup_cause"));
+        auto sip_code_ = switch_event_get_header(e, "variable_sip_term_status");
+
+        addAttribute(HEADER_NAME_HANGUP_CAUSE, cause_);
+        addAttribute("originate_success",
+                switch_event_get_header(e, "variable_grpc_originate_success") != nullptr);
+
+        if (sip_code_) {
+            addAttribute("sip", std::atof(sip_code_));
+        }
+
     };
 };
 
@@ -328,7 +410,22 @@ template <> class CallEvent<Execute> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Execute, e) {
         auto app_ = get_str(switch_event_get_header(e, "Application"));
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, "application", app_.c_str());
+        addAttribute("application", app_);
+    };
+};
+
+template <> class CallEvent<JoinQueue> : public BaseCallEvent {
+public:
+    explicit CallEvent(switch_event_t *e) : BaseCallEvent(JoinQueue, e) {
+        set_call_info(e);
+        set_queue_data(e);
+    };
+};
+
+template <> class CallEvent<LeavingQueue> : public BaseCallEvent {
+public:
+    explicit CallEvent(switch_event_t *e) : BaseCallEvent(LeavingQueue, e) {
+
     };
 };
 

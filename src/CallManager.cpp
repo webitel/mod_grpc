@@ -5,7 +5,7 @@
 #include "CallManager.h"
 
 #define CALL_MANAGER_NAME "CALL_MANAGER"
-
+#define VALET_PARK_NAME "valet_parking::info"
 
 mod_grpc::CallManager::CallManager() {
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_CREATE, nullptr, CallManager::handle_call_event, nullptr);
@@ -18,8 +18,9 @@ mod_grpc::CallManager::CallManager() {
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_TALK, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_NOTALK, nullptr, CallManager::handle_call_event, nullptr);
 
-    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_EXECUTE, nullptr, CallManager::handle_call_event, nullptr);
+//    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_EXECUTE, nullptr, CallManager::handle_call_event, nullptr);
 
+    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, VALET_PARK_NAME, CallManager::handle_call_event, nullptr);
 }
 
 mod_grpc::CallManager::~CallManager() {
@@ -64,6 +65,20 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
 
             case SWITCH_EVENT_CHANNEL_EXECUTE:
                 CallEvent<Execute>(event).fire();
+                break;
+
+            case SWITCH_EVENT_CUSTOM:
+                if (strcmp(VALET_PARK_NAME, event->subclass_name) == 0) {
+                    auto action = switch_event_get_header(event, "Action");
+                    if (strcmp(action, "hold") == 0) {
+                        CallEvent<JoinQueue>(event).fire();
+                    } else if (strcmp(action, "bridge") == 0) {
+
+                    } else if (strcmp(action, "exit") == 0) {
+                        CallEvent<LeavingQueue>(event).fire();
+                    }
+
+                }
                 break;
             default:
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Unhandled event %s\n", switch_event_name(event->event_id));
