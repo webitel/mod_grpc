@@ -16,12 +16,13 @@ extern "C" {
 }
 
 #define EVENT_NAME "WEBITEL_CALL"
-#define HEADER_NAME_NODE_NAME "node_name"
+#define HEADER_NAME_NODE_NAME "app_id"
 #define HEADER_NAME_ID "id"
+#define HEADER_NAME_SIP_CALL_ID "sip_id"
 #define HEADER_NAME_USER_ID "user_id"
 #define HEADER_NAME_DOMAIN_ID "domain_id"
 #define HEADER_NAME_HANGUP_CAUSE "cause"
-#define HEADER_NAME_ACTION "action"
+#define HEADER_NAME_EVENT "event"
 #define HEADER_NAME_DIRECTION "direction"
 #define HEADER_NAME_DESTINATION "destination"
 #define HEADER_NAME_FROM_ID "from_number"
@@ -32,11 +33,11 @@ extern "C" {
 #define HEADER_NAME_PARENT_ID "parent_id"
 #define HEADER_NAME_OWNER_ID "owner_id"
 #define HEADER_NAME_GATEWAY_ID "gateway_id"
-#define HEADER_NAME_ACTIVITY_AT "activity_at"
+#define HEADER_NAME_TIMESTAMP "timestamp"
 #define HEADER_NAME_VIDEO_FLOW "video_flow"
 #define HEADER_NAME_VIDEO_REQUEST "video_request"
 #define HEADER_NAME_SCREEN_REQUEST "screen_request"
-#define HEADER_NAME_QUEUE_NODE "queue_node"
+#define HEADER_NAME_CC_NODE "cc_app_id"
 #define HEADER_NAME_DATA "data"
 
 #define get_str(c) c ? std::string(c) : std::string()
@@ -100,15 +101,18 @@ public:
         cc_node_ = get_str(switch_event_get_header(e, "variable_cc_node_id"));
 
         if (!cc_node_.empty()) {
-            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_QUEUE_NODE, cc_node_.c_str());
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_CC_NODE, cc_node_.c_str());
         }
 
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_ACTION, callEventStr(action));
+        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_EVENT, callEventStr(action));
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_ID, uuid_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_NODE_NAME, node_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DOMAIN_ID, domain_id_.c_str());
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_USER_ID, user_id_.c_str()); // FIXME
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_ACTIVITY_AT, std::to_string(unixTimestamp()).c_str());
+        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_TIMESTAMP, std::to_string(unixTimestamp()).c_str());
+
+        if (!user_id_.empty()) {
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_USER_ID, user_id_.c_str());
+        }
     }
 
     ~BaseCallEvent() {
@@ -136,7 +140,7 @@ public:
         if (body_->child) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DATA, cJSON_PrintUnformatted(body_));
         }
-        DUMP_EVENT(out)
+//        DUMP_EVENT(out)
         switch_event_fire(&out);
     }
 
@@ -162,6 +166,7 @@ protected:
         std::string video_request_;
         std::string screen_request_;
         std::string owner_id_;
+        std::string sip_call_id_;
 
         if (displayDirection && strlen(displayDirection) != 0) {
             direction_ = std::string(displayDirection);
@@ -178,6 +183,8 @@ protected:
         video_flow_ = get_str(switch_event_get_header(e, "variable_video_media_flow"));
         video_request_ = get_str(switch_event_get_header(e, "variable_video_request"));
         screen_request_ = get_str(switch_event_get_header(e, "variable_screen_request"));
+
+        sip_call_id_ = get_str(switch_event_get_header(e, direction_ == "outbound" ? "variable_sip_h_X-Webitel-Uuid" : "variable_sip_call_id" ));
 
         if ((tmp = switch_event_get_header(e, "Caller-Channel-Answered-Time") ) && strcmp(tmp, "0") != 0) {
             answered = true;
@@ -217,6 +224,10 @@ protected:
         addAttribute(HEADER_NAME_FROM_NAME, from_name_);
         addAttribute(HEADER_NAME_TO_ID, to_number_);
         addAttribute(HEADER_NAME_TO_NAME, to_name_);
+
+        if (!sip_call_id_.empty()) {
+            addAttribute(HEADER_NAME_SIP_CALL_ID, sip_call_id_);
+        }
 
         if (!video_flow_.empty()) {
             addAttribute(HEADER_NAME_VIDEO_FLOW, video_flow_);
