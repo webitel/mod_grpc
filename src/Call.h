@@ -18,25 +18,12 @@ extern "C" {
 #define EVENT_NAME "WEBITEL_CALL"
 #define HEADER_NAME_NODE_NAME "app_id"
 #define HEADER_NAME_ID "id"
-#define HEADER_NAME_SIP_CALL_ID "sip_id"
 #define HEADER_NAME_USER_ID "user_id"
 #define HEADER_NAME_DOMAIN_ID "domain_id"
 #define HEADER_NAME_HANGUP_CAUSE "cause"
 #define HEADER_NAME_EVENT "event"
-#define HEADER_NAME_DIRECTION "direction"
-#define HEADER_NAME_DESTINATION "destination"
-#define HEADER_NAME_FROM_ID "from_number"
-#define HEADER_NAME_FROM_NAME "from_name"
-#define HEADER_NAME_TO_ID "to_number"
-#define HEADER_NAME_TO_NAME "to_name"
 #define HEADER_NAME_DTMF_DIGIT "digit"
-#define HEADER_NAME_PARENT_ID "parent_id"
-#define HEADER_NAME_OWNER_ID "owner_id"
-#define HEADER_NAME_GATEWAY_ID "gateway_id"
 #define HEADER_NAME_TIMESTAMP "timestamp"
-#define HEADER_NAME_VIDEO_FLOW "video_flow"
-#define HEADER_NAME_VIDEO_REQUEST "video_request"
-#define HEADER_NAME_SCREEN_REQUEST "screen_request"
 #define HEADER_NAME_CC_NODE "cc_app_id"
 #define HEADER_NAME_DATA "data"
 
@@ -77,8 +64,17 @@ static const char* callEventStr(CallActions e) {
 }
 
 static long int unixTimestamp() {
-    return static_cast<long int> (std::time(nullptr)) * 1000; //FIXME
+    switch_time_t ts = switch_micro_time_now();
+    return static_cast<long int> (ts/1000);
 }
+
+class CallEndpoint {
+public:
+    std::string type;
+    std::string id;
+    std::string name;
+    std::string number;
+};
 
 class BaseCallEvent {
 public:
@@ -92,7 +88,10 @@ public:
         if (switch_event_create_subclass(&out, SWITCH_EVENT_CLONE, EVENT_NAME) != SWITCH_STATUS_SUCCESS) {
             throw std::overflow_error("Couldn't create event\n");
         }
+        event_ = new Event(e);
+        e_ = e;
         body_ = cJSON_CreateObject();
+        parent_ = switch_event_get_header(e_, "variable_wbt_parent_id");
 
         uuid_ = get_str(switch_event_get_header(e, "Unique-ID"));
         node_ = get_str(switch_event_get_header(e, "FreeSWITCH-Switchname"));
@@ -116,12 +115,17 @@ public:
     }
 
     ~BaseCallEvent() {
+        e_ = nullptr;
         cJSON_Delete(body_);
         switch_event_destroy(&out);
     }
 
     void addAttribute(const char *header, const std::string &val) {
         cJSON_AddItemToObject(body_, header, cJSON_CreateString(val.c_str()));
+    }
+
+    void addAttribute(const char *header, const char *val) {
+        cJSON_AddItemToObject(body_, header, cJSON_CreateString(val));
     }
 
     void addAttribute(const char *header, const bool &val) {
@@ -140,120 +144,187 @@ public:
         if (body_->child) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DATA, cJSON_PrintUnformatted(body_));
         }
-//        DUMP_EVENT(out)
+        DUMP_EVENT(out)
         switch_event_fire(&out);
     }
 
 protected:
+    class Event {
+    public:
+        explicit Event(switch_event_t *e) {
+            e_ = e;
+        }
+        ~Event() {
+            delete e_;
+
+
+
+        }
+        std::string getVar(const char *name) {
+            return get_str(switch_event_get_header(e_, name));
+        }
+
+    private:
+        switch_event_t *e_ = nullptr;
+    };
+
     switch_event_t *out = nullptr;
     cJSON *body_ = nullptr;
+    switch_event_t *e_ = nullptr;
+    Event *event_ = nullptr;
+    const char *parent_ = nullptr;
 
-    void set_call_info(switch_event_t *e) {
-        const char *tmp = nullptr;
-        const char *displayDirection = switch_event_get_header(e, "variable_sip_h_X-Webitel-Display-Direction");
-        const char *direction = switch_event_get_header(e, "variable_sip_h_X-Webitel-Direction");
+    struct Info {
+        CallEndpoint *from = nullptr;
+        CallEndpoint *to = nullptr;
+        std::string parent_id = "";
+        std::string direction = "";
+        std::string destination = "";
+    };
 
-        bool answered(false);
-        std::string direction_;
-        std::string destination_;
-        std::string from_number_;
-        std::string from_name_;
-        std::string to_number_;
-        std::string to_name_;
-        std::string parent_id_;
-        std::string gateway_id_;
-        std::string video_flow_;
-        std::string video_request_;
-        std::string screen_request_;
-        std::string owner_id_;
-        std::string sip_call_id_;
+    struct OutboundCallParameters {
+        bool Video;
+        bool Screen;
+    };
 
-        if (displayDirection && strlen(displayDirection) != 0) {
-            direction_ = std::string(displayDirection);
-        } else if (direction && ( strcmp(direction, "inbound") == 0 || strcmp(direction, "internal") == 0)) {
-            direction_ = "inbound";
+    static cJSON* toJson(CallEndpoint *e) {
+        auto j = cJSON_CreateObject();
+        cJSON_AddItemToObject(j, "type", cJSON_CreateString(e->type.c_str()));
+        cJSON_AddItemToObject(j, "number", cJSON_CreateString(e->number.c_str()));
+        cJSON_AddItemToObject(j, "name", cJSON_CreateString(e->name.c_str()));
+        cJSON_AddItemToObject(j, "id", cJSON_CreateString(e->id.c_str()));
+        return j;
+    }
+
+    static cJSON* toJson(OutboundCallParameters *e) {
+        auto j = cJSON_CreateObject();
+        cJSON_AddItemToObject(j, "video", e->Video ? cJSON_CreateTrue() : cJSON_CreateFalse());
+        cJSON_AddItemToObject(j, "screen", e->Screen ? cJSON_CreateTrue() : cJSON_CreateFalse());
+        return j;
+    }
+
+    static void setBodyCallInfo(cJSON *j, Info *info) {
+        cJSON_AddItemToObject(j, "direction", cJSON_CreateString(info->direction.c_str()));
+        cJSON_AddItemToObject(j, "destination", cJSON_CreateString(info->destination.c_str()));
+        if (!info->parent_id.empty()) {
+            cJSON_AddItemToObject(j, "parent_id", cJSON_CreateString(info->parent_id.c_str()));
+        }
+        if (info->from) {
+            cJSON_AddItemToObject(j, "from", toJson(info->from));
+        }
+        if (info->to) {
+            cJSON_AddItemToObject(j, "to", toJson(info->to));
+        }
+    }
+
+    static void setCallParameters(cJSON *j, OutboundCallParameters *params) {
+        cJSON_AddItemToObject(j, "params", toJson(params));
+    }
+
+    std::string getDestination() {
+        std::string res = event_->getVar("Channel-Destination-Number");
+        if (!res.empty()) {
+            return res;
+        }
+
+        res = event_->getVar("Caller-Destination-Number");
+        if (!res.empty()) {
+            return res;
+        }
+
+        res = event_->getVar("variable_destination_number");
+        return res;
+    }
+
+    OutboundCallParameters getCallParams() {
+        auto params = OutboundCallParameters();
+        params.Video = event_->getVar("variable_wbt_video") == "true";
+        params.Screen = event_->getVar("variable_wbt_screen") == "true";
+        return params;
+    }
+
+    bool isOriginateRequest() {
+        return !event_->getVar("variable_sip_h_X-Webitel-Display-Direction").empty();
+    }
+
+    Info getCallInfo() {
+        auto info = Info();
+        if (parent_) {
+            info.parent_id = std::string(parent_);
+        }
+
+        info.direction = event_->getVar("variable_sip_h_X-Webitel-Direction");
+        auto logicalDirection = event_->getVar("Call-Direction");
+        auto isOriginate = isOriginateRequest();
+
+        if (info.direction == "internal" ){
+            info.direction = logicalDirection == "outbound" && !isOriginate ? "inbound" : "outbound";
+        }
+
+        if (isOriginate) {
+            info.destination = event_->getVar("variable_effective_callee_id_number");
         } else {
-            direction_ = "outbound";
+            info.destination = getDestination();
         }
 
-        parent_id_ = get_str(switch_event_get_header(e, "Other-Leg-Unique-ID"));
-        owner_id_ = get_str(switch_event_get_header(e, "variable_request_parent_call_id"));
+        auto gateway = event_->getVar("variable_sip_h_X-Webitel-Gateway-Id");
+        auto user = event_->getVar("variable_sip_h_X-Webitel-User-Id");
+        info.from = new CallEndpoint;
 
-        gateway_id_ = get_str(switch_event_get_header(e, "variable_sip_h_X-Webitel-Gateway-Id"));
-        video_flow_ = get_str(switch_event_get_header(e, "variable_video_media_flow"));
-        video_request_ = get_str(switch_event_get_header(e, "variable_video_request"));
-        screen_request_ = get_str(switch_event_get_header(e, "variable_screen_request"));
+        if (!gateway.empty() && user.empty()) {
+            addAttribute("gateway_id", static_cast<double>(std::stoi(gateway)));
+            if (info.direction == "inbound") {
+                info.from->type = "dest";
+                info.from->name = event_->getVar("Caller-Caller-ID-Name");
+                info.from->number = event_->getVar("Caller-Caller-ID-Number");
 
-        sip_call_id_ = get_str(switch_event_get_header(e, direction_ == "outbound" ? "variable_sip_h_X-Webitel-Uuid" : "variable_sip_call_id" ));
+                info.to = new CallEndpoint;
+                info.to->type = "gateway";
+                info.to->id = gateway;
+                info.to->name = event_->getVar("variable_sip_h_X-Webitel-Gateway");
+                info.to->number = event_->getVar("Caller-Caller-ID-Number");
+            } else {
+                //FIXME
+            }
+        } else if (!user.empty()) {
+            addAttribute("user_id", static_cast<double>(std::stoi(user)));
+            if (info.direction == "inbound") {
+                info.destination = event_->getVar("variable_wbt_destination");
+                info.from->type = event_->getVar("variable_wbt_from_type");
+                info.from->id = event_->getVar("variable_wbt_from_id");
+                info.from->number = event_->getVar("Other-Leg-Caller-ID-Number");
+                info.from->name = event_->getVar("Other-Leg-Caller-ID-Name");
 
-        if ((tmp = switch_event_get_header(e, "Caller-Channel-Answered-Time") ) && strcmp(tmp, "0") != 0) {
-            answered = true;
+                info.to = new CallEndpoint;
+                info.to->type = "user";
+                info.to->id = user;
+                info.to->name = event_->getVar("variable_wbt_to_name");
+                info.to->number = event_->getVar("variable_wbt_to_number");
+            } else {
+                info.from->type = "user";
+                info.from->id = user;
+                if (isOriginate) {
+                    info.from->number = event_->getVar("variable_effective_caller_id_name");
+                    info.from->name = event_->getVar("variable_effective_caller_id_name");
+                } else {
+                    info.from->number = event_->getVar("Caller-Caller-ID-Number");
+                    info.from->name = event_->getVar("Caller-Caller-ID-Name");
+                }
+            }
         }
 
-        if ( direction_ == "outbound" && direction && strcmp(direction, "internal") == 0 &&
-             (!answered || e->event_id == SWITCH_EVENT_CHANNEL_ANSWER )) {
+        return info;
+    }
 
-            destination_ = get_str(switch_event_get_header(e, "variable_sip_h_X-Webitel-Destination"));
+    void setOnCreateAttr() {
+        addIfExists(body_, "sip_id", "variable_sip_h_X-Webitel-Uuid");
+    }
 
-            from_number_ = get_str(switch_event_get_header(e, "Caller-Callee-ID-Number"));
-            from_name_ = get_str(switch_event_get_header(e, "Caller-Callee-ID-Name"));
-
-            to_number_ = get_str(switch_event_get_header(e, "Caller-Caller-ID-Number"));
-            to_name_ = get_str(switch_event_get_header(e, "Caller-Caller-ID-Name"));
-        } else {
-            destination_ = get_str(switch_event_get_header(e, "Caller-Destination-Number"));
-
-            from_number_ = get_str(switch_event_get_header(e, "Caller-Caller-ID-Number"));
-            from_name_ = get_str(switch_event_get_header(e, "Caller-Caller-ID-Name"));
-
-            to_number_ = get_str(switch_event_get_header(e, "Caller-Callee-ID-Number"));
-            to_name_ = get_str(switch_event_get_header(e, "Caller-Callee-ID-Name"));
+    void addIfExists(cJSON *cj, const char *name, const char *varName ) {
+        auto tmp = get_str(switch_event_get_header(e_, varName));
+        if (!tmp.empty()) {
+            cJSON_AddItemToObject(cj, name, cJSON_CreateString(tmp.c_str()));
         }
-
-        if (to_number_.empty()) {
-            to_number_ = destination_;
-        }
-        if (to_name_.empty()) {
-            to_name_ = to_number_;
-        }
-
-        addAttribute(HEADER_NAME_DIRECTION, direction_);
-        addAttribute(HEADER_NAME_DESTINATION, destination_);
-
-        addAttribute(HEADER_NAME_FROM_ID, from_number_);
-        addAttribute(HEADER_NAME_FROM_NAME, from_name_);
-        addAttribute(HEADER_NAME_TO_ID, to_number_);
-        addAttribute(HEADER_NAME_TO_NAME, to_name_);
-
-        if (!sip_call_id_.empty()) {
-            addAttribute(HEADER_NAME_SIP_CALL_ID, sip_call_id_);
-        }
-
-        if (!video_flow_.empty()) {
-            addAttribute(HEADER_NAME_VIDEO_FLOW, video_flow_);
-        }
-
-        if (!answered && video_request_ == "true") {
-            addAttribute(HEADER_NAME_VIDEO_REQUEST, "true");
-        }
-
-        if (!answered && screen_request_ == "true") {
-            addAttribute(HEADER_NAME_SCREEN_REQUEST, "true");
-        }
-
-        if (!parent_id_.empty()) {
-            addAttribute(HEADER_NAME_PARENT_ID, parent_id_);
-        }
-
-        if (!owner_id_.empty()) {
-            addAttribute(HEADER_NAME_OWNER_ID, owner_id_);
-        }
-
-        if (!gateway_id_.empty()) {
-            addAttribute(HEADER_NAME_GATEWAY_ID, gateway_id_);
-        }
-
-        set_data(e);
     }
 
     static bool prefix(const char *pre, const char *str) {
@@ -297,7 +368,7 @@ protected:
         }
     }
 
-    void set_data (switch_event_t *event) {
+    void setVariables (const char *pref, const char *fieldName, switch_event_t *event) {
         switch_event_header_t *hp;
         cJSON *cj;
         bool found(false);
@@ -306,7 +377,7 @@ protected:
 
         for (hp = event->headers; hp; hp = hp->next) {
 
-            if (!prefix("variable_wbt_", hp->name) ) {
+            if (!prefix(pref, hp->name) ) {
                 continue;
             }
             found = true;
@@ -330,7 +401,7 @@ protected:
         }
 
         if (found) {
-            addAttribute("payload", cj);
+            addAttribute(fieldName, cj);
         }
     }
 };
@@ -344,7 +415,15 @@ public:
 template <> class CallEvent<Ringing> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Ringing, e) {
-        set_call_info(e);
+          setOnCreateAttr();
+          auto info = getCallInfo();
+          setBodyCallInfo(body_, &info);
+          setVariables("variable_usr_", "payload", e_);
+
+        if (isOriginateRequest()) {
+            auto params = getCallParams();
+            setCallParameters(body_, &params);
+        }
     };
 
 };
@@ -359,7 +438,22 @@ public:
 template <> class CallEvent<Bridge> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Bridge, e) {
-        set_call_info(e);
+        auto direction = event_->getVar("variable_sip_h_X-Webitel-Direction");
+        auto logicalDirection = event_->getVar("Call-Direction");
+
+        if (direction == "internal" ){
+            direction = logicalDirection == "outbound" ? "inbound" : "outbound";
+        }
+        //fixme: hold ui!!!
+        auto bridgedEndpoint = new CallEndpoint;
+
+        auto to = new CallEndpoint;
+        to->number = event_->getVar("Caller-Callee-ID-Number");
+        to->name = event_->getVar("Caller-Callee-ID-Name");
+        addAttribute("to", toJson(to));
+        addAttribute("direction", direction.c_str());
+
+        addIfExists(body_, "bridged_id", "variable_signal_bond");
     };
 };
 
@@ -387,7 +481,6 @@ public:
 template <> class CallEvent<DTMF> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(DTMF, e) {
-
         auto digit =  get_str(switch_event_get_header(e, "DTMF-Digit"));
         addAttribute(HEADER_NAME_DTMF_DIGIT, digit);
     };
@@ -428,7 +521,6 @@ public:
 template <> class CallEvent<JoinQueue> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(JoinQueue, e) {
-        set_call_info(e);
         set_queue_data(e);
     };
 };

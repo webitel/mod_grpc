@@ -397,7 +397,7 @@ namespace mod_grpc {
         try {
             server_->Shutdown();
             delete server_;
-            google::protobuf::ShutdownProtobufLibrary();
+            google::protobuf::ShutdownProtobufLibrary(); //FIXME CRASH ???
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module shutting down completed\n");
         } catch (std::exception &ex) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error shutting down GRPC module: %s\n",

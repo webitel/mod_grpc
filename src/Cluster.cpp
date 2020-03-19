@@ -66,9 +66,9 @@ namespace mod_grpc {
     }
 
     Cluster::~Cluster() {
+        unregisterService();
         delete timer_;
         delete cm;
-        unregisterService();
     }
 
     void Cluster::registerService(const int &ttl_s, const int &deregister_ttl) {
