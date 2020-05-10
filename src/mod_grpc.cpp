@@ -236,6 +236,18 @@ namespace mod_grpc {
             cause = switch_channel_str2cause(request->cause().c_str());
         }
 
+        // FIXME add new function
+        if (request->reporting()) {
+            switch_core_session_t *psession = nullptr;
+            if ((psession = switch_core_session_locate(request->uuid().c_str()))) {
+                switch_channel_t *channel = switch_core_session_get_channel(psession);
+
+                switch_channel_set_variable(channel, "cc_reporting_at", std::to_string(unixTimestamp()).c_str());
+
+                switch_core_session_rwunlock(psession);
+            }
+        }
+
         if (switch_ivr_kill_uuid(request->uuid().c_str(), cause) != SWITCH_STATUS_SUCCESS) {
             reply->mutable_error()->set_message("No such channel!");
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);

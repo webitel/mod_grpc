@@ -19,6 +19,7 @@ extern "C" {
 #define HEADER_NAME_NODE_NAME "app_id"
 #define HEADER_NAME_ID "id"
 #define HEADER_NAME_USER_ID "user_id"
+#define HEADER_NAME_GATEWAY_ID "gateway_id"
 #define HEADER_NAME_DOMAIN_ID "domain_id"
 #define HEADER_NAME_HANGUP_CAUSE "cause"
 #define HEADER_NAME_EVENT "event"
@@ -97,7 +98,7 @@ public:
         node_ = get_str(switch_event_get_header(e, "FreeSWITCH-Switchname"));
         domain_id_ = get_str(switch_event_get_header(e, "variable_sip_h_X-Webitel-Domain-Id"));
         user_id_ = get_str(switch_event_get_header(e, "variable_sip_h_X-Webitel-User-Id"));
-        cc_node_ = get_str(switch_event_get_header(e, "variable_cc_node_id"));
+        cc_node_ = get_str(switch_event_get_header(e, "variable_cc_app_id"));
 
         if (!cc_node_.empty()) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_CC_NODE, cc_node_.c_str());
@@ -156,9 +157,6 @@ protected:
         }
         ~Event() {
             delete e_;
-
-
-
         }
         std::string getVar(const char *name) {
             return get_str(switch_event_get_header(e_, name));
@@ -271,7 +269,25 @@ protected:
         auto user = event_->getVar("variable_sip_h_X-Webitel-User-Id");
         info.from = new CallEndpoint;
 
-        if (!gateway.empty() && user.empty()) {
+        if (!user.empty()) {
+            addAttribute("user_id", static_cast<double>(std::stoi(user)));
+        }
+
+        if (!cc_node_.empty()) {
+            info.from->id = event_->getVar("variable_wbt_from_id");
+            info.from->number = event_->getVar("variable_wbt_from_number");
+            info.from->name = event_->getVar("variable_wbt_from_name");
+            info.from->type = event_->getVar("variable_wbt_from_type");
+
+            auto toType = event_->getVar("variable_wbt_to_type");
+            if (!toType.empty()) {
+                info.to = new CallEndpoint;
+                info.to->id = event_->getVar("variable_wbt_to_id");
+                info.to->name = event_->getVar("variable_wbt_to_name");
+                info.to->number = event_->getVar("variable_wbt_to_number");
+                info.to->type = toType;
+            }
+        } else if ( !gateway.empty() && user.empty()) {
             addAttribute("gateway_id", static_cast<double>(std::stoi(gateway)));
             if (info.direction == "inbound") {
                 info.from->type = "dest";
@@ -371,6 +387,7 @@ protected:
     void setVariables (const char *pref, const char *fieldName, switch_event_t *event) {
         switch_event_header_t *hp;
         cJSON *cj;
+        const size_t len = strlen(pref);
         bool found(false);
 
         cj = cJSON_CreateObject();
@@ -383,7 +400,7 @@ protected:
             found = true;
 
             auto name = std::string(hp->name);
-            name = name.substr(13, name.length());
+            name = name.substr(len, name.length());
 
             if (hp->idx) {
                 cJSON *a = cJSON_CreateArray();
@@ -419,6 +436,9 @@ public:
           auto info = getCallInfo();
           setBodyCallInfo(body_, &info);
           setVariables("variable_usr_", "payload", e_);
+          if (!cc_node_.empty()) {
+              setVariables("variable_cc_", "queue", e_);
+          }
 
         if (isOriginateRequest()) {
             auto params = getCallParams();
@@ -498,6 +518,11 @@ public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Hangup, e) {
         auto cause_ = get_str(switch_event_get_header(e, "variable_hangup_cause"));
         auto sip_code_ = switch_event_get_header(e, "variable_sip_term_status");
+        auto cc_reporting_at_ = switch_event_get_header(e, "variable_cc_reporting_at");
+
+        if (cc_reporting_at_) {
+            addAttribute("reporting_at", cc_reporting_at_);
+        }
 
         addAttribute(HEADER_NAME_HANGUP_CAUSE, cause_);
         addAttribute("originate_success",
