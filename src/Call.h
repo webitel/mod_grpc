@@ -524,6 +524,8 @@ public:
             addAttribute("reporting_at", cc_reporting_at_);
         }
 
+        setVariables("variable_usr_", "payload", e_);
+
         addAttribute(HEADER_NAME_HANGUP_CAUSE, cause_);
         addAttribute("originate_success",
                 switch_event_get_header(e, "variable_grpc_originate_success") != nullptr);

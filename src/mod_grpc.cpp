@@ -93,6 +93,7 @@ namespace mod_grpc {
             reply->mutable_error()->set_message(switch_channel_cause2str(cause));
             reply->set_error_code(static_cast<::google::protobuf::int32>(cause));
 
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Originate error %s\n", switch_channel_cause2str(cause));
             goto done;
         }
 
@@ -170,7 +171,7 @@ namespace mod_grpc {
         return Status::OK;
     }
 
-    Status ApiServiceImpl::SetVariables(ServerContext *context, const fs::SetVariablesReqeust *request,
+    Status ApiServiceImpl::SetVariables(ServerContext *context, const fs::SetVariablesRequest *request,
                                         fs::SetVariablesResponse *reply) {
 
         switch_core_session_t *psession = nullptr;
@@ -199,7 +200,7 @@ namespace mod_grpc {
     Status ApiServiceImpl::Bridge(ServerContext *context, const fs::BridgeRequest *request,
                                   fs::BridgeResponse *reply) {
         switch_status_t status;
-        if (request->leg_b_id().empty() || request->leg_b_id().empty()) {
+        if (request->leg_a_id().empty() || request->leg_b_id().empty()) {
             std::string msg("leg_a_id or leg_b_id is required");
             return Status(StatusCode::INVALID_ARGUMENT, msg);
         }
@@ -285,6 +286,33 @@ namespace mod_grpc {
         if (vars) {
             switch_event_destroy(&vars);
         }
+        return Status::OK;
+    }
+
+    Status ApiServiceImpl::Queue(ServerContext *context, const fs::QueueRequest *request, fs::QueueResponse *reply) {
+        switch_core_session_t *psession = nullptr;
+        if ((psession = switch_core_session_locate(request->id().c_str()))) {
+            switch_media_flag_t flags = SMF_ECHO_ALEG;
+            switch_channel_t *channel = switch_core_session_get_channel(psession);
+
+            if (!request->variables().empty()) {
+                for (const auto &kv: request->variables()) {
+                    switch_channel_set_variable(channel, kv.first.c_str(), kv.second.c_str());
+                }
+            }
+
+            if (!request->playback_file().empty()) {
+                flags |= SMF_LOOP; // FIXME add parameter
+                switch_ivr_broadcast(request->id().c_str(), request->playback_file().c_str(),  flags);
+            }
+
+            switch_core_session_rwunlock(psession);
+
+        } else {
+            reply->mutable_error()->set_message("No such channel!");
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+        }
+
         return Status::OK;
     }
 

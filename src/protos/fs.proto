@@ -5,10 +5,22 @@ package fs;
 service Api {
     rpc Originate(OriginateRequest) returns (OriginateResponse) {}
     rpc Execute(ExecuteRequest) returns (ExecuteResponse) {}
-    rpc SetVariables(SetVariablesReqeust) returns (SetVariablesResponse) {}
+    rpc SetVariables(SetVariablesRequest) returns (SetVariablesResponse) {}
     rpc Bridge(BridgeRequest) returns (BridgeResponse) {}
     rpc Hangup(HangupRequest) returns (HangupResponse) {}
     rpc HangupMatchingVars(HangupMatchingVarsReqeust) returns (HangupMatchingVarsResponse) {}
+    rpc Queue(QueueRequest) returns (QueueResponse) {}
+}
+
+message QueueRequest {
+    string id = 1;
+    map<string,string> variables = 2;
+    string playback_file = 3;
+    int32 playback_args = 4;
+}
+
+message QueueResponse {
+    ErrorExecute error = 1;
 }
 
 message ErrorExecute {
@@ -80,7 +92,7 @@ message BridgeResponse {
     ErrorExecute error = 2;
 }
 
-message SetVariablesReqeust {
+message SetVariablesRequest {
     string uuid = 1;
     map<string, string> variables = 2;
 }

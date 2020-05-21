@@ -32,7 +32,7 @@ namespace mod_grpc {
         Status Execute(ServerContext* context, const fs::ExecuteRequest* request,
                         fs::ExecuteResponse* reply) override;
 
-        Status SetVariables(ServerContext* context, const fs::SetVariablesReqeust* request,
+        Status SetVariables(ServerContext* context, const fs::SetVariablesRequest* request,
                             fs::SetVariablesResponse* reply) override;
 
         Status Bridge(ServerContext* context, const fs::BridgeRequest* request,
@@ -43,6 +43,9 @@ namespace mod_grpc {
 
         Status HangupMatchingVars(ServerContext* context, const fs::HangupMatchingVarsReqeust* request,
                                   fs::HangupMatchingVarsResponse* reply) override;
+
+        Status Queue(ServerContext* context, const fs::QueueRequest* request,
+                                  fs::QueueResponse* reply) override;
 
     };
 
