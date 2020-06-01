@@ -291,19 +291,27 @@ namespace mod_grpc {
 
     Status ApiServiceImpl::Queue(ServerContext *context, const fs::QueueRequest *request, fs::QueueResponse *reply) {
         switch_core_session_t *psession = nullptr;
-        if ((psession = switch_core_session_locate(request->id().c_str()))) {
+        if ((psession = switch_core_session_force_locate(request->id().c_str()))) {
             switch_media_flag_t flags = SMF_ECHO_ALEG;
             switch_channel_t *channel = switch_core_session_get_channel(psession);
 
-            if (!request->variables().empty()) {
-                for (const auto &kv: request->variables()) {
-                    switch_channel_set_variable(channel, kv.first.c_str(), kv.second.c_str());
-                }
+            if (!switch_channel_up(channel)) {
+                switch_core_session_rwunlock(psession);
+                return Status::CANCELLED;
             }
 
             if (!request->playback_file().empty()) {
                 flags |= SMF_LOOP; // FIXME add parameter
-                switch_ivr_broadcast(request->id().c_str(), request->playback_file().c_str(),  flags);
+                if (switch_ivr_broadcast(request->id().c_str(), request->playback_file().c_str(),  flags) != SWITCH_STATUS_SUCCESS) {
+                    switch_core_session_rwunlock(psession);
+                    return Status::CANCELLED;
+                };
+            }
+
+            if (!request->variables().empty()) {
+                for (const auto &kv: request->variables()) {
+                    switch_channel_set_variable_var_check(channel, kv.first.c_str(), kv.second.c_str(), SWITCH_FALSE);
+                }
             }
 
             switch_core_session_rwunlock(psession);
@@ -311,6 +319,7 @@ namespace mod_grpc {
         } else {
             reply->mutable_error()->set_message("No such channel!");
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            return Status::CANCELLED;
         }
 
         return Status::OK;

@@ -137,6 +137,10 @@ public:
         cJSON_AddItemToObject(body_, header, cJSON_CreateNumber(number));
     }
 
+    void addAttribute(const char *header, const int &number) {
+        cJSON_AddItemToObject(body_, header, cJSON_CreateNumber(number));
+    }
+
     void addAttribute(const char *header, cJSON *attr) {
         cJSON_AddItemToObject(body_, header, attr);
     }
@@ -294,13 +298,25 @@ protected:
                 info.from->name = event_->getVar("Caller-Caller-ID-Name");
                 info.from->number = event_->getVar("Caller-Caller-ID-Number");
 
-                info.to = new CallEndpoint;
-                info.to->type = "gateway";
-                info.to->id = gateway;
-                info.to->name = event_->getVar("variable_sip_h_X-Webitel-Gateway");
-                info.to->number = event_->getVar("Caller-Caller-ID-Number");
+//                info.to = new CallEndpoint;
+//                info.to->type = "gateway";
+//                info.to->id = gateway;
+//                info.to->name = event_->getVar("variable_sip_h_X-Webitel-Gateway");
+//                info.to->number = event_->getVar("Caller-Caller-ID-Number");
             } else {
-                //FIXME
+                info.from->id = event_->getVar("variable_wbt_from_id");
+                info.from->number = event_->getVar("variable_wbt_from_number");
+                info.from->name = event_->getVar("variable_wbt_from_name");
+                info.from->type = event_->getVar("variable_wbt_from_type");
+
+                auto toType = event_->getVar("variable_wbt_to_type");
+                if (!toType.empty()) {
+                    info.to = new CallEndpoint;
+                    info.to->id = event_->getVar("variable_wbt_to_id");
+                    info.to->name = event_->getVar("variable_wbt_to_name");
+                    info.to->number = event_->getVar("variable_wbt_to_number");
+                    info.to->type = toType;
+                }
             }
         } else if (!user.empty()) {
             addAttribute("user_id", static_cast<double>(std::stoi(user)));
@@ -517,11 +533,18 @@ template <> class CallEvent<Hangup> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Hangup, e) {
         auto cause_ = get_str(switch_event_get_header(e, "variable_hangup_cause"));
-        auto sip_code_ = switch_event_get_header(e, "variable_sip_term_status");
+        auto sip_code_ = get_str(switch_event_get_header(e, "variable_proto_specific_hangup_cause"));
         auto cc_reporting_at_ = switch_event_get_header(e, "variable_cc_reporting_at");
+        auto disposition = get_str(switch_event_get_header(e, "variable_sip_hangup_disposition"));
+
+//        DUMP_EVENT(e)
 
         if (cc_reporting_at_) {
             addAttribute("reporting_at", cc_reporting_at_);
+        }
+
+        if (!disposition.empty()) {
+            addAttribute("hangup_by", disposition.c_str());
         }
 
         setVariables("variable_usr_", "payload", e_);
@@ -530,10 +553,22 @@ public:
         addAttribute("originate_success",
                 switch_event_get_header(e, "variable_grpc_originate_success") != nullptr);
 
-        if (sip_code_) {
-            addAttribute("sip", std::atof(sip_code_));
+        int num = 0;
+
+        if (!sip_code_.empty()) {
+            sscanf( sip_code_.c_str(), "sip:%d", &num );
+        } else {
+            sip_code_ = get_str( switch_event_get_header(e, "variable_sip_term_status"));
+            if (!sip_code_.empty()) {
+                sscanf( sip_code_.c_str(), "%d", &num );
+            }
         }
 
+        if (num == 0) {
+            num = 200;
+        } else {
+            addAttribute("sip", num);
+        }
     };
 };
 
