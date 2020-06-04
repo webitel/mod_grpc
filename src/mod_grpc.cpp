@@ -301,7 +301,7 @@ namespace mod_grpc {
             }
 
             if (!request->playback_file().empty()) {
-                flags |= SMF_EXEC_INLINE; // FIXME add parameter
+                flags |= SMF_PRIORITY; // FIXME add parameter
                 if (switch_ivr_broadcast(request->id().c_str(), request->playback_file().c_str(),  flags) != SWITCH_STATUS_SUCCESS) {
                     switch_core_session_rwunlock(psession);
                     return Status::CANCELLED;
