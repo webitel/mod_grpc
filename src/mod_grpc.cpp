@@ -301,11 +301,11 @@ namespace mod_grpc {
             }
 
             if (!request->playback_file().empty()) {
-                flags |= SMF_LOOP; // FIXME add parameter
+                flags |= SMF_EXEC_INLINE; // FIXME add parameter
                 if (switch_ivr_broadcast(request->id().c_str(), request->playback_file().c_str(),  flags) != SWITCH_STATUS_SUCCESS) {
                     switch_core_session_rwunlock(psession);
                     return Status::CANCELLED;
-                };
+                }
             }
 
             if (!request->variables().empty()) {
@@ -427,9 +427,28 @@ namespace mod_grpc {
         return config;
     }
 
+    SWITCH_STANDARD_APP(wbr_queue_function) {
+            switch_channel_t *channel = switch_core_session_get_channel(session);
+
+            if (zstr(data)) {
+                return;
+            }
+
+            while(switch_channel_ready(channel)) {
+                switch_status_t pstatus = switch_ivr_play_file(session, NULL, data,
+                                                               nullptr);
+
+                if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
+                    break;
+                }
+            }
+    }
+
     SWITCH_MODULE_LOAD_FUNCTION(mod_grpc_load) {
         try {
             *module_interface = switch_loadable_module_create_module_interface(pool, modname);
+            switch_application_interface_t *app_interface;
+            SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed\n");
             server_ = new ServerImpl(loadConfig());
             server_->Run();
