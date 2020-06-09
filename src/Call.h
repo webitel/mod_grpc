@@ -565,7 +565,7 @@ public:
         }
 
         if (num == 0) {
-            num = 200;
+            addAttribute("sip", 200);
         } else {
             addAttribute("sip", num);
         }
