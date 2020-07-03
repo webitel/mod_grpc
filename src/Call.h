@@ -187,6 +187,7 @@ protected:
     struct OutboundCallParameters {
         bool Video;
         bool Screen;
+        bool AutoAnswer;
     };
 
     static cJSON* toJson(CallEndpoint *e) {
@@ -202,6 +203,7 @@ protected:
         auto j = cJSON_CreateObject();
         cJSON_AddItemToObject(j, "video", e->Video ? cJSON_CreateTrue() : cJSON_CreateFalse());
         cJSON_AddItemToObject(j, "screen", e->Screen ? cJSON_CreateTrue() : cJSON_CreateFalse());
+        cJSON_AddItemToObject(j, "autoAnswer", e->AutoAnswer ? cJSON_CreateTrue() : cJSON_CreateFalse());
         return j;
     }
 
@@ -242,6 +244,7 @@ protected:
         auto params = OutboundCallParameters();
         params.Video = event_->getVar("variable_wbt_video") == "true";
         params.Screen = event_->getVar("variable_wbt_screen") == "true";
+        params.AutoAnswer = event_->getVar("variable_wbt_auto_answer") == "true";
         return params;
     }
 
@@ -283,6 +286,10 @@ protected:
             info.from->name = event_->getVar("variable_wbt_from_name");
             info.from->type = event_->getVar("variable_wbt_from_type");
 
+            if (!gateway.empty()) {
+                addAttribute(HEADER_NAME_GATEWAY_ID, static_cast<double>(std::stoi(gateway)));
+            }
+
             auto toType = event_->getVar("variable_wbt_to_type");
             if (!toType.empty()) {
                 info.to = new CallEndpoint;
@@ -292,7 +299,7 @@ protected:
                 info.to->type = toType;
             }
         } else if ( !gateway.empty() && user.empty()) {
-            addAttribute("gateway_id", static_cast<double>(std::stoi(gateway)));
+            addAttribute(HEADER_NAME_GATEWAY_ID, static_cast<double>(std::stoi(gateway)));
             if (info.direction == "inbound") {
                 info.from->type = "dest";
                 info.from->name = event_->getVar("Caller-Caller-ID-Name");
