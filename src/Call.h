@@ -112,6 +112,7 @@ public:
 
         if (!user_id_.empty()) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_USER_ID, user_id_.c_str());
+            addAttribute(HEADER_NAME_USER_ID, static_cast<double>(std::stoi(user_id_)));
         }
     }
 
@@ -276,10 +277,6 @@ protected:
         auto user = event_->getVar("variable_sip_h_X-Webitel-User-Id");
         info.from = new CallEndpoint;
 
-        if (!user.empty()) {
-            addAttribute("user_id", static_cast<double>(std::stoi(user)));
-        }
-
         if (!cc_node_.empty()) {
             info.from->id = event_->getVar("variable_wbt_from_id");
             info.from->number = event_->getVar("variable_wbt_from_number");
@@ -326,7 +323,6 @@ protected:
                 }
             }
         } else if (!user.empty()) {
-            addAttribute("user_id", static_cast<double>(std::stoi(user)));
             if (info.direction == "inbound") {
                 info.destination = event_->getVar("variable_wbt_destination");
                 info.from->type = event_->getVar("variable_wbt_from_type");
