@@ -345,6 +345,15 @@ protected:
                     info.from->number = event_->getVar("Caller-Caller-ID-Number");
                     info.from->name = event_->getVar("Caller-Caller-ID-Name");
                 }
+
+                auto toType = event_->getVar("variable_wbt_to_type");
+                if (!toType.empty()) {
+                    info.to = new CallEndpoint;
+                    info.to->id = event_->getVar("variable_wbt_to_id");
+                    info.to->name = event_->getVar("variable_wbt_to_name");
+                    info.to->number = event_->getVar("variable_wbt_to_number");
+                    info.to->type = toType;
+                }
             }
         }
 
