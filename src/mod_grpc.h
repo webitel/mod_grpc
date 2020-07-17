@@ -13,6 +13,8 @@ extern "C" {
 #include "generated/fs.grpc.pb.h"
 #include "Cluster.h"
 
+#define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
+
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
 using grpc::ServerBuilder;

@@ -547,16 +547,19 @@ public:
         auto cause_ = get_str(switch_event_get_header(e, "variable_hangup_cause"));
         auto sip_code_ = get_str(switch_event_get_header(e, "variable_proto_specific_hangup_cause"));
         auto cc_reporting_at_ = switch_event_get_header(e, "variable_cc_reporting_at");
-        auto disposition = get_str(switch_event_get_header(e, "variable_sip_hangup_disposition"));
+        auto hangup_by = get_str(switch_event_get_header(e, "variable_sip_hangup_disposition"));
+
+        if (switch_event_get_header(e, "variable_grpc_send_hangup") != nullptr || hangup_by == "recv_bye" ||
+            hangup_by == "recv_refuse" || hangup_by == "recv_cancel" || (hangup_by == "send_refuse" && parent_)) {
+            addAttribute("hangup_by", parent_ ? "B" : "A");
+        } else {
+            addAttribute("hangup_by", parent_ ? "A" : "B");
+        }
 
 //        DUMP_EVENT(e)
 
         if (cc_reporting_at_) {
             addAttribute("reporting_at", cc_reporting_at_);
-        }
-
-        if (!disposition.empty()) {
-            addAttribute("hangup_by", disposition.c_str());
         }
 
         setVariables("variable_usr_", "payload", e_);
