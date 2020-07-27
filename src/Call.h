@@ -30,7 +30,7 @@ extern "C" {
 
 #define get_str(c) c ? std::string(c) : std::string()
 
-enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, Hangup };
+enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup };
 
 //TODO
 static const char* callEventStr(CallActions e) {
@@ -59,6 +59,8 @@ static const char* callEventStr(CallActions e) {
             return "join_queue";
         case LeavingQueue:
             return "leaving_queue";
+        case AMD:
+            return "amd";
         default:
             return "unknown";
     }
@@ -606,6 +608,14 @@ template <> class CallEvent<LeavingQueue> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(LeavingQueue, e) {
 
+    };
+};
+
+template <> class CallEvent<AMD> : public BaseCallEvent {
+public:
+    explicit CallEvent(switch_event_t *e) : BaseCallEvent(AMD, e) {
+        addIfExists(body_, "result", "variable_amd_result");
+        addIfExists(body_, "cause", "variable_amd_cause");
     };
 };
 
