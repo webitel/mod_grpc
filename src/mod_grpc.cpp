@@ -321,6 +321,31 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::HangupMany(ServerContext *context, const fs::HangupManyRequest *request,
+                                      fs::HangupManyResponse *reply) {
+        switch_call_cause_t cause = SWITCH_CAUSE_NORMAL_CLEARING;
+
+        if (!request->cause().empty()) {
+            cause = switch_channel_str2cause(request->cause().c_str());
+        }
+
+        for (const auto& id: request->id()) {
+            switch_core_session_t *session;
+
+            if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
+                switch_channel_t *channel = switch_core_session_get_channel(session);
+                switch_channel_set_variable(channel, "grpc_send_hangup", "1");
+
+                switch_channel_hangup(channel, cause);
+                switch_core_session_rwunlock(session);
+
+                reply->add_id(id);
+            }
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) {
         if (!config_.grpc_host) {
             char ipV4_[80];

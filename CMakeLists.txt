@@ -8,7 +8,7 @@ project(mod_grpc C CXX)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-gnu-unique")
 set(third_party_DIR "${CMAKE_SOURCE_DIR}/third_party")
 
-set(USE_GRPC_VERSION "v1.25.0" CACHE STRING "GRPC version")
+set(USE_GRPC_VERSION "v1.33.2" CACHE STRING "GRPC version")
 set(FREESWITCH_INCLUDE_DIR "" CACHE PATH "Location of FreeSWITCH headers")
 set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
 

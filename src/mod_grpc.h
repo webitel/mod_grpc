@@ -49,6 +49,9 @@ namespace mod_grpc {
         Status Queue(ServerContext* context, const fs::QueueRequest* request,
                                   fs::QueueResponse* reply) override;
 
+        Status HangupMany(ServerContext* context, const fs::HangupManyRequest* request,
+                      fs::HangupManyResponse* reply) override;
+
     };
 
     struct Config {

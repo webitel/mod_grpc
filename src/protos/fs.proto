@@ -10,6 +10,16 @@ service Api {
     rpc Hangup(HangupRequest) returns (HangupResponse) {}
     rpc HangupMatchingVars(HangupMatchingVarsReqeust) returns (HangupMatchingVarsResponse) {}
     rpc Queue(QueueRequest) returns (QueueResponse) {}
+    rpc HangupMany(HangupManyRequest) returns (HangupManyResponse) {}
+}
+
+message HangupManyRequest {
+    repeated string id = 1;
+    string cause = 2;
+}
+
+message HangupManyResponse {
+    repeated string id = 1;
 }
 
 message QueueRequest {
