@@ -586,6 +586,19 @@ public:
         } else {
             addAttribute("sip", num);
         }
+
+        auto hp = switch_event_get_header_ptr(e, "variable_wbt_tags");
+        if (hp) {
+            cJSON *tags = cJSON_CreateArray();
+            if (hp->idx) {
+                for (int i = 0; i < hp->idx; i++) {
+                    cJSON_AddItemToArray(tags, cJSON_CreateString(hp->array[i]));
+                }
+            } else if (hp->value) {
+                cJSON_AddItemToArray(tags, cJSON_CreateString(hp->value));
+            }
+            addAttribute("tags", tags);
+        }
     };
 };
 
