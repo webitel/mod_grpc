@@ -52,6 +52,12 @@ namespace mod_grpc {
         Status HangupMany(ServerContext* context, const fs::HangupManyRequest* request,
                       fs::HangupManyResponse* reply) override;
 
+        Status Hold(ServerContext* context, const fs::HoldRequest* request,
+                      fs::HoldResponse* reply) override;
+
+        Status UnHold(ServerContext* context, const fs::UnHoldRequest* request,
+                      fs::UnHoldResponse* reply) override;
+
     };
 
     struct Config {

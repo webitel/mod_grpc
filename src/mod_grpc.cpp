@@ -346,6 +346,40 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::Hold(ServerContext *context, const fs::HoldRequest *request, fs::HoldResponse *reply) {
+        for (const auto& id: request->id()) {
+            switch_core_session_t *session;
+
+            if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
+                switch_channel_t *channel = switch_core_session_get_channel(session);
+                if (!switch_channel_test_flag(channel, CF_HOLD)) {
+                    switch_ivr_hold(session, nullptr, (switch_bool_t)1);
+                    reply->add_id(id);
+                }
+                switch_core_session_rwunlock(session);
+            }
+        }
+
+        return Status::OK;
+    }
+
+    Status ApiServiceImpl::UnHold(ServerContext *context, const fs::UnHoldRequest *request, fs::UnHoldResponse *reply) {
+        for (const auto& id: request->id()) {
+            switch_core_session_t *session;
+
+            if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
+                switch_channel_t *channel = switch_core_session_get_channel(session);
+                if (switch_channel_test_flag(channel, CF_HOLD)) {
+                    switch_ivr_unhold(session);
+                    reply->add_id(id);
+                }
+                switch_core_session_rwunlock(session);
+            }
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) {
         if (!config_.grpc_host) {
             char ipV4_[80];

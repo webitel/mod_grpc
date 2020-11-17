@@ -11,6 +11,24 @@ service Api {
     rpc HangupMatchingVars(HangupMatchingVarsReqeust) returns (HangupMatchingVarsResponse) {}
     rpc Queue(QueueRequest) returns (QueueResponse) {}
     rpc HangupMany(HangupManyRequest) returns (HangupManyResponse) {}
+    rpc Hold(HoldRequest) returns (HoldResponse) {}
+    rpc UnHold(UnHoldRequest) returns (UnHoldResponse) {}
+}
+
+message HoldRequest {
+    repeated string id = 1;
+}
+
+message HoldResponse {
+    repeated string id = 1;
+}
+
+message UnHoldRequest {
+    repeated string id = 1;
+}
+
+message UnHoldResponse {
+    repeated string id = 1;
 }
 
 message HangupManyRequest {
