@@ -40,6 +40,12 @@ namespace mod_grpc {
         Status Bridge(ServerContext* context, const fs::BridgeRequest* request,
                       fs::BridgeResponse* reply) override;
 
+        Status BridgeCall(ServerContext* context, const fs::BridgeCallRequest* request,
+                      fs::BridgeCallResponse* reply) override;
+
+        Status StopPlayback(ServerContext* context, const fs::StopPlaybackRequest* request,
+                      fs::StopPlaybackResponse* reply) override;
+
         Status Hangup(ServerContext* context, const fs::HangupRequest* request,
                         fs::HangupResponse* reply) override;
 

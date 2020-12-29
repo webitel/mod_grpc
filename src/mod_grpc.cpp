@@ -380,6 +380,55 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::BridgeCall(ServerContext *context, const fs::BridgeCallRequest *request,
+                                      fs::BridgeCallResponse *reply) {
+        int bridged = 1;
+
+        if (switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str()) != SWITCH_STATUS_SUCCESS) {
+            bridged = 0;
+        }
+
+        if (bridged) {
+            switch_core_session_t *session;
+            session = switch_core_session_locate(request->leg_b_id().c_str());
+            if (session) {
+                switch_channel_t *channel = switch_core_session_get_channel(session);
+                if (switch_channel_wait_for_flag(channel, CF_BRIDGED, SWITCH_TRUE, 3000, nullptr) != SWITCH_STATUS_SUCCESS) {
+                    bridged = 0;
+                }
+
+                switch_core_session_rwunlock(session);
+            } else {
+                bridged = 0;
+            }
+        }
+
+        if (!bridged) {
+            reply->mutable_error()->set_message("not found call id");
+        }
+
+        return Status::OK;
+    }
+
+    Status ApiServiceImpl::StopPlayback(ServerContext *context, const fs::StopPlaybackRequest *request,
+                                        fs::StopPlaybackResponse *reply) {
+        switch_core_session_t *session;
+
+        if (!request->id().empty() && (session = switch_core_session_locate(request->id().c_str()))) {
+            switch_channel_t *channel = switch_core_session_get_channel(session);
+//            switch_channel_clear_flag(channel, CF_HOLD);
+            switch_channel_stop_broadcast(channel);
+            switch_channel_wait_for_flag(channel, CF_BROADCAST, SWITCH_FALSE, 5000, NULL);
+
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "executed stop_playback\n");
+            switch_core_session_rwunlock(session);
+        } else {
+            return Status::CANCELLED;
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) {
         if (!config_.grpc_host) {
             char ipV4_[80];
@@ -499,11 +548,42 @@ namespace mod_grpc {
             }
     }
 
+
+    SWITCH_STANDARD_APP(wbt_queue_playback_function) {
+        switch_channel_t *channel = switch_core_session_get_channel(session);
+        switch_status_t status = SWITCH_STATUS_SUCCESS;
+        const char *file = data;
+
+        while (switch_channel_ready(channel)) {
+            status = switch_ivr_play_file(session, NULL, file, NULL);
+
+            if ( status != SWITCH_STATUS_SUCCESS) {
+                break;
+            }
+        }
+
+        switch (status) {
+            case SWITCH_STATUS_SUCCESS:
+            case SWITCH_STATUS_BREAK:
+                switch_channel_set_variable(channel, SWITCH_CURRENT_APPLICATION_RESPONSE_VARIABLE, "FILE PLAYED");
+                break;
+            case SWITCH_STATUS_NOTFOUND:
+                switch_channel_set_variable(channel, SWITCH_CURRENT_APPLICATION_RESPONSE_VARIABLE, "FILE NOT FOUND");
+                break;
+            default:
+                switch_channel_set_variable(channel, SWITCH_CURRENT_APPLICATION_RESPONSE_VARIABLE, "PLAYBACK ERROR");
+                break;
+        }
+
+    }
+
+
     SWITCH_MODULE_LOAD_FUNCTION(mod_grpc_load) {
         try {
             *module_interface = switch_loadable_module_create_module_interface(pool, modname);
             switch_application_interface_t *app_interface;
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
+            SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback", wbt_queue_playback_function, "", SAF_NONE);
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed\n");
             server_ = new ServerImpl(loadConfig());
             server_->Run();

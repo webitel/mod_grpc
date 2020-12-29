@@ -7,12 +7,32 @@ service Api {
     rpc Execute(ExecuteRequest) returns (ExecuteResponse) {}
     rpc SetVariables(SetVariablesRequest) returns (SetVariablesResponse) {}
     rpc Bridge(BridgeRequest) returns (BridgeResponse) {}
+    rpc BridgeCall(BridgeCallRequest) returns (BridgeCallResponse) {}
+    rpc StopPlayback(StopPlaybackRequest) returns (StopPlaybackResponse) {}
     rpc Hangup(HangupRequest) returns (HangupResponse) {}
     rpc HangupMatchingVars(HangupMatchingVarsReqeust) returns (HangupMatchingVarsResponse) {}
     rpc Queue(QueueRequest) returns (QueueResponse) {}
     rpc HangupMany(HangupManyRequest) returns (HangupManyResponse) {}
     rpc Hold(HoldRequest) returns (HoldResponse) {}
     rpc UnHold(UnHoldRequest) returns (UnHoldResponse) {}
+}
+
+message StopPlaybackRequest {
+    string id = 1;
+}
+
+message StopPlaybackResponse {
+
+}
+
+message BridgeCallRequest {
+    string leg_a_id = 1;
+    string leg_b_id = 2;
+    map<string,string> variables = 3;
+}
+
+message BridgeCallResponse {
+    ErrorExecute error = 1;
 }
 
 message HoldRequest {
