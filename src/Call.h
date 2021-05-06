@@ -152,7 +152,7 @@ public:
         if (body_->child) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DATA, cJSON_PrintUnformatted(body_));
         }
-        DUMP_EVENT(out)
+//        DUMP_EVENT(out)
         switch_event_fire(&out);
     }
 
