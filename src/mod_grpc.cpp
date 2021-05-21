@@ -241,10 +241,18 @@ namespace mod_grpc {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
         } else {
             switch_channel_t *channel = switch_core_session_get_channel(session);
-            switch_channel_set_variable(channel, "grpc_send_hangup", "1");
+            for (const auto& kv: request->variables()) {
+                switch_channel_set_variable(channel, kv.first.c_str(), kv.second.c_str());
+
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Set hangup var %s [%s = %s]\n",
+                                  request->uuid().c_str(), kv.first.c_str(), kv.second.c_str());
+            }
+
             if (request->reporting()) {
                 switch_channel_set_variable(channel, "cc_reporting_at", std::to_string(unixTimestamp()).c_str());
             }
+
+            switch_channel_set_variable(channel, "grpc_send_hangup", "1");
 
             switch_channel_hangup(channel, cause);
             switch_core_session_rwunlock(session);
@@ -577,12 +585,17 @@ namespace mod_grpc {
 
     }
 
+    SWITCH_STANDARD_APP(wbt_blind_transfer_function) {
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "BLIND TRANSFER\n");
+    }
+
 
     SWITCH_MODULE_LOAD_FUNCTION(mod_grpc_load) {
         try {
             *module_interface = switch_loadable_module_create_module_interface(pool, modname);
             switch_application_interface_t *app_interface;
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
+            SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer", wbt_blind_transfer_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback", wbt_queue_playback_function, "", SAF_NONE);
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed\n");
             server_ = new ServerImpl(loadConfig());

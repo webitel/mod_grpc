@@ -7,6 +7,7 @@
 #define CALL_MANAGER_NAME "CALL_MANAGER"
 #define VALET_PARK_NAME "valet_parking::info"
 #define AMD_EVENT_NAME "amd::info"
+#define SKIP_EVENT_VARIABLE "skip_channel_events"
 
 mod_grpc::CallManager::CallManager() {
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_CREATE, nullptr, CallManager::handle_call_event, nullptr);
@@ -31,6 +32,9 @@ mod_grpc::CallManager::~CallManager() {
 
 void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
     try {
+        if (switch_event_get_header(event, SKIP_EVENT_VARIABLE)) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Skip event %s by variable\n", switch_event_name(event->event_id));
+        }
         switch (event->event_id) {
             case SWITCH_EVENT_CHANNEL_CREATE:
                 CallEvent<Ringing>(event).fire();
