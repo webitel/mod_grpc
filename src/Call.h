@@ -364,6 +364,10 @@ protected:
 
     void setOnCreateAttr() {
         addIfExists(body_, "sip_id", "variable_sip_h_X-Webitel-Uuid");
+        auto grantee = get_str(switch_event_get_header(e_, "variable_wbt_grantee_id"));
+        if (!grantee.empty()) {
+            addAttribute("grantee_id", std::stoi( grantee ));
+        }
     }
 
     void addIfExists(cJSON *cj, const char *name, const char *varName ) {
