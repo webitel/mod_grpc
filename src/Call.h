@@ -562,6 +562,9 @@ public:
             addAttribute("hangup_by", parent_ ? "A" : "B");
         }
 
+        addIfExists(body_, "amd_result", "variable_amd_result");
+        addIfExists(body_, "amd_cause", "variable_amd_cause");
+
 //        DUMP_EVENT(e)
 
         if (cc_reporting_at_) {
