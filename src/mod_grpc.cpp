@@ -65,8 +65,8 @@ namespace mod_grpc {
 
         std::stringstream aleg;
 
-        for(size_t i = 0; i < request->endpoints().size(); ++i) {
-            if(i != 0)
+        for (size_t i = 0; i < request->endpoints().size(); ++i) {
+            if (i != 0)
                 aleg << separator;
             aleg << request->endpoints()[i];
         }
@@ -77,7 +77,7 @@ namespace mod_grpc {
                 return Status(StatusCode::INTERNAL, msg);
             }
 
-            for (const auto& kv: request->variables()) {
+            for (const auto &kv: request->variables()) {
                 switch_event_add_header_string(var_event, SWITCH_STACK_BOTTOM, kv.first.c_str(), kv.second.c_str());
             }
         }
@@ -91,7 +91,8 @@ namespace mod_grpc {
             reply->mutable_error()->set_message(switch_channel_cause2str(cause));
             reply->set_error_code(static_cast<::google::protobuf::int32>(cause));
 
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Originate error %s\n", switch_channel_cause2str(cause));
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Originate error %s\n",
+                              switch_channel_cause2str(cause));
             goto done;
         }
 
@@ -131,8 +132,8 @@ namespace mod_grpc {
     }
 
     Status ApiServiceImpl::Execute(ServerContext *context, const fs::ExecuteRequest *request,
-                                   fs::ExecuteResponse *reply)  {
-        switch_stream_handle_t stream = { 0 };
+                                   fs::ExecuteResponse *reply) {
+        switch_stream_handle_t stream = {0};
 
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive execute cmd: %s [%s]\n",
                           request->command().c_str(), request->args().c_str());
@@ -145,11 +146,12 @@ namespace mod_grpc {
 
         SWITCH_STANDARD_STREAM(stream);
 
-        if (switch_api_execute(request->command().c_str(), request->args().c_str(), nullptr, &stream) == SWITCH_STATUS_FALSE) {
+        if (switch_api_execute(request->command().c_str(), request->args().c_str(), nullptr, &stream) ==
+            SWITCH_STATUS_FALSE) {
             std::string msg("Command cannot be execute");
             return Status(StatusCode::INTERNAL, msg);
         } else if (stream.data) {
-            auto result = std::string((const char*)stream.data);
+            auto result = std::string((const char *) stream.data);
 
             if (!result.compare(0, 4, "-ERR")) {
                 reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
@@ -182,7 +184,7 @@ namespace mod_grpc {
         if ((psession = switch_core_session_locate(request->uuid().c_str()))) {
             switch_channel_t *channel = switch_core_session_get_channel(psession);
 
-            for (const auto& kv: request->variables()) {
+            for (const auto &kv: request->variables()) {
                 switch_channel_set_variable(channel, kv.first.c_str(), kv.second.c_str());
             }
             switch_core_session_rwunlock(psession);
@@ -206,14 +208,83 @@ namespace mod_grpc {
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive bridge request %s & %s\n",
                           request->leg_a_id().c_str(), request->leg_b_id().c_str());
 
-        if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str())) != SWITCH_STATUS_SUCCESS) {
-            if (!request->leg_b_reserve_id().empty()) {
-                if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_reserve_id().c_str())) == SWITCH_STATUS_SUCCESS) {
-                    reply->set_uuid(request->leg_b_reserve_id());
+
+        {
+            switch_core_session_t *leg_a_s, *leg_b_s = nullptr;
+            switch_channel_t *chan_a_s, *chan_b_s = nullptr;
+            bool partner_a = false;
+
+            const char *cc_to_agent_id = nullptr;
+            const char *cc_from_attempt_id = nullptr;
+            const char *cc_to_attempt_id = nullptr;
+            const char *pa = nullptr;
+            const char *pb = nullptr;
+
+            leg_a_s = switch_core_session_locate(request->leg_a_id().c_str());
+            leg_b_s = switch_core_session_locate(request->leg_b_id().c_str());
+
+            if (leg_a_s) {
+                chan_a_s = switch_core_session_get_channel(leg_a_s);
+            }
+
+            if (leg_b_s) {
+                chan_b_s = switch_core_session_get_channel(leg_b_s);
+            }
+
+            if (chan_a_s) {
+                pa = switch_channel_get_partner_uuid(chan_a_s);
+            }
+
+            if (chan_b_s) {
+                pb = switch_channel_get_partner_uuid(chan_b_s);
+            }
+
+            if (leg_a_s && leg_b_s && chan_a_s && chan_b_s && pa && pb) {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "FOUND partners>>>> %s & %s\n",
+                                  pa, pb);
+                if (switch_channel_get_partner_uuid(chan_a_s)) {
+                    switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_from", request->leg_b_id().c_str());
+
+                    cc_to_agent_id = switch_channel_get_variable_dup(chan_a_s, "cc_agent_id", SWITCH_FALSE, -1);
+                    cc_from_attempt_id = switch_channel_get_variable_dup(chan_a_s, "cc_attempt_id", SWITCH_FALSE, -1);
+                }
+
+                if (cc_to_agent_id) {
+                    switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to_agent", cc_to_agent_id);
+                }
+
+                if (cc_from_attempt_id) {
+                    switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_from_attempt", cc_from_attempt_id);
+                }
+
+                switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to", request->leg_a_id().c_str());
+
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "UUID >>>>>>>> : %s\n",
+                                  switch_channel_get_uuid(chan_b_s));
+
+                if (cc_from_attempt_id &&
+                    (cc_to_attempt_id = switch_channel_get_variable_partner(chan_b_s, "cc_attempt_id"))) {
+                    switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_to_attempt",
+                                                        std::string(cc_to_attempt_id).c_str());
                 }
             }
-        } else {
-            reply->set_uuid(request->leg_b_id());
+
+            // todo move to condition && BridgeCall
+            // todo must check partners
+            if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str())) !=
+                SWITCH_STATUS_SUCCESS) {
+                // todo clean variables - transfer fail
+            } else {
+                reply->set_uuid(request->leg_b_id());
+            }
+
+            if (leg_a_s) {
+                switch_core_session_rwunlock(leg_a_s);
+            }
+
+            if (leg_b_s) {
+                switch_core_session_rwunlock(leg_b_s);
+            }
         }
 
         if (status != SWITCH_STATUS_SUCCESS) {
@@ -241,7 +312,7 @@ namespace mod_grpc {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
         } else {
             switch_channel_t *channel = switch_core_session_get_channel(session);
-            for (const auto& kv: request->variables()) {
+            for (const auto &kv: request->variables()) {
                 switch_channel_set_variable(channel, kv.first.c_str(), kv.second.c_str());
 
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Set hangup var %s [%s = %s]\n",
@@ -280,11 +351,13 @@ namespace mod_grpc {
 
         switch_event_create(&vars, SWITCH_EVENT_CLONE);
 
-        for (const auto& kv: request->variables()) {
+        for (const auto &kv: request->variables()) {
             switch_event_add_header_string(vars, SWITCH_STACK_BOTTOM, kv.first.c_str(), kv.second.c_str());
         }
 
-        count = switch_core_session_hupall_matching_vars_ans(vars, cause, static_cast<switch_hup_type_t>(SHT_UNANSWERED | SHT_ANSWERED));
+        count = switch_core_session_hupall_matching_vars_ans(vars, cause,
+                                                             static_cast<switch_hup_type_t>(SHT_UNANSWERED |
+                                                                                            SHT_ANSWERED));
         reply->set_count(count);
 
         if (vars) {
@@ -306,7 +379,8 @@ namespace mod_grpc {
 
             if (!request->playback_file().empty()) {
                 flags |= SMF_PRIORITY; // FIXME add parameter
-                if (switch_ivr_broadcast(request->id().c_str(), request->playback_file().c_str(),  flags) != SWITCH_STATUS_SUCCESS) {
+                if (switch_ivr_broadcast(request->id().c_str(), request->playback_file().c_str(), flags) !=
+                    SWITCH_STATUS_SUCCESS) {
                     switch_core_session_rwunlock(psession);
                     return Status::CANCELLED;
                 }
@@ -337,7 +411,7 @@ namespace mod_grpc {
             cause = switch_channel_str2cause(request->cause().c_str());
         }
 
-        for (const auto& id: request->id()) {
+        for (const auto &id: request->id()) {
             switch_core_session_t *session;
 
             if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
@@ -355,13 +429,13 @@ namespace mod_grpc {
     }
 
     Status ApiServiceImpl::Hold(ServerContext *context, const fs::HoldRequest *request, fs::HoldResponse *reply) {
-        for (const auto& id: request->id()) {
+        for (const auto &id: request->id()) {
             switch_core_session_t *session;
 
             if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
                 switch_channel_t *channel = switch_core_session_get_channel(session);
                 if (!switch_channel_test_flag(channel, CF_HOLD)) {
-                    switch_ivr_hold(session, nullptr, (switch_bool_t)1);
+                    switch_ivr_hold(session, nullptr, (switch_bool_t) 1);
                     reply->add_id(id);
                 }
                 switch_core_session_rwunlock(session);
@@ -372,7 +446,7 @@ namespace mod_grpc {
     }
 
     Status ApiServiceImpl::UnHold(ServerContext *context, const fs::UnHoldRequest *request, fs::UnHoldResponse *reply) {
-        for (const auto& id: request->id()) {
+        for (const auto &id: request->id()) {
             switch_core_session_t *session;
 
             if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
@@ -401,7 +475,8 @@ namespace mod_grpc {
             session = switch_core_session_locate(request->leg_b_id().c_str());
             if (session) {
                 switch_channel_t *channel = switch_core_session_get_channel(session);
-                if (switch_channel_wait_for_flag(channel, CF_BRIDGED, SWITCH_TRUE, 3000, nullptr) != SWITCH_STATUS_SUCCESS) {
+                if (switch_channel_wait_for_flag(channel, CF_BRIDGED, SWITCH_TRUE, 3000, nullptr) !=
+                    SWITCH_STATUS_SUCCESS) {
                     bridged = 0;
                 }
 
@@ -443,7 +518,7 @@ namespace mod_grpc {
             switch_find_local_ip(ipV4_, sizeof(ipV4_), nullptr, AF_INET);
             config_.grpc_host = std::string(ipV4_).c_str();
         }
-        server_address_ = std::string(config_.grpc_host)  + ":" + std::to_string(config_.grpc_port);
+        server_address_ = std::string(config_.grpc_host) + ":" + std::to_string(config_.grpc_port);
 
         if (config_.consul_address) {
             cluster_ = new Cluster(config_.consul_address, config_.grpc_host, config_.grpc_port,
@@ -453,8 +528,9 @@ namespace mod_grpc {
 
     void ServerImpl::Run() {
         initServer();
-        thread_ = std::thread([&](){
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Server listening on %s\n", server_address_.c_str());
+        thread_ = std::thread([&]() {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Server listening on %s\n",
+                              server_address_.c_str());
             server_->Wait();
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Server shutdown\n");
         });
@@ -492,7 +568,7 @@ namespace mod_grpc {
 
     Config loadConfig() {
 
-        auto config  = Config();
+        auto config = Config();
         static switch_xml_config_item_t instructions[] = {
                 SWITCH_CONFIG_ITEM(
                         "grpc_host",
@@ -533,27 +609,28 @@ namespace mod_grpc {
         };
 
         if (switch_xml_config_parse_module_settings("grpc.conf", SWITCH_FALSE, instructions) != SWITCH_STATUS_SUCCESS) {
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "Can't load grpc.conf. Use default GRPC config\n");
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+                              "Can't load grpc.conf. Use default GRPC config\n");
         }
 
         return config;
     }
 
     SWITCH_STANDARD_APP(wbr_queue_function) {
-            switch_channel_t *channel = switch_core_session_get_channel(session);
+        switch_channel_t *channel = switch_core_session_get_channel(session);
 
-            if (zstr(data)) {
-                return;
+        if (zstr(data)) {
+            return;
+        }
+
+        while (switch_channel_ready(channel)) {
+            switch_status_t pstatus = switch_ivr_play_file(session, NULL, data,
+                                                           nullptr);
+
+            if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
+                break;
             }
-
-            while(switch_channel_ready(channel)) {
-                switch_status_t pstatus = switch_ivr_play_file(session, NULL, data,
-                                                               nullptr);
-
-                if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
-                    break;
-                }
-            }
+        }
     }
 
 
@@ -565,7 +642,7 @@ namespace mod_grpc {
         while (switch_channel_ready(channel)) {
             status = switch_ivr_play_file(session, NULL, file, NULL);
 
-            if ( status != SWITCH_STATUS_SUCCESS) {
+            if (status != SWITCH_STATUS_SUCCESS) {
                 break;
             }
         }
@@ -595,8 +672,10 @@ namespace mod_grpc {
             *module_interface = switch_loadable_module_create_module_interface(pool, modname);
             switch_application_interface_t *app_interface;
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
-            SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer", wbt_blind_transfer_function, "", SAF_NONE);
-            SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback", wbt_queue_playback_function, "", SAF_NONE);
+            SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer",
+                           wbt_blind_transfer_function, "", SAF_NONE);
+            SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback",
+                           wbt_queue_playback_function, "", SAF_NONE);
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed\n");
             server_ = new ServerImpl(loadConfig());
             server_->Run();

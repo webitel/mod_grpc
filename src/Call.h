@@ -466,13 +466,13 @@ public:
 template <> class CallEvent<Ringing> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Ringing, e) {
-          setOnCreateAttr();
-          auto info = getCallInfo();
-          setBodyCallInfo(body_, &info);
-          setVariables("variable_usr_", "payload", e_);
-          if (!cc_node_.empty()) {
-              setVariables("variable_cc_", "queue", e_);
-          }
+        setOnCreateAttr();
+        auto info = getCallInfo();
+        setBodyCallInfo(body_, &info);
+        setVariables("variable_usr_", "payload", e_);
+        if (!cc_node_.empty()) {
+            setVariables("variable_cc_", "queue", e_);
+        }
 
         if (isOriginateRequest()) {
             auto params = getCallParams();
@@ -499,9 +499,11 @@ public:
             direction = logicalDirection == "outbound" ? "inbound" : "outbound";
         }
         //fixme: hold ui!!!
-        auto bridgedEndpoint = new CallEndpoint;
+
+        setVariables("variable_usr_", "payload", e_);
 
         auto to = new CallEndpoint;
+        // fixme IVR -> Inbound queue
         to->number = event_->getVar("Caller-Callee-ID-Number");
         to->name = event_->getVar("Caller-Callee-ID-Name");
         addAttribute("to", toJson(to));
@@ -552,8 +554,35 @@ public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Hangup, e) {
         auto cause_ = get_str(switch_event_get_header(e, "variable_hangup_cause"));
         auto sip_code_ = get_str(switch_event_get_header(e, "variable_proto_specific_hangup_cause"));
+        //sip_invite_failure_status
         auto cc_reporting_at_ = switch_event_get_header(e, "variable_cc_reporting_at");
         auto hangup_by = get_str(switch_event_get_header(e, "variable_sip_hangup_disposition"));
+        auto wbt_transfer_to = get_str(switch_event_get_header(e, "variable_wbt_transfer_to"));
+        auto wbt_transfer_from = get_str(switch_event_get_header(e, "variable_wbt_transfer_from"));
+        auto wbt_transfer_to_agent = get_str(switch_event_get_header(e, "variable_wbt_transfer_to_agent"));
+        auto wbt_transfer_from_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_from_attempt"));
+        auto wbt_transfer_to_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_to_attempt"));
+
+//        DUMP_EVENT(e);
+
+        addIfExists(body_, "amd_result", "variable_amd_result");
+        addIfExists(body_, "amd_cause", "variable_amd_cause");
+
+        if (!wbt_transfer_to.empty()) {
+            addAttribute("transfer_to", wbt_transfer_to);
+        }
+        if (!wbt_transfer_from.empty()) {
+            addAttribute("transfer_from", wbt_transfer_from);
+        }
+        if (!wbt_transfer_to_agent.empty()) {
+            addAttribute("transfer_to_agent", wbt_transfer_to_agent);
+        }
+        if (!wbt_transfer_from_attempt.empty()) {
+            addAttribute("transfer_from_attempt", wbt_transfer_from_attempt);
+        }
+        if (!wbt_transfer_to_attempt.empty()) {
+            addAttribute("transfer_to_attempt", wbt_transfer_to_attempt);
+        }
 
         if (switch_event_get_header(e, "variable_grpc_send_hangup") != nullptr || hangup_by == "recv_bye" ||
             hangup_by == "recv_refuse" || hangup_by == "recv_cancel" || (hangup_by == "send_refuse" && parent_)) {
@@ -561,9 +590,6 @@ public:
         } else {
             addAttribute("hangup_by", parent_ ? "A" : "B");
         }
-
-        addIfExists(body_, "amd_result", "variable_amd_result");
-        addIfExists(body_, "amd_cause", "variable_amd_cause");
 
 //        DUMP_EVENT(e)
 
@@ -575,7 +601,7 @@ public:
 
         addAttribute(HEADER_NAME_HANGUP_CAUSE, cause_);
         addAttribute("originate_success",
-                switch_event_get_header(e, "variable_grpc_originate_success") != nullptr);
+                     switch_event_get_header(e, "variable_grpc_originate_success") != nullptr);
 
         int num = 0;
 

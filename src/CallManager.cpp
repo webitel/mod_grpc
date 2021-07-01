@@ -85,6 +85,8 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                     } else if (strcmp(action, "exit") == 0) {
                         CallEvent<LeavingQueue>(event).fire();
                     }
+                } else {
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Unhandled custom event: %s\n", event->subclass_name);
                 }
                 break;
             default:
