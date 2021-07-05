@@ -435,7 +435,8 @@ namespace mod_grpc {
             pb = switch_channel_get_partner_uuid(chan_b_s);
         }
 
-        if (leg_a_s && leg_b_s && chan_a_s && chan_b_s && pa && pb) {
+        if (leg_a_s && leg_b_s && chan_a_s && chan_b_s && pa && pb
+            && switch_channel_test_flag(chan_a_s, CF_BRIDGED) && switch_channel_test_flag(chan_b_s, CF_BRIDGED)) {
             if (switch_channel_get_partner_uuid(chan_a_s)) {
                 switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_from", request->leg_b_id().c_str());
 
