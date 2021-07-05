@@ -413,7 +413,7 @@ namespace mod_grpc {
             return Status(StatusCode::INVALID_ARGUMENT, msg);
         }
 
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive bridge request %s & %s\n",
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive bridgeCall request %s & %s\n",
                           request->leg_a_id().c_str(), request->leg_b_id().c_str());
 
         leg_a_s = switch_core_session_locate(request->leg_a_id().c_str());
@@ -436,8 +436,6 @@ namespace mod_grpc {
         }
 
         if (leg_a_s && leg_b_s && chan_a_s && chan_b_s && pa && pb) {
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "FOUND partners>>>> %s & %s\n",
-                              pa, pb);
             if (switch_channel_get_partner_uuid(chan_a_s)) {
                 switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_from", request->leg_b_id().c_str());
 
@@ -455,22 +453,18 @@ namespace mod_grpc {
 
             switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to", request->leg_a_id().c_str());
 
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "UUID >>>>>>>> : %s\n",
-                              switch_channel_get_uuid(chan_b_s));
-
             if (cc_from_attempt_id &&
                 (cc_to_attempt_id = switch_channel_get_variable_partner(chan_b_s, "cc_attempt_id"))) {
                 switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_to_attempt",
                                                     std::string(cc_to_attempt_id).c_str());
             }
-        }
 
-        // todo must check partners
-        if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str())) !=
-            SWITCH_STATUS_SUCCESS) {
-            // todo clean variables - transfer fail
-        } else {
-            reply->set_uuid(request->leg_b_id());
+            if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str())) !=
+                SWITCH_STATUS_SUCCESS) {
+                // todo clean variables - transfer fail
+            } else {
+                reply->set_uuid(request->leg_b_id());
+            }
         }
 
         if (leg_a_s) {
