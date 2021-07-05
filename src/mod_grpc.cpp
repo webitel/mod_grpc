@@ -199,97 +199,30 @@ namespace mod_grpc {
 
     Status ApiServiceImpl::Bridge(ServerContext *context, const fs::BridgeRequest *request,
                                   fs::BridgeResponse *reply) {
-        switch_status_t status;
-        if (request->leg_a_id().empty() || request->leg_b_id().empty()) {
-            std::string msg("leg_a_id or leg_b_id is required");
-            return Status(StatusCode::INVALID_ARGUMENT, msg);
+        int bridged = 1;
+
+        if (switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str()) != SWITCH_STATUS_SUCCESS) {
+            bridged = 0;
         }
 
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive bridge request %s & %s\n",
-                          request->leg_a_id().c_str(), request->leg_b_id().c_str());
-
-
-        {
-            switch_core_session_t *leg_a_s, *leg_b_s = nullptr;
-            switch_channel_t *chan_a_s, *chan_b_s = nullptr;
-            bool partner_a = false;
-
-            const char *cc_to_agent_id = nullptr;
-            const char *cc_from_attempt_id = nullptr;
-            const char *cc_to_attempt_id = nullptr;
-            const char *pa = nullptr;
-            const char *pb = nullptr;
-
-            leg_a_s = switch_core_session_locate(request->leg_a_id().c_str());
-            leg_b_s = switch_core_session_locate(request->leg_b_id().c_str());
-
-            if (leg_a_s) {
-                chan_a_s = switch_core_session_get_channel(leg_a_s);
-            }
-
-            if (leg_b_s) {
-                chan_b_s = switch_core_session_get_channel(leg_b_s);
-            }
-
-            if (chan_a_s) {
-                pa = switch_channel_get_partner_uuid(chan_a_s);
-            }
-
-            if (chan_b_s) {
-                pb = switch_channel_get_partner_uuid(chan_b_s);
-            }
-
-            if (leg_a_s && leg_b_s && chan_a_s && chan_b_s && pa && pb) {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "FOUND partners>>>> %s & %s\n",
-                                  pa, pb);
-                if (switch_channel_get_partner_uuid(chan_a_s)) {
-                    switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_from", request->leg_b_id().c_str());
-
-                    cc_to_agent_id = switch_channel_get_variable_dup(chan_a_s, "cc_agent_id", SWITCH_FALSE, -1);
-                    cc_from_attempt_id = switch_channel_get_variable_dup(chan_a_s, "cc_attempt_id", SWITCH_FALSE, -1);
+        if (bridged) {
+            switch_core_session_t *session;
+            session = switch_core_session_locate(request->leg_b_id().c_str());
+            if (session) {
+                switch_channel_t *channel = switch_core_session_get_channel(session);
+                if (switch_channel_wait_for_flag(channel, CF_BRIDGED, SWITCH_TRUE, 3000, nullptr) !=
+                    SWITCH_STATUS_SUCCESS) {
+                    bridged = 0;
                 }
 
-                if (cc_to_agent_id) {
-                    switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to_agent", cc_to_agent_id);
-                }
-
-                if (cc_from_attempt_id) {
-                    switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_from_attempt", cc_from_attempt_id);
-                }
-
-                switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to", request->leg_a_id().c_str());
-
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "UUID >>>>>>>> : %s\n",
-                                  switch_channel_get_uuid(chan_b_s));
-
-                if (cc_from_attempt_id &&
-                    (cc_to_attempt_id = switch_channel_get_variable_partner(chan_b_s, "cc_attempt_id"))) {
-                    switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_to_attempt",
-                                                        std::string(cc_to_attempt_id).c_str());
-                }
-            }
-
-            // todo move to condition && BridgeCall
-            // todo must check partners
-            if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str())) !=
-                SWITCH_STATUS_SUCCESS) {
-                // todo clean variables - transfer fail
+                switch_core_session_rwunlock(session);
             } else {
-                reply->set_uuid(request->leg_b_id());
-            }
-
-            if (leg_a_s) {
-                switch_core_session_rwunlock(leg_a_s);
-            }
-
-            if (leg_b_s) {
-                switch_core_session_rwunlock(leg_b_s);
+                bridged = 0;
             }
         }
 
-        if (status != SWITCH_STATUS_SUCCESS) {
-            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
-            reply->mutable_error()->set_message("Invalid id");
+        if (!bridged) {
+            reply->mutable_error()->set_message("not found call id");
         }
 
         return Status::OK;
@@ -464,30 +397,93 @@ namespace mod_grpc {
 
     Status ApiServiceImpl::BridgeCall(ServerContext *context, const fs::BridgeCallRequest *request,
                                       fs::BridgeCallResponse *reply) {
-        int bridged = 1;
+        switch_status_t status;
+        switch_core_session_t *leg_a_s, *leg_b_s = nullptr;
+        switch_channel_t *chan_a_s, *chan_b_s = nullptr;
+        bool partner_a = false;
 
-        if (switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str()) != SWITCH_STATUS_SUCCESS) {
-            bridged = 0;
+        const char *cc_to_agent_id = nullptr;
+        const char *cc_from_attempt_id = nullptr;
+        const char *cc_to_attempt_id = nullptr;
+        const char *pa = nullptr;
+        const char *pb = nullptr;
+
+        if (request->leg_a_id().empty() || request->leg_b_id().empty()) {
+            std::string msg("leg_a_id or leg_b_id is required");
+            return Status(StatusCode::INVALID_ARGUMENT, msg);
         }
 
-        if (bridged) {
-            switch_core_session_t *session;
-            session = switch_core_session_locate(request->leg_b_id().c_str());
-            if (session) {
-                switch_channel_t *channel = switch_core_session_get_channel(session);
-                if (switch_channel_wait_for_flag(channel, CF_BRIDGED, SWITCH_TRUE, 3000, nullptr) !=
-                    SWITCH_STATUS_SUCCESS) {
-                    bridged = 0;
-                }
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive bridge request %s & %s\n",
+                          request->leg_a_id().c_str(), request->leg_b_id().c_str());
 
-                switch_core_session_rwunlock(session);
-            } else {
-                bridged = 0;
+        leg_a_s = switch_core_session_locate(request->leg_a_id().c_str());
+        leg_b_s = switch_core_session_locate(request->leg_b_id().c_str());
+
+        if (leg_a_s) {
+            chan_a_s = switch_core_session_get_channel(leg_a_s);
+        }
+
+        if (leg_b_s) {
+            chan_b_s = switch_core_session_get_channel(leg_b_s);
+        }
+
+        if (chan_a_s) {
+            pa = switch_channel_get_partner_uuid(chan_a_s);
+        }
+
+        if (chan_b_s) {
+            pb = switch_channel_get_partner_uuid(chan_b_s);
+        }
+
+        if (leg_a_s && leg_b_s && chan_a_s && chan_b_s && pa && pb) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "FOUND partners>>>> %s & %s\n",
+                              pa, pb);
+            if (switch_channel_get_partner_uuid(chan_a_s)) {
+                switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_from", request->leg_b_id().c_str());
+
+                cc_to_agent_id = switch_channel_get_variable_dup(chan_a_s, "cc_agent_id", SWITCH_FALSE, -1);
+                cc_from_attempt_id = switch_channel_get_variable_dup(chan_a_s, "cc_attempt_id", SWITCH_FALSE, -1);
+            }
+
+            if (cc_to_agent_id) {
+                switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to_agent", cc_to_agent_id);
+            }
+
+            if (cc_from_attempt_id) {
+                switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_from_attempt", cc_from_attempt_id);
+            }
+
+            switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to", request->leg_a_id().c_str());
+
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "UUID >>>>>>>> : %s\n",
+                              switch_channel_get_uuid(chan_b_s));
+
+            if (cc_from_attempt_id &&
+                (cc_to_attempt_id = switch_channel_get_variable_partner(chan_b_s, "cc_attempt_id"))) {
+                switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_to_attempt",
+                                                    std::string(cc_to_attempt_id).c_str());
             }
         }
 
-        if (!bridged) {
-            reply->mutable_error()->set_message("not found call id");
+        // todo must check partners
+        if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str())) !=
+            SWITCH_STATUS_SUCCESS) {
+            // todo clean variables - transfer fail
+        } else {
+            reply->set_uuid(request->leg_b_id());
+        }
+
+        if (leg_a_s) {
+            switch_core_session_rwunlock(leg_a_s);
+        }
+
+        if (leg_b_s) {
+            switch_core_session_rwunlock(leg_b_s);
+        }
+
+        if (status != SWITCH_STATUS_SUCCESS) {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("Invalid id");
         }
 
         return Status::OK;
