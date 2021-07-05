@@ -512,6 +512,24 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::SetProfileVar(ServerContext *context, const fs::SetProfileVarRequest *request,
+                                         fs::SetProfileVarResponse *reply) {
+        switch_core_session_t *session;
+        if (!request->id().empty() && (session = switch_core_session_locate(request->id().c_str()))) {
+            switch_channel_t *channel = switch_core_session_get_channel(session);
+            if (request->variables_size() > 0) {
+                for (const auto &kv: request->variables()) {
+                    switch_channel_set_profile_var(channel, kv.first.c_str(), kv.second.c_str());
+                }
+            }
+            switch_core_session_rwunlock(session);
+        } else {
+            return Status::CANCELLED;
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) {
         if (!config_.grpc_host) {
             char ipV4_[80];

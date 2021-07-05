@@ -503,7 +503,6 @@ public:
         setVariables("variable_usr_", "payload", e_);
 
         auto to = new CallEndpoint;
-        // fixme IVR -> Inbound queue
         to->number = event_->getVar("Caller-Callee-ID-Number");
         to->name = event_->getVar("Caller-Callee-ID-Name");
         addAttribute("to", toJson(to));

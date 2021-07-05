@@ -15,6 +15,16 @@ service Api {
     rpc HangupMany(HangupManyRequest) returns (HangupManyResponse) {}
     rpc Hold(HoldRequest) returns (HoldResponse) {}
     rpc UnHold(UnHoldRequest) returns (UnHoldResponse) {}
+    rpc SetProfileVar(SetProfileVarRequest) returns (SetProfileVarResponse) {}
+}
+
+message SetProfileVarRequest {
+    string id = 1;
+    map<string,string> variables = 2;
+}
+
+message SetProfileVarResponse {
+
 }
 
 message StopPlaybackRequest {

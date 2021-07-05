@@ -64,6 +64,9 @@ namespace mod_grpc {
         Status UnHold(ServerContext* context, const fs::UnHoldRequest* request,
                       fs::UnHoldResponse* reply) override;
 
+        Status SetProfileVar(ServerContext* context, const fs::SetProfileVarRequest* request,
+                      fs::SetProfileVarResponse* reply) override;
+
     };
 
     struct Config {
