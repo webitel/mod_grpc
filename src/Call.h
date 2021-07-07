@@ -553,7 +553,6 @@ public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Hangup, e) {
         auto cause_ = get_str(switch_event_get_header(e, "variable_hangup_cause"));
         auto sip_code_ = get_str(switch_event_get_header(e, "variable_proto_specific_hangup_cause"));
-        //sip_invite_failure_status
         auto cc_reporting_at_ = switch_event_get_header(e, "variable_cc_reporting_at");
         auto hangup_by = get_str(switch_event_get_header(e, "variable_sip_hangup_disposition"));
         auto wbt_transfer_to = get_str(switch_event_get_header(e, "variable_wbt_transfer_to"));
@@ -607,14 +606,18 @@ public:
         if (!sip_code_.empty()) {
             sscanf( sip_code_.c_str(), "sip:%d", &num );
         } else {
-            sip_code_ = get_str( switch_event_get_header(e, "variable_sip_term_status"));
+            sip_code_ = get_str(switch_event_get_header(e, "variable_sip_invite_failure_status"));
+            if (sip_code_.empty()) {
+                sip_code_ = get_str(switch_event_get_header(e, "variable_sip_term_status"));
+            }
+
             if (!sip_code_.empty()) {
                 sscanf( sip_code_.c_str(), "%d", &num );
             }
         }
 
         if (num == 0) {
-            addAttribute("sip", 200);
+            addAttribute("sip", cause_ == "ORIGINATOR_CANCEL" ? 487 : 200);
         } else {
             addAttribute("sip", num);
         }
