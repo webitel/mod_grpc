@@ -474,7 +474,7 @@ public:
             setVariables("variable_cc_", "queue", e_);
         }
 
-        if (isOriginateRequest()) {
+        if (isOriginateRequest() || !cc_node_.empty()) {
             auto params = getCallParams();
             setCallParameters(body_, &params);
         }
