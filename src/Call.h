@@ -191,6 +191,7 @@ protected:
         bool Video;
         bool Screen;
         bool AutoAnswer;
+        bool DisableStun;
     };
 
     static cJSON* toJson(CallEndpoint *e) {
@@ -207,6 +208,7 @@ protected:
         cJSON_AddItemToObject(j, "video", e->Video ? cJSON_CreateTrue() : cJSON_CreateFalse());
         cJSON_AddItemToObject(j, "screen", e->Screen ? cJSON_CreateTrue() : cJSON_CreateFalse());
         cJSON_AddItemToObject(j, "autoAnswer", e->AutoAnswer ? cJSON_CreateTrue() : cJSON_CreateFalse());
+        cJSON_AddItemToObject(j, "disableStun", e->DisableStun ? cJSON_CreateTrue() : cJSON_CreateFalse());
         return j;
     }
 
@@ -248,6 +250,7 @@ protected:
         params.Video = event_->getVar("variable_wbt_video") == "true";
         params.Screen = event_->getVar("variable_wbt_screen") == "true";
         params.AutoAnswer = event_->getVar("variable_wbt_auto_answer") == "true";
+        params.DisableStun = event_->getVar("variable_wbt_disable_stun") == "true";
         return params;
     }
 
