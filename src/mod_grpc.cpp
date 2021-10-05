@@ -690,6 +690,12 @@ namespace mod_grpc {
             server_->Run();
 
             return SWITCH_STATUS_SUCCESS;
+        } catch (std::string &err) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module: %s\n",
+                              err.c_str());
+        } catch (std::exception &ex) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module: %s\n",
+                              ex.what());
         } catch (...) { // Exceptions must not propogate to C caller
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module\n");
             return SWITCH_STATUS_GENERR;
