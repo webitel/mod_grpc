@@ -473,6 +473,15 @@ public:
         auto info = getCallInfo();
         setBodyCallInfo(body_, &info);
         setVariables("variable_usr_", "payload", e_);
+
+        if ( auto t = switch_event_get_header(e, "variable_usr_wbt_ivr_log")) {
+            auto j = cJSON_Parse(t);
+            if (j) {
+                cJSON_AddItemToObject(body_, "ivr", j);
+            }
+        }
+
+
         if (!cc_node_.empty()) {
             setVariables("variable_cc_", "queue", e_);
         }
@@ -497,6 +506,7 @@ public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Bridge, e) {
         auto direction = event_->getVar("variable_sip_h_X-Webitel-Direction");
         auto logicalDirection = event_->getVar("Call-Direction");
+        auto signalBond = event_->getVar("variable_signal_bond");
 
         if (direction == "internal" ){
             direction = logicalDirection == "outbound" ? "inbound" : "outbound";
@@ -505,9 +515,20 @@ public:
 
         setVariables("variable_usr_", "payload", e_);
 
+//        DUMP_EVENT(e);
+
+//        auto to = new CallEndpoint;
+//        to->number = event_->getVar("Caller-Callee-ID-Number");
+//        to->name = event_->getVar("Caller-Callee-ID-Name");
         auto to = new CallEndpoint;
-        to->number = event_->getVar("Caller-Callee-ID-Number");
-        to->name = event_->getVar("Caller-Callee-ID-Name");
+        if (signalBond == uuid_ ) {
+            to->number = event_->getVar("Caller-Caller-ID-Number");
+            to->name = event_->getVar("Caller-Caller-ID-Name");
+        } else {
+            to->number = event_->getVar("Caller-Callee-ID-Number");
+            to->name = event_->getVar("Caller-Callee-ID-Name");
+        }
+
         addAttribute("to", toJson(to));
         addAttribute("direction", direction.c_str());
 
