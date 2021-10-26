@@ -4,21 +4,18 @@
 
 #include "CallManager.h"
 
-#define CALL_MANAGER_NAME "CALL_MANAGER"
-#define VALET_PARK_NAME "valet_parking::info"
-#define AMD_EVENT_NAME "amd::info"
-#define SKIP_EVENT_VARIABLE "skip_channel_events"
-
 mod_grpc::CallManager::CallManager() {
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_CREATE, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_ANSWER, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_HOLD, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_UNHOLD, nullptr, CallManager::handle_call_event, nullptr);
-    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_DTMF, nullptr, CallManager::handle_call_event, nullptr);
+//    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_DTMF, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_BRIDGE, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_HANGUP_COMPLETE, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_TALK, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_NOTALK, nullptr, CallManager::handle_call_event, nullptr);
+    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_RECORD_START, nullptr, CallManager::handle_call_event, nullptr);
+    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_RECORD_STOP, nullptr, CallManager::handle_call_event, nullptr);
 
 //    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_EXECUTE, nullptr, CallManager::handle_call_event, nullptr);
 
@@ -49,9 +46,25 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                 CallEvent<Bridge>(event).fire();
                 break;
 
-            case SWITCH_EVENT_DTMF:
-                CallEvent<DTMF>(event).fire();
+            case SWITCH_EVENT_DTMF: {
+// TODO ui bug
+//                auto uuid_ = get_str(switch_event_get_header(event, "Unique-ID"));
+//                auto session = switch_core_session_locate(uuid_.c_str());
+//                if (session) {
+//                    auto channel = switch_core_session_get_channel(session);
+//                    auto domain_id_ = switch_channel_get_variable(channel, "sip_h_X-Webitel-Domain-Id");
+//                    auto user_id_ = switch_channel_get_variable(channel, "sip_h_X-Webitel-User-Id");
+//                    switch_core_session_rwunlock(session);
+//                    if (domain_id_) {
+//                        switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "variable_sip_h_X-Webitel-Domain-Id", domain_id_);
+//                    }
+//                    if (user_id_) {
+//                        switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "variable_sip_h_X-Webitel-User-Id", user_id_);
+//                    }
+//                }
+//                CallEvent<DTMF>(event).fire();
                 break;
+            }
 
             case SWITCH_EVENT_CHANNEL_HOLD:
                 CallEvent<Hold>(event).fire();
@@ -72,6 +85,31 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
             case SWITCH_EVENT_CHANNEL_EXECUTE:
                 CallEvent<Execute>(event).fire();
                 break;
+
+            case SWITCH_EVENT_RECORD_START: {
+                auto uuid_ = get_str(switch_event_get_header(event, "Unique-ID"));
+                auto session = switch_core_session_locate(uuid_.c_str());
+                if (session) {
+                    auto channel = switch_core_session_get_channel(session);
+                    auto st = switch_channel_get_variable(channel, RECORD_SESSION_START_NAME);
+                    if (!st) {
+                        switch_channel_set_variable(channel, RECORD_SESSION_START_NAME, std::to_string(unixTimestamp()).c_str());
+                    }
+                    switch_core_session_rwunlock(session);
+                }
+                break;
+            }
+
+            case SWITCH_EVENT_RECORD_STOP: {
+                auto uuid_ = get_str(switch_event_get_header(event, "Unique-ID"));
+                auto session = switch_core_session_force_locate(uuid_.c_str());
+                if (session) {
+                    auto channel = switch_core_session_get_channel(session);
+                    switch_channel_set_variable(channel, RECORD_SESSION_STOP_NAME, std::to_string(unixTimestamp()).c_str());
+                    switch_core_session_rwunlock(session);
+                }
+                break;
+            }
 
             case SWITCH_EVENT_CUSTOM:
                 if (strcmp(AMD_EVENT_NAME, event->subclass_name) == 0) {

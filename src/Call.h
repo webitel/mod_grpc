@@ -28,6 +28,13 @@ extern "C" {
 #define HEADER_NAME_CC_NODE "cc_app_id"
 #define HEADER_NAME_DATA "data"
 
+#define CALL_MANAGER_NAME "CALL_MANAGER"
+#define VALET_PARK_NAME "valet_parking::info"
+#define AMD_EVENT_NAME "amd::info"
+#define SKIP_EVENT_VARIABLE "skip_channel_events"
+#define RECORD_SESSION_START_NAME  "wbt_start_record"
+#define RECORD_SESSION_STOP_NAME  "wbt_stop_record"
+
 #define get_str(c) c ? std::string(c) : std::string()
 
 enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup };
@@ -589,6 +596,22 @@ public:
 
         addIfExists(body_, "amd_result", "variable_amd_result");
         addIfExists(body_, "amd_cause", "variable_amd_cause");
+
+        auto record_seconds = get_str(switch_event_get_header(e, "variable_record_seconds"));
+        if (!record_seconds.empty() && record_seconds != "0") {
+            auto record_start = get_str(switch_event_get_header(e, "variable_wbt_start_record"));
+            if (!record_start.empty()) {
+                if (switch_true(switch_event_get_header(e, "variable_media_bug_answer_req"))) {
+                    auto br = get_str(switch_event_get_header(e, "variable_bridge_epoch"));
+                    if (!br.empty()) {
+                        addAttribute("record_start", br + "000");
+                    }
+                } else {
+                    addIfExists(body_, "record_start", "variable_wbt_start_record");
+                }
+                addIfExists(body_, "record_stop", "variable_wbt_stop_record");
+            }
+        }
 
         if (!wbt_transfer_to.empty()) {
             addAttribute("transfer_to", wbt_transfer_to);
