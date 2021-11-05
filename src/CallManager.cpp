@@ -32,6 +32,7 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
         if (switch_event_get_header(event, SKIP_EVENT_VARIABLE)) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Skip event %s by variable\n", switch_event_name(event->event_id));
         }
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive event: [%s]\n", switch_event_name(event->event_id));
         switch (event->event_id) {
             case SWITCH_EVENT_CHANNEL_CREATE:
                 CallEvent<Ringing>(event).fire();

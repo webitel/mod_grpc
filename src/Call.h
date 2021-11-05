@@ -341,6 +341,12 @@ protected:
                 info.from->id = event_->getVar("variable_wbt_from_id");
                 info.from->number = event_->getVar("Other-Leg-Caller-ID-Number");
                 info.from->name = event_->getVar("Other-Leg-Caller-ID-Name");
+                if (info.from->number.empty()) {
+                    info.from->number = event_->getVar("variable_wbt_from_number");
+                }
+                if (info.from->name.empty()) {
+                    info.from->name = event_->getVar("variable_wbt_from_name");
+                }
 
                 info.to = new CallEndpoint;
                 info.to->type = "user";
