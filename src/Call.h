@@ -357,7 +357,7 @@ protected:
                 info.from->type = "user";
                 info.from->id = user;
                 if (isOriginate) {
-                    info.from->number = event_->getVar("variable_effective_caller_id_name");
+                    info.from->number = event_->getVar("variable_effective_caller_id_number");
                     info.from->name = event_->getVar("variable_effective_caller_id_name");
                 } else {
                     info.from->number = event_->getVar("Caller-Caller-ID-Number");
