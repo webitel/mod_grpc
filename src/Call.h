@@ -520,6 +520,9 @@ public:
         auto direction = event_->getVar("variable_sip_h_X-Webitel-Direction");
         auto logicalDirection = event_->getVar("Call-Direction");
         auto signalBond = event_->getVar("variable_signal_bond");
+        if (signalBond.empty()) {
+            signalBond = event_->getVar("Other-Leg-Unique-ID");
+        }
 
         if (direction == "internal" ){
             direction = logicalDirection == "outbound" ? "inbound" : "outbound";
@@ -545,7 +548,9 @@ public:
         addAttribute("to", toJson(to));
         addAttribute("direction", direction.c_str());
 
-        addIfExists(body_, "bridged_id", "variable_signal_bond");
+        if (!signalBond.empty()) {
+            addAttribute("bridged_id", signalBond);
+        }
     };
 };
 
