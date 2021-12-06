@@ -366,11 +366,11 @@ namespace mod_grpc {
             switch_core_session_t *session;
 
             if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
-                switch_channel_t *channel = switch_core_session_get_channel(session);
-                if (!switch_channel_test_flag(channel, CF_HOLD)) {
-                    switch_ivr_hold(session, nullptr, (switch_bool_t) 1);
-                    reply->add_id(id);
-                }
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive Hold request %s\n",
+                                  id.c_str());
+                switch_core_media_toggle_hold(session, 1);
+                reply->add_id(id);
+
                 switch_core_session_rwunlock(session);
             }
         }
@@ -383,11 +383,10 @@ namespace mod_grpc {
             switch_core_session_t *session;
 
             if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
-                switch_channel_t *channel = switch_core_session_get_channel(session);
-                if (switch_channel_test_flag(channel, CF_HOLD)) {
-                    switch_ivr_unhold(session);
-                    reply->add_id(id);
-                }
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive UnHold request %s\n",
+                                  id.c_str());
+                switch_core_media_toggle_hold(session, 0);
+                reply->add_id(id);
                 switch_core_session_rwunlock(session);
             }
         }
