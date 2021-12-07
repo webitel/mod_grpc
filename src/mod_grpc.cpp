@@ -366,10 +366,11 @@ namespace mod_grpc {
             switch_core_session_t *session;
 
             if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive Hold request %s [%s]\n",
-                                  id.c_str(), switch_channel_test_flag(switch_core_session_get_channel(session), CF_PROTO_HOLD) == 1 ? "hold" : "active");
-                switch_core_media_toggle_hold(session, 1);
-                reply->add_id(id);
+                if (!switch_channel_test_flag(switch_core_session_get_channel(session), CF_PROTO_HOLD)) {
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive Hold request %s\n", id.c_str());
+                    switch_core_media_toggle_hold(session, 1);
+                    reply->add_id(id);
+                }
 
                 switch_core_session_rwunlock(session);
             }
@@ -383,10 +384,12 @@ namespace mod_grpc {
             switch_core_session_t *session;
 
             if (!id.empty() && (session = switch_core_session_locate(id.c_str()))) {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive UnHold request %s [%s]\n",
-                                  id.c_str(), switch_channel_test_flag(switch_core_session_get_channel(session), CF_PROTO_HOLD) == 1 ? "hold" : "active");
-                switch_core_media_toggle_hold(session, 0);
-                reply->add_id(id);
+                if (switch_channel_test_flag(switch_core_session_get_channel(session), CF_PROTO_HOLD)) {
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive UnHold request %s\n", id.c_str());
+                    switch_core_media_toggle_hold(session, 0);
+                    reply->add_id(id);
+                }
+
                 switch_core_session_rwunlock(session);
             }
         }
