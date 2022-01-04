@@ -34,14 +34,27 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
         }
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive event: [%s]\n", switch_event_name(event->event_id));
         switch (event->event_id) {
-            case SWITCH_EVENT_CHANNEL_CREATE:
+            case SWITCH_EVENT_CHANNEL_CREATE: {
                 CallEvent<Ringing>(event).fire();
                 break;
+            }
 
-            case SWITCH_EVENT_CHANNEL_ANSWER:
-            case SWITCH_EVENT_CHANNEL_UNHOLD:
+            case SWITCH_EVENT_CHANNEL_ANSWER: {
                 CallEvent<Active>(event).fire();
                 break;
+            }
+            case SWITCH_EVENT_CHANNEL_UNHOLD: {
+                auto uuid_ = get_str(switch_event_get_header(event, "Unique-ID"));
+                auto session = switch_core_session_locate(uuid_.c_str());
+                if (session) {
+                    auto channel = switch_core_session_get_channel(session);
+                    if (!switch_channel_test_flag(channel, CF_HANGUP_HELD)) {
+                        CallEvent<Active>(event).fire();
+                    }
+                    switch_core_session_rwunlock(session);
+                }
+                break;
+            }
 
             case SWITCH_EVENT_CHANNEL_BRIDGE:
                 CallEvent<Bridge>(event).fire();
