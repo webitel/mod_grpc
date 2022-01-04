@@ -48,7 +48,7 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                 auto session = switch_core_session_locate(uuid_.c_str());
                 if (session) {
                     auto channel = switch_core_session_get_channel(session);
-                    if (!switch_channel_test_flag(channel, CF_HANGUP_HELD) && switch_channel_get_state(channel) < CS_HANGUP) {
+                    if (!switch_channel_test_flag(channel, CF_HANGUP_HELD)) {
                         CallEvent<Active>(event).fire();
                     }
                     switch_core_session_rwunlock(session);
