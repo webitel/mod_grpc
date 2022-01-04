@@ -129,6 +129,7 @@ public:
         e_ = nullptr;
         cJSON_Delete(body_);
         switch_event_destroy(&out);
+        delete event_;
     }
 
     void addAttribute(const char *header, const std::string &val) {
@@ -156,11 +157,16 @@ public:
     }
 
     void fire() {
+        char *b = nullptr;
         if (body_->child) {
-            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DATA, cJSON_PrintUnformatted(body_));
+            b = cJSON_PrintUnformatted(body_);
+            switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DATA, b);
         }
 //        DUMP_EVENT(out)
         switch_event_fire(&out);
+        if (b) {
+            cJSON_free(b);
+        }
     }
 
 protected:
@@ -170,7 +176,7 @@ protected:
             e_ = e;
         }
         ~Event() {
-            delete e_;
+            e_ = nullptr;
         }
         std::string getVar(const char *name) {
             return get_str(switch_event_get_header(e_, name));
@@ -469,7 +475,11 @@ protected:
 
         if (found) {
             addAttribute(fieldName, cj);
+            cj = nullptr;
+        } else {
+            cJSON_Delete(cj);
         }
+
     }
 };
 
@@ -485,6 +495,10 @@ public:
         setOnCreateAttr();
         auto info = getCallInfo();
         setBodyCallInfo(body_, &info);
+        //TODO
+        delete info.from;
+        delete info.to;
+
         setVariables("variable_usr_", "payload", e_);
 
         if ( auto t = switch_event_get_header(e, "variable_usr_wbt_ivr_log")) {
@@ -546,6 +560,8 @@ public:
         }
 
         addAttribute("to", toJson(to));
+        //todo
+        delete to;
         addAttribute("direction", direction.c_str());
 
         if (!signalBond.empty()) {
