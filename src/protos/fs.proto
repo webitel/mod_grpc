@@ -16,6 +16,15 @@ service Api {
     rpc Hold(HoldRequest) returns (HoldResponse) {}
     rpc UnHold(UnHoldRequest) returns (UnHoldResponse) {}
     rpc SetProfileVar(SetProfileVarRequest) returns (SetProfileVarResponse) {}
+    rpc ConfirmPush(ConfirmPushRequest) returns (ConfirmPushResponse) {}
+}
+
+message ConfirmPushRequest {
+    string id = 1;
+}
+
+message ConfirmPushResponse {
+
 }
 
 message SetProfileVarRequest {

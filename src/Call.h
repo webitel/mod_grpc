@@ -195,9 +195,9 @@ protected:
     struct Info {
         CallEndpoint *from = nullptr;
         CallEndpoint *to = nullptr;
-        std::string parent_id = "";
-        std::string direction = "";
-        std::string destination = "";
+        std::string parent_id;
+        std::string direction;
+        std::string destination;
     };
 
     struct OutboundCallParameters {

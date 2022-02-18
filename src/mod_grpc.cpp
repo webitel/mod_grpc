@@ -9,6 +9,7 @@
 #include "generated/fs.grpc.pb.h"
 
 #include "Cluster.h"
+#include "switch_core.h"
 
 using namespace std;
 
@@ -101,6 +102,12 @@ namespace mod_grpc {
 
         if (!request->extensions().empty()) {
             switch_caller_extension_t *extension = nullptr;
+            switch_core_session_reset(caller_session, SWITCH_TRUE, SWITCH_TRUE);
+            switch_channel_clear_flag(caller_channel, CF_ORIGINATING);
+
+            /* clear all state handlers */
+            switch_channel_clear_state_handler(caller_channel, NULL);
+
             if ((extension = switch_caller_extension_new(caller_session,
                                                          request->callername().c_str(),
                                                          request->callernumber().c_str())) == 0) {
@@ -115,6 +122,8 @@ namespace mod_grpc {
             }
 
             switch_channel_set_caller_extension(caller_channel, extension);
+            switch_channel_set_state(caller_channel, CS_RESET);
+            switch_channel_wait_for_state(caller_channel, nullptr, CS_RESET);
             switch_channel_set_state(caller_channel, CS_EXECUTE);
         } else {
             switch_ivr_session_transfer(caller_session, request->destination().c_str(), dp, context);
@@ -523,6 +532,25 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::ConfirmPush(ServerContext *context, const fs::ConfirmPushRequest *request,
+                                       fs::ConfirmPushResponse *reply) {
+
+        if (request->id().empty()) {
+            return Status::CANCELLED;
+        }
+
+        switch_core_session_t *session;
+        session = switch_core_session_locate(request->id().c_str());
+        if (session) {
+            switch_channel_t *channel = switch_core_session_get_channel(session);
+            //code
+            switch_channel_set_flag(channel, CF_VIDEO_READY);
+            switch_core_session_rwunlock(session);
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) {
         if (!config_.grpc_host) {
             char ipV4_[80];
@@ -535,6 +563,29 @@ namespace mod_grpc {
             cluster_ = new Cluster(config_.consul_address, config_.grpc_host, config_.grpc_port,
                                    config_.consul_tts_sec, config_.consul_deregister_critical_tts_sec);
         }
+
+        this->push_wait_callback = config_.push_wait_callback;
+        this->push_fcm_uri = config_.push_fcm_uri ? std::string(config_.push_fcm_uri) : "https://fcm.googleapis.com/fcm/send";
+        if (config_.push_fcm_auth != nullptr) {
+            this->push_fcm_auth = "Authorization: " + std::string(config_.push_fcm_auth);
+        }
+        this->push_fcm_enabled = config_.push_fcm_enabled && !this->push_fcm_auth.empty() && !this->push_fcm_uri.empty();
+
+        this->push_apn_uri = config_.push_apn_uri ? std::string(config_.push_apn_uri) : "https://api.sandbox.push.apple.com:443/3/device";
+        if (config_.push_apn_cert_file) {
+            this->push_apn_cert_file = std::string(config_.push_apn_cert_file);
+        }
+        if (config_.push_apn_key_file) {
+            this->push_apn_key_file = std::string(config_.push_apn_key_file);
+        }
+        if (config_.push_apn_key_pass) {
+            this->push_apn_key_pass = std::string(config_.push_apn_key_pass);
+        }
+        if (config_.push_apn_topic) {
+            this->push_apn_topic = std::string(config_.push_apn_topic);
+        }
+        this->push_apn_enabled = config_.push_apn_enabled && !this->push_apn_cert_file.empty() && !this->push_apn_key_pass.empty()
+                && !this->push_apn_key_file.empty() && !this->push_apn_topic.empty();
     }
 
     void ServerImpl::Run() {
@@ -616,6 +667,76 @@ namespace mod_grpc {
                         &config.consul_address,
                         nullptr,
                         nullptr, "consul_address", "Consul address"),
+                SWITCH_CONFIG_ITEM(
+                        "push_wait_callback",
+                        SWITCH_CONFIG_BOOL,
+                        CONFIG_RELOADABLE,
+                        &config.push_wait_callback,
+                        2000,
+                        nullptr, "push_wait_callback", "Push wait callback time"),
+                SWITCH_CONFIG_ITEM(
+                        "push_fcm_enabled",
+                        SWITCH_CONFIG_BOOL,
+                        CONFIG_RELOADABLE,
+                        &config.push_fcm_enabled,
+                        0,
+                        nullptr, "push_fcm_enabled", "Enable FCM"),
+                SWITCH_CONFIG_ITEM(
+                        "push_fcm_auth",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.push_fcm_auth,
+                        nullptr,
+                        nullptr, "key=AAAAfEvtHJI:....", "FCM Authorization"),
+                SWITCH_CONFIG_ITEM(
+                        "push_fcm_uri",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.push_fcm_uri,
+                        "https://fcm.googleapis.com/fcm/send",
+                        nullptr, "https://fcm.googleapis.com/fcm/send", "FCM endpoint uri"),
+                SWITCH_CONFIG_ITEM(
+                        "push_apn_enabled",
+                        SWITCH_CONFIG_BOOL,
+                        CONFIG_RELOADABLE,
+                        &config.push_apn_enabled,
+                        0,
+                        nullptr, "push_apn_enabled", "Enable APN"),
+                SWITCH_CONFIG_ITEM(
+                        "push_apn_uri",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.push_apn_uri,
+                        "https://api.sandbox.push.apple.com:443/3/device",
+                        nullptr, "https://api.sandbox.push.apple.com:443/3/device", "APN endpoint uri"),
+                SWITCH_CONFIG_ITEM(
+                        "push_apn_cert_file",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.push_apn_cert_file,
+                        nullptr,
+                        nullptr, "/tmp/webitel.webitel-ios.cer", "APN certificate file"),
+                SWITCH_CONFIG_ITEM(
+                        "push_apn_key_file",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.push_apn_key_file,
+                        nullptr,
+                        nullptr, "/tmp/webitel.key.pem", "APN key file"),
+                SWITCH_CONFIG_ITEM(
+                        "push_apn_key_pass",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.push_apn_key_pass,
+                        nullptr,
+                        nullptr, "PASSWORD", "APN key password"),
+                SWITCH_CONFIG_ITEM(
+                        "push_apn_topic",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.push_apn_topic,
+                        nullptr,
+                        nullptr, "apns-topic: com.webitel.webitel-ios.voip", "APN topic header"),
                 SWITCH_CONFIG_ITEM_END()
         };
 
@@ -625,6 +746,161 @@ namespace mod_grpc {
         }
 
         return config;
+    }
+
+    std::string toJson(const PushData *data) {
+        return "{\"call_id\":\"" + data->call_id + "\"}";
+    }
+
+    long ServerImpl::SendPushAPN(const char *devices, const PushData *data) {
+        switch_CURL  *cli = switch_curl_easy_init();
+        long response_code = -1;
+
+        if (cli) {
+            switch_CURLcode res;
+            switch_curl_slist_t *headers = nullptr;
+
+            switch_curl_easy_setopt(cli, CURLOPT_URL,  (this->push_apn_uri + "/" + std::string(devices)).c_str());
+            headers = switch_curl_slist_append(headers, "Content-Type: application/json");
+            headers = switch_curl_slist_append(headers, this->push_apn_topic.c_str());
+
+            switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
+
+            std::string body = "{"
+                               "\"aps\":" + toJson(data) + ","
+                               "\"priority\":10}";
+
+            /* HTTP/2 please */
+            curl_easy_setopt(cli, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+
+            /* cert is stored PEM coded in file... */
+            curl_easy_setopt(cli, CURLOPT_SSLCERTTYPE, "DER");
+
+            /* set the cert for client authentication */
+            curl_easy_setopt(cli, CURLOPT_SSLCERT, this->push_apn_cert_file.c_str());
+
+            curl_easy_setopt(cli, CURLOPT_SSLKEYTYPE, "PEM");
+            curl_easy_setopt(cli, CURLOPT_KEYPASSWD, this->push_apn_key_pass.c_str());
+            /* set the file with the certs vaildating the server */
+            curl_easy_setopt(cli, CURLOPT_SSLKEY, this->push_apn_key_file.c_str());
+
+            /* disconnect if we cannot validate server's cert */
+            curl_easy_setopt(cli, CURLOPT_SSL_VERIFYPEER, 1L);
+
+            //#ifdef DEBUG_CURL
+            switch_curl_easy_setopt(cli, CURLOPT_VERBOSE, 1L);
+            //#endif
+            switch_curl_easy_setopt(cli, CURLOPT_CUSTOMREQUEST, "POST");
+
+            switch_curl_easy_setopt(cli, CURLOPT_POSTFIELDS, body.c_str());
+
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+                              "body\n%s\n", body.c_str());
+
+            res = switch_curl_easy_perform(cli);
+            if(res == CURLE_OK) {
+                curl_easy_getinfo(cli, CURLINFO_RESPONSE_CODE, &response_code);
+            }
+
+            switch_curl_easy_cleanup(cli);
+            switch_curl_slist_free_all(headers);
+        };
+
+
+        return response_code;
+    }
+
+    long ServerImpl::SendPushFCM(const char *devices, const PushData *data) {
+        switch_CURL  *cli = switch_curl_easy_init();
+        long response_code = -1;
+
+        if (cli) {
+            switch_CURLcode res;
+            switch_curl_slist_t *headers = nullptr;
+            switch_curl_easy_setopt(cli, CURLOPT_URL,  this->push_fcm_uri.c_str());
+            headers = switch_curl_slist_append(headers, "Content-Type: application/json");
+            headers = switch_curl_slist_append(headers, this->push_fcm_auth.c_str());
+            switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
+
+            std::string body = "{"
+                               "\"data\":" + toJson(data) + ","
+                               "\"registration_ids\":[\"" + std::string(devices) + "\"],"
+                                                                                   "\"priority\":10}";
+
+//#ifdef DEBUG_CURL
+            switch_curl_easy_setopt(cli, CURLOPT_VERBOSE, 1L);
+//#endif
+            switch_curl_easy_setopt(cli, CURLOPT_CUSTOMREQUEST, "POST");
+
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+                              "body\n%s\n", body.c_str());
+
+            switch_curl_easy_setopt(cli, CURLOPT_POSTFIELDS, body.c_str());
+
+            res = switch_curl_easy_perform(cli);
+            if(res == CURLE_OK) {
+                curl_easy_getinfo(cli, CURLINFO_RESPONSE_CODE, &response_code);
+            }
+
+            switch_curl_easy_cleanup(cli);
+            switch_curl_slist_free_all(headers);
+        };
+
+        return response_code;
+    }
+
+    bool ServerImpl::UseFCM() const {
+        return this->push_fcm_enabled;
+    }
+
+    bool ServerImpl::UseAPN() const {
+        return this->push_apn_enabled;
+    }
+
+    int ServerImpl::PushWaitCallback() const {
+        return this->push_wait_callback;
+    }
+
+    static switch_status_t wbt_outgoing_channel(switch_core_session_t * session, switch_event_t * event, switch_caller_profile_t * cp, switch_core_session_t * peer_session, switch_originate_flag_t flag) {
+        switch_channel_t *channel = switch_core_session_get_channel(session);
+        const char *wbt_push_fcm = switch_event_get_header(event, "wbt_push_fcm");
+        const char *wbt_push_apn = switch_event_get_header(event, "wbt_push_apn");
+        auto uuid = switch_channel_get_uuid(channel);
+        int send = 0;
+        PushData data;
+        data.call_id = std::string(uuid);
+        if (wbt_push_fcm && server_->UseFCM()) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "start request FCM %s\n", switch_channel_get_uuid(channel));
+            auto res = server_->SendPushFCM(wbt_push_fcm, &data);
+            //switch_sleep(1 * 1000 * 1000);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "stop request FCM %s [%ld]\n", switch_channel_get_uuid(channel), res);
+            if (res == 200) {
+                send++;
+            }
+        }
+        if (wbt_push_apn && server_->UseAPN()) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "start APN request %s\n", switch_channel_get_uuid(channel));
+            auto res = server_->SendPushAPN(wbt_push_apn, &data);
+            //switch_sleep(1 * 1000 * 1000);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "stop APN request %s [%ld]\n", switch_channel_get_uuid(channel), res);
+            if (res == 200) {
+                send++;
+            }
+        }
+
+        if (send && server_->PushWaitCallback() > 0) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "wait callback %s\n", switch_channel_get_uuid(channel));
+            switch_sleep(3 * 1000 * 1000);
+            //switch_channel_wait_for_app_flag(channel, CF_APP_T38_POSSIBLE, "T38", SWITCH_TRUE, 2000)
+//            switch_channel_wait_for_flag(channel, CF_VIDEO_READY, SWITCH_TRUE, server_->PushWaitCallback(), NULL); //10s
+        }
+        return SWITCH_STATUS_SUCCESS;
+    }
+
+    static switch_status_t wbt_tweaks_on_init(switch_core_session_t *session) {
+        switch_channel_t *channel = switch_core_session_get_channel(session);
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "checking tweaks for %s\n", switch_channel_get_uuid(channel));
+        switch_core_event_hook_add_outgoing_channel(session, wbt_outgoing_channel);
     }
 
     SWITCH_STANDARD_APP(wbr_queue_function) {
@@ -643,7 +919,6 @@ namespace mod_grpc {
             }
         }
     }
-
 
     SWITCH_STANDARD_APP(wbt_queue_playback_function) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
@@ -682,15 +957,15 @@ namespace mod_grpc {
         try {
             *module_interface = switch_loadable_module_create_module_interface(pool, modname);
             switch_application_interface_t *app_interface;
+            switch_core_add_state_handler(&wbt_state_handlers);
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer",
                            wbt_blind_transfer_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback",
                            wbt_queue_playback_function, "", SAF_NONE);
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed\n");
             server_ = new ServerImpl(loadConfig());
             server_->Run();
-
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed FCM=%d APN=%d\n", server_->UseFCM(), server_->UseAPN());
             return SWITCH_STATUS_SUCCESS;
         } catch (std::string &err) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module: %s\n",
@@ -707,6 +982,7 @@ namespace mod_grpc {
 
     SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_grpc_shutdown) {
         try {
+            switch_core_remove_state_handler(&wbt_state_handlers);
             server_->Shutdown();
             delete server_;
             google::protobuf::ShutdownProtobufLibrary(); //FIXME CRASH ???
