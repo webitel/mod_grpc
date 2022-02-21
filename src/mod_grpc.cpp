@@ -543,8 +543,8 @@ namespace mod_grpc {
         session = switch_core_session_locate(request->id().c_str());
         if (session) {
             switch_channel_t *channel = switch_core_session_get_channel(session);
-            //code
-            switch_channel_set_flag(channel, CF_VIDEO_READY);
+            //todo fixme CF_SLA_INTERCEPT -> CF_DEVICES_CHANGED
+            switch_channel_set_flag(channel, CF_SLA_INTERCEPT);
             switch_core_session_rwunlock(session);
         }
 
@@ -669,7 +669,7 @@ namespace mod_grpc {
                         nullptr, "consul_address", "Consul address"),
                 SWITCH_CONFIG_ITEM(
                         "push_wait_callback",
-                        SWITCH_CONFIG_BOOL,
+                        SWITCH_CONFIG_INT,
                         CONFIG_RELOADABLE,
                         &config.push_wait_callback,
                         2000,
@@ -861,46 +861,53 @@ namespace mod_grpc {
         return this->push_wait_callback;
     }
 
-    static switch_status_t wbt_outgoing_channel(switch_core_session_t * session, switch_event_t * event, switch_caller_profile_t * cp, switch_core_session_t * peer_session, switch_originate_flag_t flag) {
+    static switch_status_t wbt_outgoing_channel(switch_core_session_t * session) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
-        const char *wbt_push_fcm = switch_event_get_header(event, "wbt_push_fcm");
-        const char *wbt_push_apn = switch_event_get_header(event, "wbt_push_apn");
+        const char *wbt_push_fcm = switch_channel_get_variable(channel, "wbt_push_fcm");
+        const char *wbt_push_apn = switch_channel_get_variable(channel, "wbt_push_apn");
         auto uuid = switch_channel_get_uuid(channel);
         int send = 0;
         PushData data;
         data.call_id = std::string(uuid);
         if (wbt_push_fcm && server_->UseFCM()) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "start request FCM %s\n", switch_channel_get_uuid(channel));
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start request FCM %s\n", switch_channel_get_uuid(channel));
             auto res = server_->SendPushFCM(wbt_push_fcm, &data);
             //switch_sleep(1 * 1000 * 1000);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "stop request FCM %s [%ld]\n", switch_channel_get_uuid(channel), res);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop request FCM %s [%ld]\n", switch_channel_get_uuid(channel), res);
             if (res == 200) {
                 send++;
             }
         }
         if (wbt_push_apn && server_->UseAPN()) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "start APN request %s\n", switch_channel_get_uuid(channel));
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start APN request %s\n", switch_channel_get_uuid(channel));
             auto res = server_->SendPushAPN(wbt_push_apn, &data);
             //switch_sleep(1 * 1000 * 1000);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "stop APN request %s [%ld]\n", switch_channel_get_uuid(channel), res);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop APN request %s [%ld]\n", switch_channel_get_uuid(channel), res);
             if (res == 200) {
                 send++;
             }
         }
 
         if (send && server_->PushWaitCallback() > 0) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "wait callback %s\n", switch_channel_get_uuid(channel));
-            switch_sleep(3 * 1000 * 1000);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start wait callback %s [%d]\n", switch_channel_get_uuid(channel), server_->PushWaitCallback());
+//            switch_sleep(3 * 1000 * 1000);
             //switch_channel_wait_for_app_flag(channel, CF_APP_T38_POSSIBLE, "T38", SWITCH_TRUE, 2000)
-//            switch_channel_wait_for_flag(channel, CF_VIDEO_READY, SWITCH_TRUE, server_->PushWaitCallback(), NULL); //10s
+            //todo
+            switch_channel_wait_for_flag(channel, CF_SLA_INTERCEPT, SWITCH_TRUE, server_->PushWaitCallback(), NULL); //10s
+            switch_channel_clear_flag(channel, CF_SLA_INTERCEPT);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop wait callback %s\n", switch_channel_get_uuid(channel));
         }
         return SWITCH_STATUS_SUCCESS;
     }
 
     static switch_status_t wbt_tweaks_on_init(switch_core_session_t *session) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
-        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "checking tweaks for %s\n", switch_channel_get_uuid(channel));
-        switch_core_event_hook_add_outgoing_channel(session, wbt_outgoing_channel);
+        if (strcmp(switch_channel_get_variable(channel, "sip_h_X-Webitel-Direction"), "internal") == 0) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "checking tweaks for %s\n", switch_channel_get_uuid(channel));
+            wbt_outgoing_channel(session);
+        }
+
+//        switch_core_event_hook_add_outgoing_channel(session, wbt_outgoing_channel);
     }
 
     SWITCH_STANDARD_APP(wbr_queue_function) {
