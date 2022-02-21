@@ -983,6 +983,7 @@ namespace mod_grpc {
         } catch (std::string &err) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module: %s\n",
                               err.c_str());
+            return SWITCH_STATUS_GENERR;
         } catch (std::exception &ex) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module: %s\n",
                               ex.what());
