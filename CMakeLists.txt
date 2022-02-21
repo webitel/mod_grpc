@@ -5,7 +5,7 @@ set(CMAKE_CXX_COMPILER "g++")
 
 project(mod_grpc C CXX)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-gnu-unique")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-gnu-unique -Wreturn-type")
 set(third_party_DIR "${CMAKE_SOURCE_DIR}/third_party")
 
 set(USE_GRPC_VERSION "v1.33.2" CACHE STRING "GRPC version")
