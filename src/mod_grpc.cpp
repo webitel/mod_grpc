@@ -536,7 +536,9 @@ namespace mod_grpc {
                                        fs::ConfirmPushResponse *reply) {
 
         if (request->id().empty()) {
-            return Status::CANCELLED;
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("bad request: no call id");
+            return Status::OK;
         }
 
         switch_core_session_t *session;
@@ -546,6 +548,9 @@ namespace mod_grpc {
             //todo fixme CF_SLA_INTERCEPT -> CF_DEVICES_CHANGED
             switch_channel_set_flag(channel, CF_SLA_INTERCEPT);
             switch_core_session_rwunlock(session);
+        } else {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("no such channel");
         }
 
         return Status::OK;

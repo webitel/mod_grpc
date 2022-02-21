@@ -24,7 +24,7 @@ message ConfirmPushRequest {
 }
 
 message ConfirmPushResponse {
-
+    ErrorExecute error = 1;
 }
 
 message SetProfileVarRequest {
