@@ -913,6 +913,7 @@ namespace mod_grpc {
         }
 
 //        switch_core_event_hook_add_outgoing_channel(session, wbt_outgoing_channel);
+        return SWITCH_STATUS_SUCCESS;
     }
 
     SWITCH_STANDARD_APP(wbr_queue_function) {
