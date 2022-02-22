@@ -907,7 +907,9 @@ namespace mod_grpc {
 
     static switch_status_t wbt_tweaks_on_init(switch_core_session_t *session) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
-        if (strcmp(switch_channel_get_variable(channel, "sip_h_X-Webitel-Direction"), "internal") == 0) {
+        auto dir = switch_channel_get_variable(channel, "sip_h_X-Webitel-Direction");
+
+        if (dir && strcmp(dir, "internal") == 0) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "checking tweaks for %s\n", switch_channel_get_uuid(channel));
             wbt_outgoing_channel(session);
         }
