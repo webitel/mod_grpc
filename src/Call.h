@@ -10,6 +10,7 @@
 #include <iterator>
 #include <ctime>
 #include <iostream>
+#include "utils.h"
 
 extern "C" {
 #include <switch.h>
@@ -73,11 +74,6 @@ static const char* callEventStr(CallActions e) {
     }
 }
 
-static long int unixTimestamp() {
-    switch_time_t ts = switch_micro_time_now();
-    return static_cast<long int> (ts/1000);
-}
-
 class CallEndpoint {
 public:
     std::string type;
@@ -117,7 +113,7 @@ public:
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_ID, uuid_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_NODE_NAME, node_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DOMAIN_ID, domain_id_.c_str());
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_TIMESTAMP, std::to_string(unixTimestamp()).c_str());
+        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_TIMESTAMP, std::to_string(mod_grpc::unixTimestamp()).c_str());
 
         if (!user_id_.empty()) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_USER_ID, user_id_.c_str());

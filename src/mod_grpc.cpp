@@ -550,7 +550,7 @@ namespace mod_grpc {
             switch_core_session_rwunlock(session);
         } else {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
-            reply->mutable_error()->set_message("no such channel");
+            reply->mutable_error()->set_message("No such channel!");
         }
 
         return Status::OK;
@@ -768,6 +768,8 @@ namespace mod_grpc {
             switch_curl_easy_setopt(cli, CURLOPT_URL,  (this->push_apn_uri + "/" + std::string(devices)).c_str());
             headers = switch_curl_slist_append(headers, "Content-Type: application/json");
             headers = switch_curl_slist_append(headers, this->push_apn_topic.c_str());
+            headers = switch_curl_slist_append(headers, (std::string("apns-expiration: ") +
+                std::to_string(unixTimestamp() + this->push_wait_callback + 1000)).c_str());
 
             switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
 
