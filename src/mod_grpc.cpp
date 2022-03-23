@@ -757,6 +757,11 @@ namespace mod_grpc {
         return "{\"call_id\":\"" + data->call_id + "\",\"from_number\":\"" + data->from_number + "\",\"from_name\":\"" + data->from_name + "\"}";
     }
 
+    static size_t writeCallback(char *contents, size_t size, size_t nmemb, void *userp) {
+        ((std::string*)userp)->append((char*)contents, size * nmemb);
+        return size * nmemb;
+    }
+
     long ServerImpl::SendPushAPN(const char *devices, const PushData *data) {
         switch_CURL  *cli = switch_curl_easy_init();
         long response_code = -1;
@@ -769,7 +774,8 @@ namespace mod_grpc {
             headers = switch_curl_slist_append(headers, "Content-Type: application/json");
             headers = switch_curl_slist_append(headers, this->push_apn_topic.c_str());
             headers = switch_curl_slist_append(headers, (std::string("apns-expiration: ") +
-                std::to_string(unixTimestamp() + this->push_wait_callback + 1000)).c_str());
+                std::to_string((long)((unixTimestamp() + this->push_wait_callback + 2000) / 1000))
+            ).c_str());
 
             switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
 
@@ -794,20 +800,27 @@ namespace mod_grpc {
             /* disconnect if we cannot validate server's cert */
             curl_easy_setopt(cli, CURLOPT_SSL_VERIFYPEER, 1L);
 
-            //#ifdef DEBUG_CURL
+            #ifdef DEBUG_CURL
             switch_curl_easy_setopt(cli, CURLOPT_VERBOSE, 1L);
-            //#endif
+            #endif
             switch_curl_easy_setopt(cli, CURLOPT_CUSTOMREQUEST, "POST");
 
             switch_curl_easy_setopt(cli, CURLOPT_POSTFIELDS, body.c_str());
 
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
-                              "body\n%s\n", body.c_str());
+//            std::string readBuffer;
+//            switch_curl_easy_setopt(cli, CURLOPT_WRITEFUNCTION, writeCallback);
+//            switch_curl_easy_setopt(cli, CURLOPT_WRITEDATA, &readBuffer);
+
+//            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+//                              "body\n%s\n", body.c_str());
 
             res = switch_curl_easy_perform(cli);
             if(res == CURLE_OK) {
                 curl_easy_getinfo(cli, CURLINFO_RESPONSE_CODE, &response_code);
             }
+
+//            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+//                              "response (%s)\n%s\n",(this->push_apn_uri + "/" + std::string(devices)).c_str(), readBuffer.c_str());
 
             switch_curl_easy_cleanup(cli);
             switch_curl_slist_free_all(headers);
@@ -868,6 +881,17 @@ namespace mod_grpc {
         return this->push_wait_callback;
     }
 
+    static void split_str(std::string const &str, const char delim,
+                   std::vector<std::string> &out) {
+        // create a stream from the string
+        std::stringstream s(str);
+
+        std::string s2;
+        while (std::getline(s, s2, delim)) {
+            out.push_back(s2); // store the string in s2
+        }
+    }
+
     static switch_status_t wbt_outgoing_channel(switch_core_session_t * session, switch_event_t * event, switch_caller_profile_t * cp, switch_core_session_t * peer_session, switch_originate_flag_t flag) {
         if (!peer_session) {
 
@@ -905,11 +929,16 @@ namespace mod_grpc {
             }
         }
         if (wbt_push_apn && server_->UseAPN()) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "start APN request %s\n", uuid);
-            auto res = server_->SendPushAPN(wbt_push_apn, &data);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "stop APN request %s [%ld]\n", uuid, res);
-            if (res == 200) {
-                send++;
+            std::vector <std::string> out;
+            split_str(wbt_push_apn, ',', out);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "start APN request %s tokens[%s]\n", uuid, wbt_push_apn);
+            for (const auto &token: out) {
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "start APN request %s\n", uuid);
+                auto res = server_->SendPushAPN(token.c_str(), &data);
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "stop APN request %s [%ld]\n", uuid, res);
+                if (res == 200) {
+                    send++;
+                }
             }
         }
 
