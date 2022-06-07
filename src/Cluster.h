@@ -15,6 +15,7 @@ extern "C" {
 #include <condition_variable>
 #include "switch_curl.h"
 #include "CallManager.h"
+#include "utils.h"
 
 namespace mod_grpc {
     static long sendRequest(const char *uri, const char *body);
