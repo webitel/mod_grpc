@@ -502,13 +502,13 @@ namespace mod_grpc {
         if (!request->id().empty() && (session = switch_core_session_locate(request->id().c_str()))) {
             switch_channel_t *channel = switch_core_session_get_channel(session);
 //            switch_channel_clear_flag(channel, CF_HOLD);
-            switch_channel_stop_broadcast(channel);
-            switch_channel_wait_for_flag(channel, CF_BROADCAST, SWITCH_FALSE, 5000, NULL);
+            if (switch_channel_test_flag(channel, CF_BROADCAST)) {
+                switch_channel_stop_broadcast(channel);
+                switch_channel_wait_for_flag(channel, CF_BROADCAST, SWITCH_FALSE, 5000, NULL);
+            }
 
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "executed stop_playback\n");
             switch_core_session_rwunlock(session);
-        } else {
-            return Status::CANCELLED;
         }
 
         return Status::OK;
