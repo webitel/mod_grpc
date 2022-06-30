@@ -830,6 +830,15 @@ namespace mod_grpc {
         return response_code;
     }
 
+    std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
+        size_t start_pos = 0;
+        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+            str.replace(start_pos, from.length(), to);
+            start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+        }
+        return str;
+    }
+
     long ServerImpl::SendPushFCM(const char *devices, const PushData *data) {
         switch_CURL  *cli = switch_curl_easy_init();
         long response_code = -1;
@@ -844,7 +853,7 @@ namespace mod_grpc {
 
             std::string body = "{"
                                "\"data\":" + toJson(data) + ","
-                               "\"registration_ids\":[\"" + std::string(devices) + "\"],"
+                               "\"registration_ids\":[\"" + ReplaceAll(devices, "::", "\",\"") + "\"],"
                                                                                    "\"priority\":10}";
 
 //#ifdef DEBUG_CURL
@@ -881,15 +890,15 @@ namespace mod_grpc {
         return this->push_wait_callback;
     }
 
-    static void split_str(std::string const &str, const char delim,
-                   std::vector<std::string> &out) {
-        // create a stream from the string
-        std::stringstream s(str);
-
-        std::string s2;
-        while (std::getline(s, s2, delim)) {
-            out.push_back(s2); // store the string in s2
+    static void split_str(const std::string& str, const std::string& delimiter, std::vector<std::string> &out) {
+        size_t pos = 0;
+        std::string s = str;
+        while ((pos = s.find(delimiter)) != std::string::npos) {
+            out.push_back(s.substr(0, pos));
+            s.erase(0, pos + delimiter.length());
         }
+
+        out.push_back(s);
     }
 
     static switch_status_t wbt_outgoing_channel(switch_core_session_t * session, switch_event_t * event, switch_caller_profile_t * cp, switch_core_session_t * peer_session, switch_originate_flag_t flag) {
@@ -930,7 +939,7 @@ namespace mod_grpc {
         }
         if (wbt_push_apn && server_->UseAPN()) {
             std::vector <std::string> out;
-            split_str(wbt_push_apn, ',', out);
+            split_str(wbt_push_apn, "::", out);
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "start APN request %s tokens[%s]\n", uuid, wbt_push_apn);
             for (const auto &token: out) {
                 switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "start APN request %s\n", uuid);
