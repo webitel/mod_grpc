@@ -754,7 +754,7 @@ namespace mod_grpc {
     }
 
     std::string toJson(const PushData *data) {
-        return "{\"call_id\":\"" + data->call_id + "\",\"from_number\":\"" + data->from_number + "\",\"from_name\":\"" + data->from_name + "\"}";
+        return "{\"type\":\"call\", \"call_id\":\"" + data->call_id + "\",\"from_number\":\"" + data->from_number + "\",\"from_name\":\"" + data->from_name + "\"}";
     }
 
     static size_t writeCallback(char *contents, size_t size, size_t nmemb, void *userp) {
@@ -852,6 +852,7 @@ namespace mod_grpc {
             switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
 
             std::string body = "{"
+                               "\"time_to_live\":" + std::to_string(int(this->push_wait_callback / 1000) + 2) + ","
                                "\"data\":" + toJson(data) + ","
                                "\"registration_ids\":[\"" + ReplaceAll(devices, "::", "\",\"") + "\"],"
                                                                                    "\"priority\":10}";
