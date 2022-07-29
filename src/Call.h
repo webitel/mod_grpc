@@ -35,6 +35,7 @@ extern "C" {
 #define SKIP_EVENT_VARIABLE "skip_channel_events"
 #define RECORD_SESSION_START_NAME  "wbt_start_record"
 #define RECORD_SESSION_STOP_NAME  "wbt_stop_record"
+#define WBT_TALK_SEC  "wbt_talk_sec"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -614,6 +615,7 @@ public:
         auto wbt_transfer_to_agent = get_str(switch_event_get_header(e, "variable_wbt_transfer_to_agent"));
         auto wbt_transfer_from_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_from_attempt"));
         auto wbt_transfer_to_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_to_attempt"));
+        auto wbt_talk_sec = get_str(switch_event_get_header(e, "variable_wbt_talk_sec"));
 
 //        DUMP_EVENT(e);
 
@@ -650,6 +652,9 @@ public:
         }
         if (!wbt_transfer_to_attempt.empty()) {
             addAttribute("transfer_to_attempt", wbt_transfer_to_attempt);
+        }
+        if (!wbt_talk_sec.empty()) {
+            addAttribute("talk_sec", wbt_talk_sec);
         }
 
         if (switch_event_get_header(e, "variable_grpc_send_hangup") != nullptr || hangup_by == "recv_bye" ||

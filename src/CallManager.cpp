@@ -81,6 +81,7 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
             }
 
             case SWITCH_EVENT_CHANNEL_HOLD:
+                //todo switch_ivr_record_session_mask  / unmask ?
                 CallEvent<Hold>(event).fire();
                 break;
 

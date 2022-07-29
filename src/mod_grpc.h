@@ -24,6 +24,7 @@ using grpc::Status;
 
 namespace mod_grpc {
     static switch_status_t wbt_tweaks_on_init(switch_core_session_t *session);
+    static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);
     static switch_state_handler_table_t wbt_state_handlers = {
             /*.on_init */ wbt_tweaks_on_init,
             /*.on_routing */ NULL,
@@ -35,7 +36,7 @@ namespace mod_grpc {
             /*.on_hibernate */ NULL,
             /*.on_reset */ NULL,
             /*.on_park */ NULL,
-            /*.on_reporting */ NULL,
+            /*.on_reporting */ wbt_tweaks_on_reporting,
             /*.on_destroy */ NULL
     };
 

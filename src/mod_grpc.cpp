@@ -966,6 +966,27 @@ namespace mod_grpc {
         return SWITCH_STATUS_SUCCESS;
     }
 
+    static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session) {
+        double talk = 0;
+        switch_caller_profile_t *cp = nullptr;
+
+        auto channel = switch_core_session_get_channel(session);
+        auto profile = switch_channel_get_caller_profile(channel);
+
+        for (cp = profile; cp; cp = cp->next) {
+            if (cp->times && cp->times->bridged) {
+                switch_time_t t2 = cp->times->transferred;
+                if (t2 == 0) {
+                    t2 = cp->times->hungup ? cp->times->hungup : switch_micro_time_now();
+                }
+                talk += difftime(t2,
+                                 (switch_time_t)(cp->times->bridged));
+            }
+        }
+        switch_channel_set_variable(channel, WBT_TALK_SEC, std::to_string(static_cast<int>(talk / 1000000)).c_str());
+        return SWITCH_STATUS_SUCCESS;
+    }
+
     SWITCH_STANDARD_APP(wbr_queue_function) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
 
