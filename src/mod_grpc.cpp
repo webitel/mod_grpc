@@ -408,10 +408,9 @@ namespace mod_grpc {
 
     Status ApiServiceImpl::BridgeCall(ServerContext *context, const fs::BridgeCallRequest *request,
                                       fs::BridgeCallResponse *reply) {
-        switch_status_t status;
-        switch_core_session_t *leg_a_s, *leg_b_s = nullptr;
-        switch_channel_t *chan_a_s, *chan_b_s = nullptr;
-        bool partner_a = false;
+        switch_status_t status = SWITCH_STATUS_TERM;
+        switch_core_session_t *leg_a_s = nullptr, *leg_b_s = nullptr;
+        switch_channel_t *chan_a_s = nullptr, *chan_b_s = nullptr;
 
         const char *cc_to_agent_id = nullptr;
         const char *cc_from_attempt_id = nullptr;
@@ -448,6 +447,7 @@ namespace mod_grpc {
 
         if (leg_a_s && leg_b_s && chan_a_s && chan_b_s && pa && pb
             && switch_channel_test_flag(chan_a_s, CF_BRIDGED) && switch_channel_test_flag(chan_b_s, CF_BRIDGED)) {
+
             if (switch_channel_get_partner_uuid(chan_a_s)) {
                 switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_from", request->leg_b_id().c_str());
 
@@ -475,6 +475,21 @@ namespace mod_grpc {
                 SWITCH_STATUS_SUCCESS) {
                 // todo clean variables - transfer fail
             } else {
+
+                if (!switch_core_media_bug_count(leg_a_s, "session_record")) {
+                    switch_core_session_t *pbs = nullptr;
+                    if ((pbs = switch_core_session_locate(pb))) {
+                        if (switch_core_media_bug_count(pbs, "session_record")) {
+                            char *path = switch_channel_expand_variables(chan_b_s, this->transfer_template.c_str());
+                            switch_ivr_record_session_event(leg_b_s, path, 0, nullptr, nullptr);
+
+                            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Transfer recordings after bridge: %s & %s [%s]\n",
+                                              request->leg_a_id().c_str(), request->leg_b_id().c_str(), path);
+                        }
+                        switch_core_session_rwunlock(pbs);
+                    }
+                }
+
                 reply->set_uuid(request->leg_b_id());
             }
         }
@@ -591,6 +606,8 @@ namespace mod_grpc {
         }
         this->push_apn_enabled = config_.push_apn_enabled && !this->push_apn_cert_file.empty() && !this->push_apn_key_pass.empty()
                 && !this->push_apn_key_file.empty() && !this->push_apn_topic.empty();
+
+        this->transfer_recordings_template = config_.transfer_recordings_template;
     }
 
     void ServerImpl::Run() {
@@ -618,6 +635,8 @@ namespace mod_grpc {
     }
 
     void ServerImpl::initServer() {
+        api_.transfer_template = this->transfer_recordings_template;
+
         ServerBuilder builder;
         // Listen on the given address without any authentication mechanism.
         builder.AddListeningPort(server_address_, grpc::InsecureServerCredentials());
@@ -740,8 +759,15 @@ namespace mod_grpc {
                         SWITCH_CONFIG_STRING,
                         CONFIG_RELOADABLE,
                         &config.push_apn_topic,
-                        nullptr,
+                        "apns-topic: com.webitel.webitel-ios.voip",
                         nullptr, "apns-topic: com.webitel.webitel-ios.voip", "APN topic header"),
+                SWITCH_CONFIG_ITEM(
+                        "transfer_recordings_template",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.transfer_recordings_template,
+                        "http_cache://http://$${cdr_url}/sys/recordings?domain=${sip_h_X-Webitel-Domain-Id}&id=${wbt_parent_id}&name=transfer-${wbt_parent_id}.mp3",
+                        nullptr, "http_cache://http://$${cdr_url}/sys/recordings?domain=${sip_h_X-Webitel-Domain-Id}&id=${wbt_parent_id}&name=transfer-${wbt_parent_id}.mp3", "Transfer recordings template"),
                 SWITCH_CONFIG_ITEM_END()
         };
 
