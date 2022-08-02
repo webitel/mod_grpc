@@ -45,8 +45,6 @@ namespace mod_grpc {
 
     // Logic and data behind the server's behavior.
     class ApiServiceImpl final : public fs::Api::Service {
-    public:
-        std::string transfer_template;
     private:
         Status Originate(ServerContext* context, const fs::OriginateRequest* request,
                          fs::OriginateResponse* reply) override;
@@ -117,8 +115,6 @@ namespace mod_grpc {
         char const *push_apn_key_file;
         char const *push_apn_key_pass;
         char const *push_apn_topic;
-
-        char const *transfer_recordings_template;
     };
 
     Config loadConfig();
@@ -154,8 +150,6 @@ namespace mod_grpc {
         std::string push_apn_cert_file;
         std::string push_apn_key_file;
         std::string push_apn_key_pass;
-
-        std::string transfer_recordings_template;
     };
 
     ServerImpl *server_;

@@ -20,9 +20,5 @@
         <param name="push_apn_key_file" value="/tmp/webitel.key.pem"/>
         <param name="push_apn_key_pass" value="blabla"/>
         <param name="push_apn_topic" value="apns-topic: com.webitel.webitel-ios.voip"/>
-
-
-        <param name="transfer_recordings_template" value="http_cache://http://$${cdr_url}/sys/recordings?domain=${sip_h_X-Webitel-Domain-Id}&id=${wbt_parent_id}&name=transfer-${wbt_from_number}_${wbt_to_number}.mp3"/>
-
     </settings>
 </configuration>
