@@ -12,8 +12,8 @@ mod_grpc::CallManager::CallManager() {
 //    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_DTMF, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_BRIDGE, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_HANGUP_COMPLETE, nullptr, CallManager::handle_call_event, nullptr);
-    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_TALK, nullptr, CallManager::handle_call_event, nullptr);
-    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_NOTALK, nullptr, CallManager::handle_call_event, nullptr);
+//    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_TALK, nullptr, CallManager::handle_call_event, nullptr);
+//    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_NOTALK, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_RECORD_START, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_RECORD_STOP, nullptr, CallManager::handle_call_event, nullptr);
 
@@ -48,7 +48,7 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                 auto session = switch_core_session_locate(uuid_.c_str());
                 if (session) {
                     auto channel = switch_core_session_get_channel(session);
-                    if (!switch_channel_test_flag(channel, CF_HANGUP_HELD)) {
+                    if (!switch_channel_test_flag(channel, CF_HANGUP_HELD) && !switch_channel_test_flag(channel, CF_PROTO_HOLD)) {
                         CallEvent<Active>(event).fire();
                     }
                     switch_core_session_rwunlock(session);
@@ -119,8 +119,7 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                 auto uuid_ = get_str(switch_event_get_header(event, "Unique-ID"));
                 auto session = switch_core_session_force_locate(uuid_.c_str());
                 if (session) {
-                    auto channel = switch_core_session_get_channel(session);
-                    switch_channel_set_variable(channel, RECORD_SESSION_STOP_NAME, std::to_string(unixTimestamp()).c_str());
+                    switch_channel_set_variable(switch_core_session_get_channel(session), RECORD_SESSION_STOP_NAME, std::to_string(unixTimestamp()).c_str());
                     switch_core_session_rwunlock(session);
                 }
                 break;

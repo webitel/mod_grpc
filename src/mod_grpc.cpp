@@ -66,7 +66,7 @@ namespace mod_grpc {
 
         std::stringstream aleg;
 
-        for (size_t i = 0; i < request->endpoints().size(); ++i) {
+        for (int i = 0; i < request->endpoints().size(); ++i) {
             if (i != 0)
                 aleg << separator;
             aleg << request->endpoints()[i];
