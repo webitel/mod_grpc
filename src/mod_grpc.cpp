@@ -591,6 +591,8 @@ namespace mod_grpc {
         }
         this->push_apn_enabled = config_.push_apn_enabled && !this->push_apn_cert_file.empty() && !this->push_apn_key_pass.empty()
                 && !this->push_apn_key_file.empty() && !this->push_apn_topic.empty();
+
+        this->auto_answer_delay = config_.auto_answer_delay;
     }
 
     void ServerImpl::Run() {
@@ -673,6 +675,13 @@ namespace mod_grpc {
                         nullptr,
                         nullptr, "consul_address", "Consul address"),
                 SWITCH_CONFIG_ITEM(
+                        "auto_answer_delay",
+                        SWITCH_CONFIG_INT,
+                        CONFIG_RELOADABLE,
+                        &config.auto_answer_delay,
+                        (void *) 1000,
+                        nullptr, nullptr, "Auto answer delay time"),
+                SWITCH_CONFIG_ITEM(
                         "push_wait_callback",
                         SWITCH_CONFIG_INT,
                         CONFIG_RELOADABLE,
@@ -754,7 +763,8 @@ namespace mod_grpc {
     }
 
     std::string toJson(const PushData *data) {
-        return "{\"type\":\"call\", \"call_id\":\"" + data->call_id + "\",\"from_number\":\"" + data->from_number + "\",\"from_name\":\"" + data->from_name + "\"}";
+        return "{\"type\":\"call\", \"call_id\":\"" + data->call_id + "\",\"from_number\":\"" + data->from_number + "\",\"from_name\":\"" + data->from_name +
+         "\",\"direction\":\"" + data->direction + "\",\"auto_answer\":" + std::to_string(data->auto_answer) + "}";
     }
 
     static size_t writeCallback(char *contents, size_t size, size_t nmemb, void *userp) {
@@ -891,6 +901,10 @@ namespace mod_grpc {
         return this->push_wait_callback;
     }
 
+    int ServerImpl::AutoAnswerDelayTime() const {
+        return this->auto_answer_delay;
+    }
+
     static void split_str(const std::string& str, const std::string& delimiter, std::vector<std::string> &out) {
         size_t pos = 0;
         std::string s = str;
@@ -900,70 +914,6 @@ namespace mod_grpc {
         }
 
         out.push_back(s);
-    }
-
-    static switch_status_t wbt_outgoing_channel(switch_core_session_t * session, switch_event_t * event, switch_caller_profile_t * cp, switch_core_session_t * peer_session, switch_originate_flag_t flag) {
-        if (!peer_session) {
-
-            return SWITCH_STATUS_SUCCESS;
-        }
-
-        switch_channel_t *channel = switch_core_session_get_channel(peer_session);
-        auto dir = switch_event_get_header(event, "sip_h_X-Webitel-Direction");
-        if (!dir || strcmp(dir, "internal") != 0) {
-
-            return SWITCH_STATUS_SUCCESS;
-        }
-        auto uuid = switch_channel_get_uuid(channel);
-        if (!uuid) {
-            //todo
-            return SWITCH_STATUS_SUCCESS;
-        }
-
-        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "checking tweaks for %s\n", uuid);
-        const char *wbt_push_fcm = switch_event_get_header(event, "wbt_push_fcm");
-        const char *wbt_push_apn = switch_event_get_header(event, "wbt_push_apn");
-        const char *wbt_from_name = switch_event_get_header(event, "wbt_from_name");
-        const char *wbt_from_number = switch_event_get_header(event, "wbt_from_number");
-        int send = 0;
-        PushData data;
-        data.call_id = std::string(uuid);
-        data.from_name = wbt_from_name ? std::string(wbt_from_name) : "";
-        data.from_number = wbt_from_number ? std::string(wbt_from_number) : "";
-        if (wbt_push_fcm && server_->UseFCM()) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "start request FCM %s\n", uuid);
-            auto res = server_->SendPushFCM(wbt_push_fcm, &data);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "stop request FCM %s [%ld]\n", uuid, res);
-            if (res == 200) {
-                send++;
-            }
-        }
-        if (wbt_push_apn && server_->UseAPN()) {
-            std::vector <std::string> out;
-            split_str(wbt_push_apn, "::", out);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "start APN request %s tokens[%s]\n", uuid, wbt_push_apn);
-            for (const auto &token: out) {
-                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "start APN request %s\n", uuid);
-                auto res = server_->SendPushAPN(token.c_str(), &data);
-                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "stop APN request %s [%ld]\n", uuid, res);
-                if (res == 200) {
-                    send++;
-                }
-            }
-        }
-
-        if (send && server_->PushWaitCallback() > 0) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "start wait callback %s [%d]\n", uuid, server_->PushWaitCallback());
-            switch_channel_wait_for_flag(channel, CF_SLA_INTERCEPT, SWITCH_TRUE, server_->PushWaitCallback(), NULL); //10s
-            switch_channel_clear_flag(channel, CF_SLA_INTERCEPT);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(peer_session), SWITCH_LOG_DEBUG, "stop wait callback %s\n", uuid);
-        }
-        return SWITCH_STATUS_SUCCESS;
-    }
-
-    static switch_status_t wbt_tweaks_on_init(switch_core_session_t *session) {
-        switch_core_event_hook_add_outgoing_channel(session, wbt_outgoing_channel);
-        return SWITCH_STATUS_SUCCESS;
     }
 
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session) {
@@ -985,6 +935,84 @@ namespace mod_grpc {
         }
         switch_channel_set_variable(channel, WBT_TALK_SEC, std::to_string(static_cast<int>(talk / 1000000)).c_str());
         return SWITCH_STATUS_SUCCESS;
+    }
+
+    static PushData* get_push_body(const char *uuid, switch_channel *channel) {
+        auto *pData = new PushData;
+        pData->call_id = std::string(uuid);
+        const char *name = nullptr;
+        const char *number = nullptr;
+        const char *wbt_parent_id = switch_channel_get_variable(channel, "wbt_parent_id");
+        const char *wbt_auto_answer = switch_channel_get_variable(channel, "wbt_auto_answer");
+
+        if (wbt_parent_id) {
+            pData->direction = "inbound";
+            number = switch_channel_get_variable(channel, "wbt_from_number");
+            name = switch_channel_get_variable(channel, "wbt_from_name");
+        } else {
+            pData->direction = "outbound";
+            number = switch_channel_get_variable(channel, "Caller-Orig-Caller-ID-Number");
+            name = switch_channel_get_variable(channel, "Caller-Orig-Caller-ID-Name");
+            if (!number) {
+                number = name = switch_channel_get_variable(channel, "wbt_destination");
+            }
+        }
+
+        pData->auto_answer = switch_true(wbt_auto_answer);
+
+        pData->from_name = name ? std::string(name) : "";
+        pData->from_number = number ? std::string(number) : "";
+
+        return pData;
+    }
+
+    SWITCH_STANDARD_APP(wbr_send_hook_function) {
+        auto channel = switch_core_session_get_channel(session);
+        auto dir = switch_channel_get_variable(channel, "sip_h_X-Webitel-Direction");
+        if (!dir || strcmp(dir, "internal") != 0) {
+            return;
+        }
+        auto uuid = switch_channel_get_uuid(channel);
+        if (!uuid) {
+            //todo
+            return;
+        }
+
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "checking tweaks for %s\n", uuid);
+        const char *wbt_push_fcm = switch_channel_get_variable(channel, "wbt_push_fcm");
+        const char *wbt_push_apn = switch_channel_get_variable(channel, "wbt_push_apn");
+        int send = 0;
+        auto pData = get_push_body(uuid, channel);
+
+        if (wbt_push_fcm && server_->UseFCM()) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start request FCM %s\n", uuid);
+            auto res = server_->SendPushFCM(wbt_push_fcm, pData);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop request FCM %s [%ld]\n", uuid, res);
+            if (res == 200) {
+                send++;
+            }
+        }
+        if (wbt_push_apn && server_->UseAPN()) {
+            std::vector <std::string> out;
+            split_str(wbt_push_apn, "::", out);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start APN request %s tokens[%s]\n", uuid, wbt_push_apn);
+            for (const auto &token: out) {
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start APN request %s\n", uuid);
+                auto res = server_->SendPushAPN(token.c_str(), pData);
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop APN request %s [%ld]\n", uuid, res);
+                if (res == 200) {
+                    send++;
+                }
+            }
+        }
+
+        if (send && server_->PushWaitCallback() > 0) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start wait callback %s [%d]\n", uuid, server_->PushWaitCallback());
+            switch_channel_wait_for_flag(channel, CF_SLA_INTERCEPT, SWITCH_TRUE, server_->PushWaitCallback(), NULL); //10s
+            switch_channel_clear_flag(channel, CF_SLA_INTERCEPT);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop wait callback %s\n", uuid);
+        }
+        delete pData;
     }
 
     SWITCH_STANDARD_APP(wbr_queue_function) {
@@ -1043,6 +1071,7 @@ namespace mod_grpc {
             switch_application_interface_t *app_interface;
             switch_core_add_state_handler(&wbt_state_handlers);
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
+            SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "", SAF_NONE | SAF_SUPPORT_NOMEDIA);
             SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer",
                            wbt_blind_transfer_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback",

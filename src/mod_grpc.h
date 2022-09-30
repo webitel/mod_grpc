@@ -23,10 +23,9 @@ using grpc::ServerCompletionQueue;
 using grpc::Status;
 
 namespace mod_grpc {
-    static switch_status_t wbt_tweaks_on_init(switch_core_session_t *session);
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);
     static switch_state_handler_table_t wbt_state_handlers = {
-            /*.on_init */ wbt_tweaks_on_init,
+            /*.on_init */ NULL,
             /*.on_routing */ NULL,
             /*.on_execute */ NULL,
             /*.on_hangup */ NULL,
@@ -94,6 +93,8 @@ namespace mod_grpc {
         std::string call_id;
         std::string from_number;
         std::string from_name;
+        std::string direction;
+        int auto_answer;
         int delay;
     };
 
@@ -103,6 +104,8 @@ namespace mod_grpc {
         int consul_deregister_critical_tts_sec;
         char const *grpc_host;
         int grpc_port;
+
+        int auto_answer_delay;
 
         int push_wait_callback;
         int push_fcm_enabled;
@@ -127,6 +130,7 @@ namespace mod_grpc {
         void Shutdown();
 
         int PushWaitCallback() const;
+        int AutoAnswerDelayTime() const;
         long SendPushFCM(const char *devices, const PushData *data);
         long SendPushAPN(const char *devices, const PushData *data);
         bool UseFCM() const;
@@ -150,6 +154,7 @@ namespace mod_grpc {
         std::string push_apn_cert_file;
         std::string push_apn_key_file;
         std::string push_apn_key_pass;
+        int auto_answer_delay;
     };
 
     ServerImpl *server_;
