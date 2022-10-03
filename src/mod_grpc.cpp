@@ -679,8 +679,8 @@ namespace mod_grpc {
                         SWITCH_CONFIG_INT,
                         CONFIG_RELOADABLE,
                         &config.auto_answer_delay,
-                        (void *) 1000,
-                        nullptr, nullptr, "Auto answer delay time"),
+                        (void *) 2,
+                        nullptr, nullptr, "Auto answer delay time is seconds"),
                 SWITCH_CONFIG_ITEM(
                         "push_wait_callback",
                         SWITCH_CONFIG_INT,
@@ -937,7 +937,7 @@ namespace mod_grpc {
         return SWITCH_STATUS_SUCCESS;
     }
 
-    static PushData* get_push_body(const char *uuid, switch_channel *channel) {
+    static PushData* get_push_body(const char *uuid, switch_channel *channel, int autoDelayTime) {
         auto *pData = new PushData;
         pData->call_id = std::string(uuid);
         const char *name = nullptr;
@@ -957,8 +957,12 @@ namespace mod_grpc {
                 number = name = switch_channel_get_variable(channel, "wbt_destination");
             }
         }
+        if (autoDelayTime > 0 && switch_true(wbt_auto_answer)) {
+            pData->auto_answer = autoDelayTime;
+        } else {
+            pData->auto_answer = 0;
+        }
 
-        pData->auto_answer = switch_true(wbt_auto_answer);
 
         pData->from_name = name ? std::string(name) : "";
         pData->from_number = number ? std::string(number) : "";
@@ -982,7 +986,7 @@ namespace mod_grpc {
         const char *wbt_push_fcm = switch_channel_get_variable(channel, "wbt_push_fcm");
         const char *wbt_push_apn = switch_channel_get_variable(channel, "wbt_push_apn");
         int send = 0;
-        auto pData = get_push_body(uuid, channel);
+        auto pData = get_push_body(uuid, channel, server_->AutoAnswerDelayTime());
 
         if (wbt_push_fcm && server_->UseFCM()) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start request FCM %s\n", uuid);
