@@ -471,9 +471,22 @@ namespace mod_grpc {
                                                     std::string(cc_to_attempt_id).c_str());
             }
 
+            if (!switch_channel_down(chan_a_s) && !switch_core_media_bug_count(leg_a_s, "session_record") &&
+                    switch_true(switch_channel_get_variable_partner(chan_a_s, "recording_follow_transfer")) &&
+                    !switch_core_media_bug_count(leg_b_s, "session_record")) {
+
+                auto pas = switch_core_session_locate(pa);
+                if (pas) {
+                    switch_ivr_transfer_recordings(pas, leg_a_s);
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Transfer record from (%s) to (%s)\n",
+                                      switch_core_session_get_name(pas), switch_core_session_get_name(leg_a_s));
+                    switch_core_session_rwunlock(pas);
+                }
+            }
+
             if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str())) !=
                 SWITCH_STATUS_SUCCESS) {
-                // todo clean variables - transfer fail
+                // todo clean variables - transfer fail && rollback transfer recordings
             } else {
                 reply->set_uuid(request->leg_b_id());
             }
