@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package amd;
+
+service Api {
+    rpc StreamPCM (stream StreamPCMRequest) returns (StreamPCMResponse) {}
+}
+
+enum UploadStatusCode {
+    Unknown = 0;
+    Ok = 1;
+    Failed = 2;
+}
+
+message StreamPCMRequest {
+    message Metadata {
+        int64 domain_id = 1;
+        string name = 2;
+        string mime_type = 3;
+        string uuid = 4;
+        int32 sample_rate = 5;
+    }
+
+    oneof data {
+        Metadata metadata = 1;
+        bytes chunk = 2;
+    };
+}
+
+message StreamPCMResponse {
+    string result = 1;
+    repeated string results = 2;
+}

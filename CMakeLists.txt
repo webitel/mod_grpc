@@ -9,8 +9,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-gnu-unique -Wreturn-type
 set(third_party_DIR "${CMAKE_SOURCE_DIR}/third_party")
 
 set(USE_GRPC_VERSION "v1.33.2" CACHE STRING "GRPC version")
-set(FREESWITCH_INCLUDE_DIR "" CACHE PATH "Location of FreeSWITCH headers")
+set(FREESWITCH_INCLUDE_DIR "/usr/local/freeswitch/include/freeswitch" CACHE PATH "Location of FreeSWITCH headers")
 set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
+add_compile_definitions(DEBUG_CURL)
 
 file(MAKE_DIRECTORY ${third_party_DIR})
 
@@ -42,6 +43,7 @@ endif()
 
 set(PROTO_PATH "${CMAKE_SOURCE_DIR}/src/protos")
 set(FS_PROTO "${PROTO_PATH}/fs.proto")
+set(STREAM_PROTO "${PROTO_PATH}/stream.proto")
 set(GENERATED_PROTOBUF_PATH "${CMAKE_SOURCE_DIR}/src/generated")
 file(MAKE_DIRECTORY ${GENERATED_PROTOBUF_PATH})
 
@@ -49,6 +51,11 @@ set(FS_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/fs.pb.cc")
 set(FS_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/fs.pb.h")
 set(FS_GRPC_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/fs.grpc.pb.cc")
 set(FS_GRPC_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/fs.grpc.pb.h")
+
+set(STREAM_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/stream.pb.cc")
+set(STREAM_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/stream.pb.h")
+set(STREAM_GRPC_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/stream.grpc.pb.cc")
+set(STREAM_GRPC_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/stream.grpc.pb.h" src/amd_client.cpp src/amd_client.h)
 
 add_custom_command(
         OUTPUT "${FS_PB_CPP_FILE}" "${FS_PB_H_FILE}" "${FS_GRPC_PB_CPP_FILE}" "${FS_GRPC_PB_H_FILE}"
@@ -60,11 +67,26 @@ add_custom_command(
         "${FS_PROTO}"
         DEPENDS "${FS_PROTO}")
 
+add_custom_command(
+        OUTPUT "${STREAM_PB_CPP_FILE}" "${STREAM_PB_H_FILE}" "${STREAM_GRPC_PB_CPP_FILE}" "${STREAM_GRPC_PB_H_FILE}"
+        COMMAND ${_PROTOBUF_PROTOC}
+        ARGS --grpc_out "${GENERATED_PROTOBUF_PATH}"
+        --cpp_out "${GENERATED_PROTOBUF_PATH}"
+        -I "${PROTO_PATH}"
+        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+        "${STREAM_PROTO}"
+        DEPENDS "${STREAM_PROTO}")
+
 set(GENERATED_PROTOBUF_FILES ${FS_PB_H_FILE} ${FS_PB_CPP_FILE}
-        ${FS_GRPC_PB_H_FILE} ${FS_GRPC_P_CPP_FILE})
+        ${FS_GRPC_PB_H_FILE} ${FS_GRPC_P_CPP_FILE}
+        ${STREAM_PB_CPP_FILE} ${STREAM_PB_H_FILE} ${STREAM_GRPC_PB_CPP_FILE} ${STREAM_GRPC_PB_H_FILE}
+)
 
 
-add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h  ${FS_PB_CPP_FILE} ${FS_PB_H_FILE} ${FS_GRPC_PB_CPP_FILE} ${FS_GRPC_PB_H_FILE} src/utils.h)
+add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h
+        ${FS_PB_CPP_FILE} ${FS_PB_H_FILE} ${FS_GRPC_PB_CPP_FILE} ${FS_GRPC_PB_H_FILE}
+        ${STREAM_PB_CPP_FILE} ${STREAM_PB_H_FILE} ${STREAM_GRPC_PB_CPP_FILE} ${STREAM_GRPC_PB_H_FILE}
+        src/utils.h)
 target_include_directories(mod_grpc PRIVATE ${GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE}
         -pthread)

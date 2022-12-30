@@ -11,6 +11,7 @@ extern "C" {
 #include <grpc/support/log.h>
 
 #include "generated/fs.grpc.pb.h"
+#include "generated/stream.grpc.pb.h"
 #include "Cluster.h"
 
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
@@ -23,6 +24,20 @@ using grpc::ServerCompletionQueue;
 using grpc::Status;
 
 namespace mod_grpc {
+
+    class Stream {
+    public:
+        ~Stream();
+        switch_core_session_t *session;
+        switch_channel_t *channel;
+        switch_audio_resampler_t *resampler;
+        switch_codec_implementation_t read_impl;
+        std::shared_ptr<::amd::Api::Stub> stub_;
+        std::shared_ptr<grpc::ClientWriter<::amd::StreamPCMRequest> > writer;
+        grpc::ClientContext context;
+        ::amd::StreamPCMResponse res;
+    };
+
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);
     static switch_state_handler_table_t wbt_state_handlers = {
             /*.on_init */ NULL,
@@ -102,6 +117,7 @@ namespace mod_grpc {
         char const *consul_address;
         int consul_tts_sec;
         int consul_deregister_critical_tts_sec;
+        char const *amd_ml_address;
         char const *grpc_host;
         int grpc_port;
 
@@ -128,6 +144,8 @@ namespace mod_grpc {
         ~ServerImpl() = default;
         void Run();
         void Shutdown();
+        std::shared_ptr<grpc::Channel> AMDMLChannel();
+        bool AllowAMDML();
 
         int PushWaitCallback() const;
         int AutoAnswerDelayTime() const;
@@ -135,6 +153,7 @@ namespace mod_grpc {
         long SendPushAPN(const char *devices, const PushData *data);
         bool UseFCM() const;
         bool UseAPN() const;
+        void AsyncStreamPCMA();
     private:
         void initServer();
         std::unique_ptr<Server> server_;
@@ -142,7 +161,9 @@ namespace mod_grpc {
         Cluster *cluster_;
         std::string server_address_;
         std::thread thread_;
-
+        std::shared_ptr<grpc::Channel> amdMlChannel_;
+        bool allowAMDMl;
+        grpc::CompletionQueue cq_;
         int push_wait_callback;
         bool push_fcm_enabled;
         std::string push_fcm_auth;
@@ -155,6 +176,22 @@ namespace mod_grpc {
         std::string push_apn_key_file;
         std::string push_apn_key_pass;
         int auto_answer_delay;
+
+        std::thread asyncCliRead;
+        struct AsyncClientCall {
+            // Container for the data we expect from the server.
+            ::amd::StreamPCMResponse reply;
+
+            // Context for the client. It could be used to convey extra information to
+            // the server and/or tweak certain RPC behaviors.
+            grpc::ClientContext context;
+
+            // Storage for the status of the RPC upon completion.
+            Status status;
+
+            std::unique_ptr<grpc::ClientAsyncResponseReader<::amd::StreamPCMResponse>> response_reader;
+        };
+
     };
 
     ServerImpl *server_;

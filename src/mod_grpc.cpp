@@ -3,19 +3,28 @@
 #include <iostream>
 #include <thread>
 #include <sstream>
+#include <memory>
+#include <string>
 
 #include <grpcpp/grpcpp.h>
 #include <grpc/support/log.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/client_context.h>
+#include <grpcpp/create_channel.h>
 #include "generated/fs.grpc.pb.h"
+#include "generated/stream.grpc.pb.h"
 
 #include "Cluster.h"
 #include "switch_core.h"
+
+#define BUG_STREAM_NAME "wbt_audio_stream"
 
 using namespace std;
 
 
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
+using grpc::ClientAsyncResponseReader;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerCompletionQueue;
@@ -92,7 +101,7 @@ namespace mod_grpc {
             reply->mutable_error()->set_message(switch_channel_cause2str(cause));
             reply->set_error_code(static_cast<::google::protobuf::int32>(cause));
 
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Originate error %s\n",
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Originate error %s\n",
                               switch_channel_cause2str(cause));
             goto done;
         }
@@ -606,6 +615,26 @@ namespace mod_grpc {
                 && !this->push_apn_key_file.empty() && !this->push_apn_topic.empty();
 
         this->auto_answer_delay = config_.auto_answer_delay;
+
+        if (config_.amd_ml_address) {
+            auto amd_ml_address = std::string(config_.amd_ml_address);
+            if (!amd_ml_address.empty()) {
+                this->amdMlChannel_ = grpc::CreateChannel(amd_ml_address, grpc::InsecureChannelCredentials());
+                this->allowAMDMl = true;
+                this->amdMlChannel_->as
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Connect to AMD ML %s\n",
+                                  amd_ml_address.c_str());
+                std::thread(&ServerImpl::AsyncStreamPCMA, &this->amdMlChannel_);
+            }
+        }
+    }
+
+    std::shared_ptr<grpc::Channel> ServerImpl::AMDMLChannel() {
+        return amdMlChannel_;
+    }
+
+    bool ServerImpl::AllowAMDML() {
+        return allowAMDMl;
     }
 
     void ServerImpl::Run() {
@@ -626,6 +655,10 @@ namespace mod_grpc {
 
         if (thread_.joinable()) {
             thread_.join();
+        }
+
+        if (amdMlChannel_ && amdMlChannel_->GetState(false) != GRPC_CHANNEL_SHUTDOWN) {
+            amdMlChannel_.reset();
         }
 
         delete cluster_;
@@ -687,6 +720,13 @@ namespace mod_grpc {
                         &config.consul_address,
                         nullptr,
                         nullptr, "consul_address", "Consul address"),
+                SWITCH_CONFIG_ITEM(
+                        "amd_ml_address",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.amd_ml_address,
+                        nullptr,
+                        nullptr, "amd_ml_address", "AMD stream ML address"),
                 SWITCH_CONFIG_ITEM(
                         "auto_answer_delay",
                         SWITCH_CONFIG_INT,
@@ -830,12 +870,14 @@ namespace mod_grpc {
 
             switch_curl_easy_setopt(cli, CURLOPT_POSTFIELDS, body.c_str());
 
-//            std::string readBuffer;
-//            switch_curl_easy_setopt(cli, CURLOPT_WRITEFUNCTION, writeCallback);
-//            switch_curl_easy_setopt(cli, CURLOPT_WRITEDATA, &readBuffer);
+#ifdef DEBUG_CURL
+            std::string readBuffer;
+            switch_curl_easy_setopt(cli, CURLOPT_WRITEFUNCTION, writeCallback);
+            switch_curl_easy_setopt(cli, CURLOPT_WRITEDATA, &readBuffer);
 
-//            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
-//                              "body\n%s\n", body.c_str());
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+                              "body\n%s\n", body.c_str());
+#endif
 
             res = switch_curl_easy_perform(cli);
             if(res == CURLE_OK) {
@@ -918,6 +960,25 @@ namespace mod_grpc {
         return this->auto_answer_delay;
     }
 
+    void ServerImpl::AsyncStreamPCMA() {
+        void* got_tag;
+        bool ok = false;
+
+        // Block until the next result is available in the completion queue "cq".
+        while (cq_.Next(&got_tag, &ok)) {
+            // The tag in this example is the memory location of the call object
+            auto* call = static_cast<AsyncClientCall*>(got_tag);
+
+            if (call->status.ok())
+                std::cout << "Greeter received: " << call->reply.result() << std::endl;
+            else
+                std::cout << "RPC failed" << std::endl;
+
+            // Once we're complete, deallocate the call object.
+            delete call;
+        }
+    }
+
     static void split_str(const std::string& str, const std::string& delimiter, std::vector<std::string> &out) {
         size_t pos = 0;
         std::string s = str;
@@ -981,6 +1042,183 @@ namespace mod_grpc {
         pData->from_number = number ? std::string(number) : "";
 
         return pData;
+    }
+
+    static switch_bool_t amd_read_audio_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type) {
+        auto *ud = static_cast<Stream *>(user_data);
+
+        switch (type) {
+            case SWITCH_ABC_TYPE_INIT: {
+                // connect
+                try {
+                    ud->stub_ = ::amd::Api::NewStub(server_->AMDMLChannel());
+                    ud->writer = ud->stub_->StreamPCM(&ud->context, &ud->res);
+
+                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
+                    const int def_rate = 8000;
+
+                    if (ud->read_impl.actual_samples_per_second != def_rate) {
+                        switch_resample_create(&ud->resampler,
+                                               ud->read_impl.actual_samples_per_second,
+                                               def_rate,
+                                               320, SWITCH_RESAMPLE_QUALITY, 1);
+                    } else {
+                        ud->resampler = nullptr;
+                    }
+
+                    ::amd::StreamPCMRequest msg;
+                    auto metadata = msg.mutable_metadata();
+                    metadata->set_uuid(switch_channel_get_uuid(ud->channel));
+                    metadata->set_name(switch_channel_get_uuid(ud->channel));
+                    metadata->set_domain_id(1);
+                    metadata->set_mime_type("audio/pcma");
+                    metadata->set_sample_rate(def_rate);
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_DEBUG,
+                            "GRPC stream: samples_per_second :%d -> 8000 \n", ud->read_impl.samples_per_second);
+                    ud->writer->Write(msg);
+                } catch (...) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: SWITCH_ABC_TYPE_INIT \n");
+                }
+
+                break;
+            }
+
+            case SWITCH_ABC_TYPE_CLOSE: {
+                // cleanup
+                try {
+                    if (ud->resampler) {
+                        switch_resample_destroy(&ud->resampler);
+                    }
+
+                    if (ud->writer) {
+                        ud->writer->WritesDone();
+                        ud->writer->Finish();
+//                    ud->writer.reset(nullptr);
+//                    ud->stub_.reset(nullptr);
+                    }
+
+
+
+                    auto response = ud->res.result().empty() ? "UNDEFINED" : ud->res.result();
+
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream response: %s\n", response.c_str());
+
+                    delete ud;
+                } catch (...) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: SWITCH_ABC_TYPE_CLOSE \n");
+                }
+                break;
+            }
+
+            case SWITCH_ABC_TYPE_READ_PING:
+            case SWITCH_ABC_TYPE_WRITE: {
+                uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
+                switch_frame_t read_frame = { 0 };
+                switch_status_t status;
+
+                read_frame.data = data;
+                read_frame.buflen = SWITCH_RECOMMENDED_BUFFER_SIZE;
+
+
+                try {
+
+                    status = switch_core_media_bug_read(bug, &read_frame, SWITCH_FALSE);
+                    if (status != SWITCH_STATUS_SUCCESS && status != SWITCH_STATUS_BREAK) {
+                        return SWITCH_TRUE;
+                    };
+//                    switch_log_printf(
+//                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+//                            SWITCH_LOG_CRIT,
+//                            "FRAME TIME: %d ms\n",
+//                            1000 / (ud->read_impl.actual_samples_per_second / read_frame.samples));
+                    ::amd::StreamPCMRequest msg;
+                    if (ud->resampler) {
+                        uint8_t resample_data[SWITCH_RECOMMENDED_BUFFER_SIZE];
+                        auto data = (int16_t *) read_frame.data;
+                        switch_resample_process(ud->resampler, data, (int) read_frame.datalen / 2);
+                        auto linear_len = ud->resampler->to_len * 2;
+                        memcpy(resample_data, ud->resampler->to, linear_len);
+                        msg.set_chunk(resample_data, linear_len);
+                    } else {
+                        msg.set_chunk(read_frame.data, read_frame.datalen);
+                    }
+
+//                    if (ud->writer->WritesDone()) {
+//                        switch_log_printf(
+//                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+//                                SWITCH_LOG_CRIT,
+//                                "GRPC WritesDone\n");
+//                    }
+
+
+
+                    if (!ud->writer->Write(msg)) {
+                        auto response = ud->res.result().empty() ? "UNDEFINED" : ud->res.result();
+                        switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                SWITCH_LOG_CRIT,
+                                "GRPC WWW stream response: %s\n", response.c_str());
+                    };
+
+                    if (!ud->res.result().empty()) {
+                        switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                SWITCH_LOG_CRIT,
+                                "GRPC HAS result\n");
+                    }
+                } catch (...) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: SWITCH_ABC_TYPE_WRITEs \n");
+                }
+                break;
+            }
+        }
+
+
+        return SWITCH_TRUE;
+    }
+
+    SWITCH_STANDARD_APP(stream_start_function) {
+        switch_core_session_t  *sess = session;
+
+        switch_channel_t *channel = switch_core_session_get_channel(sess);
+
+        switch_media_bug_t *bug = nullptr;
+        switch_media_bug_flag_t flags = SMBF_WRITE_STREAM;
+
+        if (!switch_channel_media_up(channel) || !switch_core_session_get_read_codec(sess)) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(sess), SWITCH_LOG_ERROR, "Can not stream session.  Media not enabled on channel\n");
+            return;
+        }
+
+        auto *ud = new Stream;
+        ud->session = sess;
+        ud->channel = channel;
+
+        if (switch_core_media_bug_add(
+                sess,
+                BUG_STREAM_NAME,
+                nullptr,
+                amd_read_audio_callback,
+                ud, //user_data
+                0, //TODO
+                flags,
+                &bug) != SWITCH_STATUS_SUCCESS ) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(sess), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
+        }
     }
 
     SWITCH_STANDARD_APP(wbr_send_hook_function) {
@@ -1094,6 +1332,18 @@ namespace mod_grpc {
             SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback",
                            wbt_queue_playback_function, "", SAF_NONE);
             server_ = new ServerImpl(loadConfig());
+
+            if (server_->AllowAMDML()) {
+                SWITCH_ADD_APP(
+                        app_interface,
+                        "wbt_audio_stream",
+                        "wbt_audio_stream",
+                        "wbt_audio_stream",
+                        stream_start_function,
+                        nullptr,
+                        SAF_NONE);
+            }
+
             server_->Run();
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed FCM=%d APN=%d\n", server_->UseFCM(), server_->UseAPN());
             return SWITCH_STATUS_SUCCESS;
@@ -1129,4 +1379,7 @@ namespace mod_grpc {
         return SWITCH_STATUS_SUCCESS;
     }
 
+    Stream::~Stream() {
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "~Stream\n");
+    }
 }
