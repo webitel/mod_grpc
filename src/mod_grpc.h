@@ -13,6 +13,7 @@ extern "C" {
 #include "generated/fs.grpc.pb.h"
 #include "generated/stream.grpc.pb.h"
 #include "Cluster.h"
+#include "amd_client.h"
 
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
 
@@ -32,10 +33,7 @@ namespace mod_grpc {
         switch_channel_t *channel;
         switch_audio_resampler_t *resampler;
         switch_codec_implementation_t read_impl;
-        std::shared_ptr<::amd::Api::Stub> stub_;
-        std::shared_ptr<grpc::ClientWriter<::amd::StreamPCMRequest> > writer;
-        grpc::ClientContext context;
-        ::amd::StreamPCMResponse res;
+        AsyncClientCall* client_;
     };
 
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);
@@ -153,7 +151,7 @@ namespace mod_grpc {
         long SendPushAPN(const char *devices, const PushData *data);
         bool UseFCM() const;
         bool UseAPN() const;
-        void AsyncStreamPCMA();
+        AsyncClientCall* AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
     private:
         void initServer();
         std::unique_ptr<Server> server_;
@@ -176,22 +174,7 @@ namespace mod_grpc {
         std::string push_apn_key_file;
         std::string push_apn_key_pass;
         int auto_answer_delay;
-
-        std::thread asyncCliRead;
-        struct AsyncClientCall {
-            // Container for the data we expect from the server.
-            ::amd::StreamPCMResponse reply;
-
-            // Context for the client. It could be used to convey extra information to
-            // the server and/or tweak certain RPC behaviors.
-            grpc::ClientContext context;
-
-            // Storage for the status of the RPC upon completion.
-            Status status;
-
-            std::unique_ptr<grpc::ClientAsyncResponseReader<::amd::StreamPCMResponse>> response_reader;
-        };
-
+        std::unique_ptr<AMDClient> amdClient_;
     };
 
     ServerImpl *server_;

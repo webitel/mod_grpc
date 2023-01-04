@@ -36,6 +36,8 @@ extern "C" {
 #define RECORD_SESSION_START_NAME  "wbt_start_record"
 #define RECORD_SESSION_STOP_NAME  "wbt_stop_record"
 #define WBT_TALK_SEC  "wbt_talk_sec"
+#define WBT_AMD_ML  "wbt_amd_ml"
+#define WBT_AMD_ML_LOG  "wbt_amd_ml_log"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -151,6 +153,18 @@ public:
 
     void addAttribute(const char *header, cJSON *attr) {
         cJSON_AddItemToObject(body_, header, attr);
+    }
+
+    void addArrayValue(switch_event_header_t *e, const char *var_name) {
+        cJSON *arr = cJSON_CreateArray();
+        if (e->idx) {
+            for (int i = 0; i < e->idx; i++) {
+                cJSON_AddItemToArray(arr, cJSON_CreateString(e->array[i]));
+            }
+        } else if (e->value) {
+            cJSON_AddItemToArray(arr, cJSON_CreateString(e->value));
+        }
+        addAttribute(var_name, arr);
     }
 
     void fire() {
@@ -699,15 +713,13 @@ public:
 
         auto hp = switch_event_get_header_ptr(e, "variable_wbt_tags");
         if (hp) {
-            cJSON *tags = cJSON_CreateArray();
-            if (hp->idx) {
-                for (int i = 0; i < hp->idx; i++) {
-                    cJSON_AddItemToArray(tags, cJSON_CreateString(hp->array[i]));
-                }
-            } else if (hp->value) {
-                cJSON_AddItemToArray(tags, cJSON_CreateString(hp->value));
-            }
-            addAttribute("tags", tags);
+            addArrayValue(hp, "tags");
+        }
+
+        addIfExists(body_, "amd_ml_result", "variable_"  WBT_AMD_ML);
+        hp = switch_event_get_header_ptr(e, "variable_" WBT_AMD_ML_LOG);
+        if (hp) {
+            addArrayValue(hp, "amd_ml_logs");
         }
     };
 };
