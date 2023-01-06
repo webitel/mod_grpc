@@ -11,14 +11,17 @@
 #include <grpcpp/channel.h>
 #include <grpcpp/client_context.h>
 #include <grpcpp/create_channel.h>
+#include <numeric>
 #include "generated/fs.grpc.pb.h"
 #include "generated/stream.grpc.pb.h"
 
 #include "Cluster.h"
 #include "switch_core.h"
 
-#define BUG_STREAM_NAME "wbt_audio_stream"
+#define BUG_STREAM_NAME "wbt_amd"
 #define MODEL_RATE 8000
+#define AMD_EVENT_NAME "amd::info"
+#define AMD_EXECUTE_VARIABLE "amd_on_positive"
 
 using namespace std;
 
@@ -92,6 +95,8 @@ namespace mod_grpc {
                 switch_event_add_header_string(var_event, SWITCH_STACK_BOTTOM, kv.first.c_str(), kv.second.c_str());
             }
         }
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "originate: %s\n", aleg.str().c_str());
 
         // todo check version
         if (switch_ivr_originate(nullptr, &caller_session, &cause, aleg.str().c_str(), timeout, nullptr,
@@ -1030,6 +1035,55 @@ namespace mod_grpc {
         return pData;
     }
 
+    static void amd_fire_event(switch_channel_t *channel) {
+        switch_event_t      *event;
+        switch_status_t     status;
+        status = switch_event_create_subclass(&event, SWITCH_EVENT_CLONE, AMD_EVENT_NAME);
+        if (status != SWITCH_STATUS_SUCCESS) {
+            return;
+        }
+        switch_channel_event_set_data(channel, event);
+        switch_event_fire(&event);
+    }
+
+    static void do_execute(switch_core_session_t *session, switch_channel_t *channel, const char *name) {
+        char *arg = NULL;
+        char *p;
+        int bg = 0;
+        const char *variable = switch_channel_get_variable(channel, name);
+        char *expanded = NULL;
+        char *app = NULL;
+
+        if (!variable) {
+            return;
+        }
+
+        expanded = switch_channel_expand_variables(channel, variable);
+        app = switch_core_session_strdup(session, expanded);
+
+        for(p = app; p && *p; p++) {
+            if (*p == ' ' || (*p == ':' && (*(p+1) != ':'))) {
+                *p++ = '\0';
+                arg = p;
+                break;
+            } else if (*p == ':' && (*(p+1) == ':')) {
+                bg++;
+                break;
+            }
+        }
+
+        switch_assert(app != NULL);
+        if (!strncasecmp(app, "perl", 4)) {
+            bg++;
+        }
+
+        if (bg) {
+            switch_core_session_execute_application_async(session, app, arg);
+        } else {
+            switch_core_session_execute_application(session, app, arg);
+        }
+    }
+
     static switch_bool_t amd_read_audio_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type) {
         auto *ud = static_cast<Stream *>(user_data);
 
@@ -1066,22 +1120,47 @@ namespace mod_grpc {
 
                     ud->client_->Finish();
 
-                    auto amd_result =  ud->client_->reply.result().empty() ? "undef" : ud->client_->reply.result();
-                    switch_channel_set_variable(ud->channel, WBT_AMD_ML, amd_result.c_str());
+                    std::string amd_result;;
+                    bool skip_hangup = false;
 
+                    if (ud->client_->reply.result().empty()) {
+                        // TODO
+                        skip_hangup = true;
+                        amd_result = "undefined";
+                        do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
+                    } else {
+                        amd_result = ud->client_->reply.result();
+                        for (auto &l : ud->positive) {
+                            if (l == amd_result) {
+                                skip_hangup = true;
+                                do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
+                                break;
+                            }
+                        }
+                    }
+
+                    switch_channel_set_variable(ud->channel, WBT_AMD_ML, amd_result.c_str());
                     for (auto &r : ud->client_->reply.results()) {
                         switch_channel_add_variable_var_check(ud->channel, WBT_AMD_ML_LOG, r.c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
                     }
 
-                    std::stringstream s;
-                    std::copy(ud->client_->reply.results().begin(), ud->client_->reply.results().end(), ostream_iterator<std::string>(s, "->"));
+                    auto v = ud->client_->reply.results();
+                    std::string s = std::accumulate(std::next(v.begin()), v.end(),
+                                                    v[0], // start with first element
+                                                    [](std::string a, std::string &b) {
+                                                        return std::move(a) + "<-" + b;
+                                                    });
 
                     switch_log_printf(
                             SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC amd result: %s [%s]\n", amd_result.c_str(), s.str().c_str());
+                            SWITCH_LOG_NOTICE,
+                            "ML amd result: %s [%s]\n", amd_result.c_str(), s.c_str());
 
+                    amd_fire_event(ud->channel);
 
+                    if (!skip_hangup) {
+                        switch_channel_hangup(ud->channel, SWITCH_CAUSE_NORMAL_UNSPECIFIED);
+                    }
 
                     delete ud->client_;
                     delete ud;
@@ -1094,7 +1173,7 @@ namespace mod_grpc {
                 break;
             }
 
-            case SWITCH_ABC_TYPE_READ_PING:
+            case SWITCH_ABC_TYPE_READ:
             case SWITCH_ABC_TYPE_WRITE: {
                 uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
                 switch_frame_t read_frame = { 0 };
@@ -1103,11 +1182,8 @@ namespace mod_grpc {
                 read_frame.data = data;
                 read_frame.buflen = SWITCH_RECOMMENDED_BUFFER_SIZE;
 
-
                 try {
-
                     if (ud->client_->Finished()) {
-//                        switch_core_media_bug_remove(ud->session, &bug);
                         return SWITCH_FALSE;
                     }
 
@@ -1115,11 +1191,6 @@ namespace mod_grpc {
                     if (status != SWITCH_STATUS_SUCCESS && status != SWITCH_STATUS_BREAK) {
                         return SWITCH_TRUE;
                     };
-//                    switch_log_printf(
-//                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-//                            SWITCH_LOG_CRIT,
-//                            "FRAME TIME: %d ms\n",
-//                            1000 / (ud->read_impl.actual_samples_per_second / read_frame.samples));
 
                     if (ud->resampler) {
                         uint8_t resample_data[SWITCH_RECOMMENDED_BUFFER_SIZE];
@@ -1146,31 +1217,40 @@ namespace mod_grpc {
         return SWITCH_TRUE;
     }
 
-    SWITCH_STANDARD_APP(stream_start_function) {
-        switch_core_session_t  *sess = session;
-        switch_channel_t *channel = switch_core_session_get_channel(sess);
+    #define WBT_AMD_SYNTAX "<positive labels>"
+    SWITCH_STANDARD_APP(wbt_amd_function) {
+        switch_channel_t *channel = switch_core_session_get_channel(session);
         switch_media_bug_t *bug = nullptr;
-        switch_media_bug_flag_t flags = SMBF_WRITE_STREAM;
+        switch_media_bug_flag_t flags = SMBF_READ_STREAM; //SMBF_WRITE_STREAM;
         int64_t domain_id = 0;
+        std::vector<std::string> positive_labels;
 
-        auto tmp = switch_channel_get_variable(channel, "sip_h_X-Webitel-Domain-Id");
-        if (!tmp || !(domain_id = atoi(tmp))) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(sess), SWITCH_LOG_ERROR, "Can not stream session.  Not found sip_h_X-Webitel-Domain-Id\n");
+        if (!zstr(data)) {
+            split_str(std::string(data), ",", positive_labels);
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Usage: %s\n", WBT_AMD_SYNTAX);
             return;
         }
 
-        if (!switch_channel_media_up(channel) || !switch_core_session_get_read_codec(sess)) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(sess), SWITCH_LOG_ERROR, "Can not stream session.  Media not enabled on channel\n");
+        auto tmp = switch_channel_get_variable(channel, "sip_h_X-Webitel-Domain-Id");
+        if (!tmp || !(domain_id = atoi(tmp))) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  Not found sip_h_X-Webitel-Domain-Id\n");
+            return;
+        }
+
+        if (!switch_channel_media_up(channel) || !switch_core_session_get_read_codec(session)) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  Media not enabled on channel\n");
             return;
         }
 
         auto *ud = new Stream;
-        ud->session = sess;
+        ud->session = session;
         ud->channel = channel;
+        ud->positive = std::move(positive_labels);
         ud->client_ = server_->AsyncStreamPCMA(domain_id, switch_channel_get_uuid(channel), switch_channel_get_uuid(channel), MODEL_RATE);
 
         if (switch_core_media_bug_add(
-                sess,
+                session,
                 BUG_STREAM_NAME,
                 nullptr,
                 amd_read_audio_callback,
@@ -1178,7 +1258,7 @@ namespace mod_grpc {
                 0, //TODO
                 flags,
                 &bug) != SWITCH_STATUS_SUCCESS ) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(sess), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
         }
     }
 
@@ -1297,11 +1377,11 @@ namespace mod_grpc {
             if (server_->AllowAMDML()) {
                 SWITCH_ADD_APP(
                         app_interface,
-                        "wbt_audio_stream",
-                        "wbt_audio_stream",
-                        "wbt_audio_stream",
-                        stream_start_function,
-                        nullptr,
+                        BUG_STREAM_NAME,
+                        BUG_STREAM_NAME,
+                        BUG_STREAM_NAME,
+                        wbt_amd_function,
+                        WBT_AMD_SYNTAX,
                         SAF_NONE);
             }
 

@@ -33,6 +33,7 @@ namespace mod_grpc {
         switch_channel_t *channel;
         switch_audio_resampler_t *resampler;
         switch_codec_implementation_t read_impl;
+        std::vector<std::string> positive;
         AsyncClientCall* client_;
     };
 

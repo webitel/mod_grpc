@@ -749,6 +749,7 @@ public:
 template <> class CallEvent<AMD> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(AMD, e) {
+        addIfExists(body_, "ml_result", "variable_"  WBT_AMD_ML);
         addIfExists(body_, "result", "variable_amd_result");
         addIfExists(body_, "cause", "variable_amd_cause");
     };
