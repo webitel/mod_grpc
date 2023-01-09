@@ -55,7 +55,7 @@ set(FS_GRPC_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/fs.grpc.pb.h")
 set(STREAM_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/stream.pb.cc")
 set(STREAM_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/stream.pb.h")
 set(STREAM_GRPC_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/stream.grpc.pb.cc")
-set(STREAM_GRPC_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/stream.grpc.pb.h" src/amd_client.cpp src/amd_client.h)
+set(STREAM_GRPC_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/stream.grpc.pb.h")
 
 add_custom_command(
         OUTPUT "${FS_PB_CPP_FILE}" "${FS_PB_H_FILE}" "${FS_GRPC_PB_CPP_FILE}" "${FS_GRPC_PB_H_FILE}"
@@ -78,20 +78,16 @@ add_custom_command(
         DEPENDS "${STREAM_PROTO}")
 
 set(GENERATED_PROTOBUF_FILES ${FS_PB_H_FILE} ${FS_PB_CPP_FILE}
-        ${FS_GRPC_PB_H_FILE} ${FS_GRPC_P_CPP_FILE}
-        ${STREAM_PB_CPP_FILE} ${STREAM_PB_H_FILE} ${STREAM_GRPC_PB_CPP_FILE} ${STREAM_GRPC_PB_H_FILE}
-)
-
+        ${FS_GRPC_PB_H_FILE} ${FS_GRPC_P_CPP_FILE} ${STREAM_PB_CPP_FILE} ${STREAM_PB_H_FILE} ${STREAM_GRPC_PB_CPP_FILE} ${STREAM_GRPC_PB_H_FILE})
 
 add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h
-        ${FS_PB_CPP_FILE} ${FS_PB_H_FILE} ${FS_GRPC_PB_CPP_FILE} ${FS_GRPC_PB_H_FILE}
-        ${STREAM_PB_CPP_FILE} ${STREAM_PB_H_FILE} ${STREAM_GRPC_PB_CPP_FILE} ${STREAM_GRPC_PB_H_FILE}
+        src/amd_client.cpp src/amd_client.h ${GENERATED_PROTOBUF_FILES}
         src/utils.h)
 target_include_directories(mod_grpc PRIVATE ${GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE}
         -pthread)
-
+#
 set_target_properties(mod_grpc PROPERTIES PREFIX "")
 set_target_properties(mod_grpc PROPERTIES OUTPUT_NAME "mod_grpc")
-
+#
 install(TARGETS mod_grpc DESTINATION ${INSTALL_MOD_DIR})
