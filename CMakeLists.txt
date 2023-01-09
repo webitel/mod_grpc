@@ -11,7 +11,7 @@ set(third_party_DIR "${CMAKE_SOURCE_DIR}/third_party")
 set(USE_GRPC_VERSION "v1.33.2" CACHE STRING "GRPC version")
 set(FREESWITCH_INCLUDE_DIR "" CACHE PATH "Location of FreeSWITCH headers")
 set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
-add_compile_definitions(DEBUG_CURL)
+#add_compile_definitions(DEBUG_CURL)
 
 file(MAKE_DIRECTORY ${third_party_DIR})
 
