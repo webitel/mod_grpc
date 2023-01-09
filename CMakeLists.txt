@@ -27,7 +27,6 @@ endif()
 
 
 add_subdirectory(${third_party_DIR}/grpc EXCLUDE_FROM_ALL)
-message(STATUS "Using gRPC via add_subdirectory.")
 
 # After using add_subdirectory, we can now use the grpc targets directly from
 # this build.
@@ -35,57 +34,21 @@ set(_PROTOBUF_LIBPROTOBUF libprotobuf)
 set(_PROTOBUF_PROTOC $<TARGET_FILE:protoc>)
 set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
-
+set(GENERATED_PROTOBUF_PATH "${CMAKE_SOURCE_DIR}/src/generated")
 
 if (NOT EXISTS "${FREESWITCH_INCLUDE_DIR}")
     message( SEND_ERROR "Not exists FREESWITCH_INCLUDE_DIR = ${FREESWITCH_INCLUDE_DIR}" )
 endif()
 
-set(PROTO_PATH "${CMAKE_SOURCE_DIR}/src/protos")
-set(FS_PROTO "${PROTO_PATH}/fs.proto")
-set(STREAM_PROTO "${PROTO_PATH}/stream.proto")
-set(GENERATED_PROTOBUF_PATH "${CMAKE_SOURCE_DIR}/src/generated")
-file(MAKE_DIRECTORY ${GENERATED_PROTOBUF_PATH})
+include(proto.cmake)
 
-set(FS_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/fs.pb.cc")
-set(FS_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/fs.pb.h")
-set(FS_GRPC_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/fs.grpc.pb.cc")
-set(FS_GRPC_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/fs.grpc.pb.h")
-
-set(STREAM_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/stream.pb.cc")
-set(STREAM_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/stream.pb.h")
-set(STREAM_GRPC_PB_CPP_FILE "${GENERATED_PROTOBUF_PATH}/stream.grpc.pb.cc")
-set(STREAM_GRPC_PB_H_FILE "${GENERATED_PROTOBUF_PATH}/stream.grpc.pb.h")
-
-add_custom_command(
-        OUTPUT "${FS_PB_CPP_FILE}" "${FS_PB_H_FILE}" "${FS_GRPC_PB_CPP_FILE}" "${FS_GRPC_PB_H_FILE}"
-        COMMAND ${_PROTOBUF_PROTOC}
-        ARGS --grpc_out "${GENERATED_PROTOBUF_PATH}"
-        --cpp_out "${GENERATED_PROTOBUF_PATH}"
-        -I "${PROTO_PATH}"
-        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
-        "${FS_PROTO}"
-        DEPENDS "${FS_PROTO}")
-
-add_custom_command(
-        OUTPUT "${STREAM_PB_CPP_FILE}" "${STREAM_PB_H_FILE}" "${STREAM_GRPC_PB_CPP_FILE}" "${STREAM_GRPC_PB_H_FILE}"
-        COMMAND ${_PROTOBUF_PROTOC}
-        ARGS --grpc_out "${GENERATED_PROTOBUF_PATH}"
-        --cpp_out "${GENERATED_PROTOBUF_PATH}"
-        -I "${PROTO_PATH}"
-        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
-        "${STREAM_PROTO}"
-        DEPENDS "${STREAM_PROTO}")
-
-set(GENERATED_PROTOBUF_FILES ${FS_PB_H_FILE} ${FS_PB_CPP_FILE}
-        ${FS_GRPC_PB_H_FILE} ${FS_GRPC_P_CPP_FILE} ${STREAM_PB_CPP_FILE} ${STREAM_PB_H_FILE} ${STREAM_GRPC_PB_CPP_FILE} ${STREAM_GRPC_PB_H_FILE})
+set(GENERATED_PROTOBUF_FILES ${PROTO_HDRS} ${PROTO_SRCS})
 
 add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h
         src/amd_client.cpp src/amd_client.h ${GENERATED_PROTOBUF_FILES}
         src/utils.h)
 target_include_directories(mod_grpc PRIVATE ${GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
-target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE}
-        -pthread)
+target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE})
 #
 set_target_properties(mod_grpc PROPERTIES PREFIX "")
 set_target_properties(mod_grpc PROPERTIES OUTPUT_NAME "mod_grpc")
