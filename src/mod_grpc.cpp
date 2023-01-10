@@ -1225,6 +1225,15 @@ namespace mod_grpc {
         int64_t domain_id = 0;
         std::vector<std::string> positive_labels;
 
+        if (!server_->AllowAMDAi()) {
+            // todo add positive application ?
+            switch_channel_set_variable(channel, WBT_AMD_AI, "ai_disabled");
+            do_execute(session, channel, AMD_EXECUTE_VARIABLE);
+            amd_fire_event(channel);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  AMD AI disabled\n");
+            return;
+        }
+
         if (!zstr(data)) {
             split_str(std::string(data), ",", positive_labels);
         } else {
