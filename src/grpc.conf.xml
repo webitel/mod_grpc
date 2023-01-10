@@ -3,7 +3,7 @@
         <param name="grpc_host" value="10.10.10.25"/>
         <param name="grpc_port" value="50051"/>
 
-        <param name="amd_ml_address" value=""/>
+        <param name="amd_ai_address" value=""/>
 
         <param name="consul_address" value="http://localhost:8500"/>
         <param name="consul_ttl_sec" value="60"/>

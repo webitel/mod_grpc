@@ -622,24 +622,24 @@ namespace mod_grpc {
 
         this->auto_answer_delay = config_.auto_answer_delay;
 
-        if (config_.amd_ml_address) {
-            auto amd_ml_address = std::string(config_.amd_ml_address);
-            if (!amd_ml_address.empty()) {
-                this->amdMlChannel_ = grpc::CreateChannel(amd_ml_address, grpc::InsecureChannelCredentials());
-                this->allowAMDMl = true;
-                this->amdClient_.reset(new AMDClient(this->amdMlChannel_));
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Connect to AMD ML %s\n",
-                                  amd_ml_address.c_str());
+        if (config_.amd_ai_address) {
+            auto amd_ai_address = std::string(config_.amd_ai_address);
+            if (!amd_ai_address.empty()) {
+                this->amdAiChannel_ = grpc::CreateChannel(amd_ai_address, grpc::InsecureChannelCredentials());
+                this->allowAMDAi = true;
+                this->amdClient_.reset(new AMDClient(this->amdAiChannel_));
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Connect to AMD AI %s\n",
+                                  amd_ai_address.c_str());
             }
         }
     }
 
-    std::shared_ptr<grpc::Channel> ServerImpl::AMDMLChannel() {
-        return amdMlChannel_;
+    std::shared_ptr<grpc::Channel> ServerImpl::AMDAiChannel() {
+        return amdAiChannel_;
     }
 
-    bool ServerImpl::AllowAMDML() {
-        return allowAMDMl;
+    bool ServerImpl::AllowAMDAi() {
+        return allowAMDAi;
     }
 
     void ServerImpl::Run() {
@@ -662,8 +662,8 @@ namespace mod_grpc {
             thread_.join();
         }
 
-        if (amdMlChannel_ && amdMlChannel_->GetState(false) != GRPC_CHANNEL_SHUTDOWN) {
-            amdMlChannel_.reset();
+        if (amdAiChannel_ && amdAiChannel_->GetState(false) != GRPC_CHANNEL_SHUTDOWN) {
+            amdAiChannel_.reset();
         }
         amdClient_.reset();
 
@@ -727,12 +727,12 @@ namespace mod_grpc {
                         nullptr,
                         nullptr, "consul_address", "Consul address"),
                 SWITCH_CONFIG_ITEM(
-                        "amd_ml_address",
+                        "amd_ai_address",
                         SWITCH_CONFIG_STRING,
                         CONFIG_RELOADABLE,
-                        &config.amd_ml_address,
+                        &config.amd_ai_address,
                         nullptr,
-                        nullptr, "amd_ml_address", "AMD stream ML address"),
+                        nullptr, "amd_ai_address", "AMD stream AI address"),
                 SWITCH_CONFIG_ITEM(
                         "auto_answer_delay",
                         SWITCH_CONFIG_INT,
@@ -1139,9 +1139,9 @@ namespace mod_grpc {
                         }
                     }
 
-                    switch_channel_set_variable(ud->channel, WBT_AMD_ML, amd_result.c_str());
+                    switch_channel_set_variable(ud->channel, WBT_AMD_AI, amd_result.c_str());
                     for (auto &r : ud->client_->reply.results()) {
-                        switch_channel_add_variable_var_check(ud->channel, WBT_AMD_ML_LOG, r.c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
+                        switch_channel_add_variable_var_check(ud->channel, WBT_AMD_AI_LOG, r.c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
                     }
 
                     auto v = ud->client_->reply.results();
@@ -1374,7 +1374,7 @@ namespace mod_grpc {
                            wbt_queue_playback_function, "", SAF_NONE);
             server_ = new ServerImpl(loadConfig());
 
-            if (server_->AllowAMDML()) {
+            if (server_->AllowAMDAi()) {
                 SWITCH_ADD_APP(
                         app_interface,
                         BUG_STREAM_NAME,

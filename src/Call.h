@@ -36,8 +36,8 @@ extern "C" {
 #define RECORD_SESSION_START_NAME  "wbt_start_record"
 #define RECORD_SESSION_STOP_NAME  "wbt_stop_record"
 #define WBT_TALK_SEC  "wbt_talk_sec"
-#define WBT_AMD_ML  "wbt_amd_ml"
-#define WBT_AMD_ML_LOG  "wbt_amd_ml_log"
+#define WBT_AMD_AI  "wbt_amd_ai"
+#define WBT_AMD_AI_LOG  "wbt_amd_ai_log"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -716,10 +716,10 @@ public:
             addArrayValue(hp, "tags");
         }
 
-        addIfExists(body_, "amd_ml_result", "variable_"  WBT_AMD_ML);
-        hp = switch_event_get_header_ptr(e, "variable_" WBT_AMD_ML_LOG);
+        addIfExists(body_, "amd_ai_result", "variable_"  WBT_AMD_AI);
+        hp = switch_event_get_header_ptr(e, "variable_" WBT_AMD_AI_LOG);
         if (hp) {
-            addArrayValue(hp, "amd_ml_logs");
+            addArrayValue(hp, "amd_ai_logs");
         }
     };
 };
@@ -749,7 +749,7 @@ public:
 template <> class CallEvent<AMD> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(AMD, e) {
-        addIfExists(body_, "ml_result", "variable_"  WBT_AMD_ML);
+        addIfExists(body_, "ai_result", "variable_"  WBT_AMD_AI);
         addIfExists(body_, "result", "variable_amd_result");
         addIfExists(body_, "cause", "variable_amd_cause");
     };

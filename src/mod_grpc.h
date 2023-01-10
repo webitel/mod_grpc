@@ -116,7 +116,7 @@ namespace mod_grpc {
         char const *consul_address;
         int consul_tts_sec;
         int consul_deregister_critical_tts_sec;
-        char const *amd_ml_address;
+        char const *amd_ai_address;
         char const *grpc_host;
         int grpc_port;
 
@@ -143,8 +143,8 @@ namespace mod_grpc {
         ~ServerImpl() = default;
         void Run();
         void Shutdown();
-        std::shared_ptr<grpc::Channel> AMDMLChannel();
-        bool AllowAMDML();
+        std::shared_ptr<grpc::Channel> AMDAiChannel();
+        bool AllowAMDAi();
 
         int PushWaitCallback() const;
         int AutoAnswerDelayTime() const;
@@ -160,8 +160,8 @@ namespace mod_grpc {
         Cluster *cluster_;
         std::string server_address_;
         std::thread thread_;
-        std::shared_ptr<grpc::Channel> amdMlChannel_;
-        bool allowAMDMl;
+        std::shared_ptr<grpc::Channel> amdAiChannel_;
+        bool allowAMDAi;
         grpc::CompletionQueue cq_;
         int push_wait_callback;
         bool push_fcm_enabled;
