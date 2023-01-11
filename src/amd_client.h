@@ -98,8 +98,13 @@ public:
         metadata->set_sample_rate(rate);
 
         call->rw = stub_->StreamPCM(&call->context);
+
+        if (!call->rw->Write(msg)) {
+            delete call;
+            return nullptr;
+        };
+
         call->Listen();
-        call->rw->Write(msg);
 
         return call;
     }

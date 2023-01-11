@@ -15,8 +15,8 @@ foreach(PROTO_FILE IN LISTS proto_files)
     set(PROTO_SRC ${GENERATED_PROTOBUF_PATH}/${PROTO_NAME}.pb.cc)
     set(PROTO_GRPC_HDR ${GENERATED_PROTOBUF_PATH}/${PROTO_NAME}.grpc.pb.h)
     set(PROTO_GRPC_SRC ${GENERATED_PROTOBUF_PATH}/${PROTO_NAME}.grpc.pb.cc)
-    message(STATUS "protoc hdr: ${PROTO_HDR}")
-    message(STATUS "protoc src: ${PROTO_SRC}")
+#    message(STATUS "protoc hdr: ${PROTO_HDR}")
+#    message(STATUS "protoc src: ${PROTO_SRC}")
     add_custom_command(
             OUTPUT ${PROTO_SRC} ${PROTO_HDR} ${PROTO_GRPC_SRC} ${PROTO_GRPC_HDR}
             COMMAND ${_PROTOBUF_PROTOC}

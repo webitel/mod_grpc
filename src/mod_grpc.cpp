@@ -1224,39 +1224,45 @@ namespace mod_grpc {
         switch_media_bug_flag_t flags = SMBF_READ_STREAM; //SMBF_WRITE_STREAM;
         int64_t domain_id = 0;
         std::vector<std::string> positive_labels;
+        const char *err = nullptr;
+        const char *tmp = nullptr;
+        Stream *ud = nullptr;
 
         if (!server_->AllowAMDAi()) {
-            // todo add positive application ?
-            switch_channel_set_variable(channel, WBT_AMD_AI, "ai_disabled");
-            do_execute(session, channel, AMD_EXECUTE_VARIABLE);
-            amd_fire_event(channel);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  AMD AI disabled\n");
-            return;
+            err = "ai_disabled";
+            goto error_;
         }
 
         if (!zstr(data)) {
             split_str(std::string(data), ",", positive_labels);
         } else {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Usage: %s\n", WBT_AMD_SYNTAX);
-            return;
+            err = "ai_bad_request";
+            goto error_;
         }
 
-        auto tmp = switch_channel_get_variable(channel, "sip_h_X-Webitel-Domain-Id");
+        tmp = switch_channel_get_variable(channel, "sip_h_X-Webitel-Domain-Id");
         if (!tmp || !(domain_id = atoi(tmp))) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  Not found sip_h_X-Webitel-Domain-Id\n");
-            return;
+            err = "ai_bad_request";
+            goto error_;
         }
 
         if (!switch_channel_media_up(channel) || !switch_core_session_get_read_codec(session)) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  Media not enabled on channel\n");
-            return;
+            err = "ai_no_media";
+            goto error_;
         }
 
-        auto *ud = new Stream;
+        ud = new Stream;
         ud->session = session;
         ud->channel = channel;
         ud->positive = std::move(positive_labels);
         ud->client_ = server_->AsyncStreamPCMA(domain_id, switch_channel_get_uuid(channel), switch_channel_get_uuid(channel), MODEL_RATE);
+
+        if (!ud->client_) {
+            err = "ai_create_client";
+            goto error_;
+        }
 
         if (switch_core_media_bug_add(
                 session,
@@ -1268,7 +1274,20 @@ namespace mod_grpc {
                 flags,
                 &bug) != SWITCH_STATUS_SUCCESS ) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
+            err = "ai_no_media";
+            goto error_;
         }
+        return;
+
+        error_:
+            // todo add positive application ?
+            delete ud;
+
+            switch_channel_set_variable(channel, WBT_AMD_AI_ERROR, err);
+            switch_channel_set_variable(channel, "execute_on_answer", NULL); // TODO
+            do_execute(session, channel, AMD_EXECUTE_VARIABLE);
+            amd_fire_event(channel);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "AMD error code: %s\n", err);
     }
 
     SWITCH_STANDARD_APP(wbr_send_hook_function) {
@@ -1381,18 +1400,16 @@ namespace mod_grpc {
                            wbt_blind_transfer_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback",
                            wbt_queue_playback_function, "", SAF_NONE);
-            server_ = new ServerImpl(loadConfig());
+            SWITCH_ADD_APP(
+                    app_interface,
+                    BUG_STREAM_NAME,
+                    BUG_STREAM_NAME,
+                    BUG_STREAM_NAME,
+                    wbt_amd_function,
+                    WBT_AMD_SYNTAX,
+                    SAF_NONE);
 
-            if (server_->AllowAMDAi()) {
-                SWITCH_ADD_APP(
-                        app_interface,
-                        BUG_STREAM_NAME,
-                        BUG_STREAM_NAME,
-                        BUG_STREAM_NAME,
-                        wbt_amd_function,
-                        WBT_AMD_SYNTAX,
-                        SAF_NONE);
-            }
+            server_ = new ServerImpl(loadConfig());
 
             server_->Run();
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed FCM=%d APN=%d\n", server_->UseFCM(), server_->UseAPN());

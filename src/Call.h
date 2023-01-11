@@ -38,6 +38,7 @@ extern "C" {
 #define WBT_TALK_SEC  "wbt_talk_sec"
 #define WBT_AMD_AI  "wbt_amd_ai"
 #define WBT_AMD_AI_LOG  "wbt_amd_ai_log"
+#define WBT_AMD_AI_ERROR  "wbt_amd_ai_error"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -750,6 +751,7 @@ template <> class CallEvent<AMD> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(AMD, e) {
         addIfExists(body_, "ai_result", "variable_"  WBT_AMD_AI);
+        addIfExists(body_, "ai_error", "variable_"  WBT_AMD_AI_ERROR);
         addIfExists(body_, "result", "variable_amd_result");
         addIfExists(body_, "cause", "variable_amd_cause");
     };
