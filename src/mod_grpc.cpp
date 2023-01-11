@@ -1120,13 +1120,16 @@ namespace mod_grpc {
 
                     ud->client_->Finish();
 
-                    std::string amd_result;;
+                    std::string amd_result;
+                    std::vector<std::string> amd_results(ud->client_->reply.results().begin(), ud->client_->reply.results().end());
+
                     bool skip_hangup = false;
 
                     if (ud->client_->reply.result().empty()) {
                         // TODO
                         skip_hangup = true;
                         amd_result = "undefined";
+                        switch_channel_set_variable(ud->channel, "execute_on_answer", NULL); // TODO
                         do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
                     } else {
                         amd_result = ud->client_->reply.result();
@@ -1140,24 +1143,23 @@ namespace mod_grpc {
                     }
 
                     switch_channel_set_variable(ud->channel, WBT_AMD_AI, amd_result.c_str());
-                    for (auto &r : ud->client_->reply.results()) {
+                    for (auto &r : amd_results) {
                         switch_channel_add_variable_var_check(ud->channel, WBT_AMD_AI_LOG, r.c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
                     }
 
-                    auto v = ud->client_->reply.results();
-                    std::string s = std::accumulate(std::next(v.begin()), v.end(),
-                                                    v[0], // start with first element
-                                                    [](std::string a, std::string &b) {
-                                                        return std::move(a) + "<-" + b;
-                                                    });
-
-                    switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_NOTICE,
-                            "ML amd result: %s [%s]\n", amd_result.c_str(), s.c_str());
+                    if (!amd_results.empty()) {
+                        std::string s = std::accumulate(std::next(amd_results.begin()), amd_results.end(),
+                                                        amd_results[0], // start with first element
+                                                        [](std::string a, std::string &b) {
+                                                            return std::move(a) + "<-" + b;
+                                                        });
+                        switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                SWITCH_LOG_NOTICE,
+                                "ML amd result: %s [%s]\n", amd_result.c_str(), s.c_str());
+                    }
 
                     amd_fire_event(ud->channel);
-
                     if (!skip_hangup) {
                         switch_channel_hangup(ud->channel, SWITCH_CAUSE_NORMAL_UNSPECIFIED);
                     }
@@ -1212,7 +1214,6 @@ namespace mod_grpc {
                 break;
             }
         }
-
 
         return SWITCH_TRUE;
     }
