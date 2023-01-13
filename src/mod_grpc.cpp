@@ -1389,12 +1389,18 @@ namespace mod_grpc {
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "BLIND TRANSFER\n");
     }
 
+    SWITCH_STANDARD_API(version_api_function) {
+        stream->write_function(stream, "%s", MOD_BUILD_VERSION);
+        return SWITCH_STATUS_SUCCESS;
+    }
 
     SWITCH_MODULE_LOAD_FUNCTION(mod_grpc_load) {
         try {
             *module_interface = switch_loadable_module_create_module_interface(pool, modname);
             switch_application_interface_t *app_interface;
+            switch_api_interface_t *api_interface;
             switch_core_add_state_handler(&wbt_state_handlers);
+            SWITCH_ADD_API(api_interface, "wbt_version", "Show build version", version_api_function, "");
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "", SAF_NONE | SAF_SUPPORT_NOMEDIA);
             SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer",

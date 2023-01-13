@@ -17,6 +17,10 @@ extern "C" {
 
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
 
+#ifndef MOD_BUILD_VERSION
+#define MOD_BUILD_VERSION "DEV"
+#endif
+
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
 using grpc::ServerBuilder;
