@@ -1035,7 +1035,7 @@ namespace mod_grpc {
         return pData;
     }
 
-    static void amd_fire_event(switch_channel_t *channel) {
+    static inline void amd_fire_event(switch_channel_t *channel) {
         switch_event_t      *event;
         switch_status_t     status;
         status = switch_event_create_subclass(&event, SWITCH_EVENT_CLONE, AMD_EVENT_NAME);
@@ -1046,7 +1046,7 @@ namespace mod_grpc {
         switch_event_fire(&event);
     }
 
-    static void do_execute(switch_core_session_t *session, switch_channel_t *channel, const char *name) {
+    static inline void do_execute(switch_core_session_t *session, switch_channel_t *channel, const char *name) {
         char *arg = NULL;
         char *p;
         int bg = 0;
