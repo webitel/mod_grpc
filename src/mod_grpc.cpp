@@ -584,6 +584,57 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::Broadcast(ServerContext *context, const fs::BroadcastRequest *request,
+                                     fs::BroadcastResponse *reply) {
+        if (request->id().empty()) {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("bad request: no call id");
+            return Status::OK;
+        }
+
+        switch_core_session_t *session;
+        session = switch_core_session_locate(request->id().c_str());
+        if (session) {
+            switch_media_flag_t flags = SMF_NONE;
+            switch_channel_t *channel = switch_core_session_get_channel(session);
+            auto leg = request->leg();
+            if (leg == "both") {
+                flags |= (SMF_ECHO_ALEG | SMF_ECHO_BLEG);
+            } else if (leg == "aleg") {
+                flags |= SMF_ECHO_ALEG;
+            } else if (leg == "bleg") {
+                flags &= ~SMF_HOLD_BLEG;
+                flags |= SMF_ECHO_BLEG;
+            } else if (leg == "holdb") {
+                flags &= ~SMF_ECHO_BLEG;
+                flags |= SMF_HOLD_BLEG;
+            } else {
+                flags = SMF_ECHO_ALEG | SMF_HOLD_BLEG;
+            }
+
+            if (request->wait_for_answer()) {
+                while (!switch_channel_test_flag(channel, CF_ANSWERED) && switch_channel_ready(channel)) {
+                    switch_ivr_sleep(session, 100, SWITCH_TRUE, NULL);
+                }
+            }
+
+            switch_core_session_rwunlock(session);
+
+            if (switch_ivr_broadcast(request->id().c_str(), request->args().c_str(), flags) == SWITCH_STATUS_SUCCESS) {
+                *reply->mutable_data() = "OK";
+            } else {
+                reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+                reply->mutable_error()->set_message("invalid uuid!");
+            }
+
+        } else {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("No such channel!");
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) {
         if (!config_.grpc_host) {
             char ipV4_[80];

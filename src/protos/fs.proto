@@ -17,6 +17,19 @@ service Api {
     rpc UnHold(UnHoldRequest) returns (UnHoldResponse) {}
     rpc SetProfileVar(SetProfileVarRequest) returns (SetProfileVarResponse) {}
     rpc ConfirmPush(ConfirmPushRequest) returns (ConfirmPushResponse) {}
+    rpc Broadcast(BroadcastRequest) returns (BroadcastResponse) {}
+}
+
+message BroadcastRequest {
+    string id = 1;
+    string args = 2;
+    bool wait_for_answer = 3;
+    string leg = 4;
+}
+
+message BroadcastResponse {
+    string data = 1;
+    ErrorExecute error = 2;
 }
 
 message ConfirmPushRequest {

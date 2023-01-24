@@ -105,6 +105,9 @@ namespace mod_grpc {
         Status ConfirmPush(ServerContext* context, const fs::ConfirmPushRequest* request,
                            fs::ConfirmPushResponse* reply) override;
 
+        Status Broadcast(ServerContext* context, const fs::BroadcastRequest* request,
+                           fs::BroadcastResponse* reply) override;
+
     };
 
     struct PushData {
