@@ -613,11 +613,12 @@ namespace mod_grpc {
             }
 
             if (request->wait_for_answer()) {
-                while (!switch_channel_test_flag(channel, CF_ANSWERED) && switch_channel_ready(channel)) {
+                while (!switch_channel_test_flag(channel, CF_PARK) && switch_channel_ready(channel)) {
+                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "wait for answer\n");
                     switch_ivr_sleep(session, 100, SWITCH_TRUE, NULL);
                 }
             }
-
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "broadcast: %s\n", request->args().c_str());
             switch_core_session_rwunlock(session);
 
             if (switch_ivr_broadcast(request->id().c_str(), request->args().c_str(), flags) == SWITCH_STATUS_SUCCESS) {
