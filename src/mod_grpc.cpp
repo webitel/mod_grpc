@@ -1213,7 +1213,10 @@ namespace mod_grpc {
 
                     amd_fire_event(ud->channel);
                     if (!skip_hangup) {
+                        switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, "false");
                         switch_channel_hangup(ud->channel, SWITCH_CAUSE_NORMAL_UNSPECIFIED);
+                    } else {
+                        switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, "true");
                     }
 
                     delete ud->client_;

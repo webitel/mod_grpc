@@ -39,6 +39,7 @@ extern "C" {
 #define WBT_AMD_AI  "wbt_amd_ai"
 #define WBT_AMD_AI_LOG  "wbt_amd_ai_log"
 #define WBT_AMD_AI_ERROR  "wbt_amd_ai_error"
+#define WBT_AMD_AI_POSITIVE  "wbt_amd_ai_positive"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -631,6 +632,7 @@ public:
         auto wbt_transfer_from_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_from_attempt"));
         auto wbt_transfer_to_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_to_attempt"));
         auto wbt_talk_sec = get_str(switch_event_get_header(e, "variable_wbt_talk_sec"));
+        auto wbt_amd = get_str(switch_event_get_header(e, "variable_"  WBT_AMD_AI));
 
 //        DUMP_EVENT(e);
 
@@ -717,10 +719,14 @@ public:
             addArrayValue(hp, "tags");
         }
 
-        addIfExists(body_, "amd_ai_result", "variable_"  WBT_AMD_AI);
-        hp = switch_event_get_header_ptr(e, "variable_" WBT_AMD_AI_LOG);
-        if (hp) {
-            addArrayValue(hp, "amd_ai_logs");
+        if (!wbt_amd.empty()) {
+            auto positive = get_str(switch_event_get_header(e, "variable_" WBT_AMD_AI_POSITIVE));
+            addAttribute("amd_ai_result", wbt_amd);
+            addAttribute( "amd_ai_positive", positive == "true");
+            hp = switch_event_get_header_ptr(e, "variable_" WBT_AMD_AI_LOG);
+            if (hp) {
+                addArrayValue(hp, "amd_ai_logs");
+            }
         }
     };
 };
