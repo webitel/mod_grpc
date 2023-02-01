@@ -1216,7 +1216,7 @@ namespace mod_grpc {
                         switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, "false");
                         switch_channel_hangup(ud->channel, SWITCH_CAUSE_NORMAL_UNSPECIFIED);
                     } else {
-                        switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, "true");
+                        switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, amd_results.size() > 0 ? "true" : "false");
                     }
 
                     delete ud->client_;
