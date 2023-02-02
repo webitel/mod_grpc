@@ -18,6 +18,16 @@ service Api {
     rpc SetProfileVar(SetProfileVarRequest) returns (SetProfileVarResponse) {}
     rpc ConfirmPush(ConfirmPushRequest) returns (ConfirmPushResponse) {}
     rpc Broadcast(BroadcastRequest) returns (BroadcastResponse) {}
+    rpc SetEavesdropState(SetEavesdropStateRequest) returns (SetEavesdropStateResponse) {}
+}
+
+message SetEavesdropStateRequest {
+    string id = 1;
+    string state = 2;
+}
+
+message SetEavesdropStateResponse {
+    ErrorExecute error = 1;
 }
 
 message BroadcastRequest {

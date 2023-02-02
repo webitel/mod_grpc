@@ -32,6 +32,7 @@ extern "C" {
 #define CALL_MANAGER_NAME "CALL_MANAGER"
 #define VALET_PARK_NAME "valet_parking::info"
 #define AMD_EVENT_NAME "amd::info"
+#define EAVESDROP_EVENT_NAME "eavesdrop::info"
 #define SKIP_EVENT_VARIABLE "skip_channel_events"
 #define RECORD_SESSION_START_NAME  "wbt_start_record"
 #define RECORD_SESSION_STOP_NAME  "wbt_stop_record"
@@ -43,7 +44,7 @@ extern "C" {
 
 #define get_str(c) c ? std::string(c) : std::string()
 
-enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup };
+enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup, Eavesdrop };
 
 //TODO
 static const char* callEventStr(CallActions e) {
@@ -74,6 +75,8 @@ static const char* callEventStr(CallActions e) {
             return "leaving_queue";
         case AMD:
             return "amd";
+        case Eavesdrop:
+            return "eavesdrop";
         default:
             return "unknown";
     }
@@ -250,6 +253,55 @@ protected:
         if (info->to) {
             cJSON_AddItemToObject(j, "to", toJson(info->to));
         }
+    }
+
+    std::string eavesdropStateName() {
+        std::string tmp;
+        bool whisperALeg = event_->getVar("variable_eavesdrop_whisper_aleg") == "true";
+        bool whisperBLeg = event_->getVar("variable_eavesdrop_whisper_bleg") == "true";
+
+        if (!whisperALeg && !whisperBLeg) {
+            tmp = "muted";
+        } else if (whisperALeg && whisperBLeg) {
+            tmp = "conference";
+        } else {
+            tmp = "prompt";
+        }
+
+        return std::move(tmp);
+    }
+
+    void setEavesdrop(cJSON *j, std::string &type) {
+        cJSON *cj;
+        cj = cJSON_CreateObject();
+        cJSON_AddItemToObject(cj, "type", cJSON_CreateString(type.c_str()));
+
+        auto tmp = event_->getVar("variable_wbt_eavesdrop_name");
+        if (!tmp.empty()) {
+            cJSON_AddItemToObject(cj, "name", cJSON_CreateString(tmp.c_str()));
+        }
+
+        tmp = event_->getVar("variable_wbt_eavesdrop_number");
+        if (!tmp.empty()) {
+            cJSON_AddItemToObject(cj, "number", cJSON_CreateString(tmp.c_str()));
+        }
+
+        tmp = event_->getVar("variable_wbt_eavesdrop_duration");
+        if (!tmp.empty()) {
+            cJSON_AddItemToObject(cj, "duration", cJSON_CreateNumber(std::stoi(tmp)));
+        }
+
+        tmp = eavesdropStateName();
+        cJSON_AddItemToObject(cj, "state", cJSON_CreateString(tmp.c_str()));
+        addAttribute("eavesdrop", cj);
+        /*
+         {
+          "id": "85b9366a-4c2f-45b0-bcea-06a38fe4be37",
+          "control": true,
+          "listenA": true,
+          "listenB": true
+        }
+         */
     }
 
     static void setCallParameters(cJSON *j, OutboundCallParameters *params) {
@@ -507,6 +559,11 @@ public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Ringing, e) {
         setOnCreateAttr();
         auto info = getCallInfo();
+        auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
+        if (!eavesdrop.empty()) {
+            setEavesdrop(body_, eavesdrop);
+        }
+
         setBodyCallInfo(body_, &info);
         //TODO
         delete info.from;
@@ -760,6 +817,13 @@ public:
         addIfExists(body_, "ai_error", "variable_"  WBT_AMD_AI_ERROR);
         addIfExists(body_, "result", "variable_amd_result");
         addIfExists(body_, "cause", "variable_amd_cause");
+    };
+};
+
+template <> class CallEvent<Eavesdrop> : public BaseCallEvent {
+public:
+    explicit CallEvent(switch_event_t *e) : BaseCallEvent(Eavesdrop, e) {
+        addAttribute("state", eavesdropStateName());
     };
 };
 

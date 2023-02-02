@@ -60,6 +60,8 @@ namespace mod_grpc {
     SWITCH_MODULE_LOAD_FUNCTION(mod_grpc_load);
     SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_grpc_shutdown);
 
+    static inline void fire_event(switch_channel_t *channel, const char *name);
+
     // Logic and data behind the server's behavior.
     class ApiServiceImpl final : public fs::Api::Service {
     private:
@@ -107,6 +109,8 @@ namespace mod_grpc {
 
         Status Broadcast(ServerContext* context, const fs::BroadcastRequest* request,
                            fs::BroadcastResponse* reply) override;
+        Status SetEavesdropState(::grpc::ServerContext* context, const ::fs::SetEavesdropStateRequest* request,
+                                 ::fs::SetEavesdropStateResponse* reply) override;
 
     };
 

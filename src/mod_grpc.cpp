@@ -636,6 +636,51 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::SetEavesdropState(::grpc::ServerContext* context, const ::fs::SetEavesdropStateRequest* request,
+                                             ::fs::SetEavesdropStateResponse* reply) {
+
+        if (request->id().empty()) {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("bad request: no call id");
+            return Status::OK;
+        }
+
+        switch_core_session_t *session;
+        session = switch_core_session_locate(request->id().c_str());
+        if (session) {
+            switch_channel_t *channel = switch_core_session_get_channel(session);
+            std::string dtmf;
+            if (request->state() == "muted") {
+                dtmf = "0";
+                switch_channel_set_variable(channel, "eavesdrop_whisper_aleg", "false");
+                switch_channel_set_variable(channel, "eavesdrop_whisper_bleg", "false");
+            } else if (request->state() == "conference") {
+                dtmf = "3";
+                switch_channel_set_variable(channel, "eavesdrop_whisper_aleg", "true");
+                switch_channel_set_variable(channel, "eavesdrop_whisper_bleg", "true");
+            } else {
+                dtmf = "2";
+                switch_channel_set_variable(channel, "eavesdrop_whisper_aleg", "false");
+                switch_channel_set_variable(channel, "eavesdrop_whisper_bleg", "true");
+            }
+
+            if (switch_channel_queue_dtmf_string(switch_core_session_get_channel(session), dtmf.c_str()) == SWITCH_STATUS_GENERR) {
+
+            }
+            switch_core_session_rwunlock(session);
+
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "eavesdrop: %s set %s\n",
+                              request->id().c_str(), dtmf.c_str());
+
+            fire_event(channel, EAVESDROP_EVENT_NAME);
+        } else {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("No such channel!");
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) {
         if (!config_.grpc_host) {
             char ipV4_[80];
@@ -1087,15 +1132,19 @@ namespace mod_grpc {
         return pData;
     }
 
-    static inline void amd_fire_event(switch_channel_t *channel) {
+    static inline void fire_event(switch_channel_t *channel, const char *name) {
         switch_event_t      *event;
         switch_status_t     status;
-        status = switch_event_create_subclass(&event, SWITCH_EVENT_CLONE, AMD_EVENT_NAME);
+        status = switch_event_create_subclass(&event, SWITCH_EVENT_CLONE, name);
         if (status != SWITCH_STATUS_SUCCESS) {
             return;
         }
         switch_channel_event_set_data(channel, event);
         switch_event_fire(&event);
+    }
+
+    static inline void amd_fire_event(switch_channel_t *channel) {
+        fire_event(channel, AMD_EVENT_NAME);
     }
 
     static inline void do_execute(switch_core_session_t *session, switch_channel_t *channel, const char *name) {

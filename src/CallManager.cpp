@@ -20,6 +20,7 @@ mod_grpc::CallManager::CallManager() {
 //    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_EXECUTE, nullptr, CallManager::handle_call_event, nullptr);
 
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, AMD_EVENT_NAME, CallManager::handle_call_event, nullptr);
+    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, EAVESDROP_EVENT_NAME, CallManager::handle_call_event, nullptr);
 //    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, VALET_PARK_NAME, CallManager::handle_call_event, nullptr);
 }
 
@@ -128,6 +129,8 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
             case SWITCH_EVENT_CUSTOM:
                 if (strcmp(AMD_EVENT_NAME, event->subclass_name) == 0) {
                     CallEvent<AMD>(event).fire();
+                } else if (strcmp(EAVESDROP_EVENT_NAME, event->subclass_name) == 0) {
+                    CallEvent<Eavesdrop>(event).fire();
                 } else if (strcmp(VALET_PARK_NAME, event->subclass_name) == 0) {
                     auto action = switch_event_get_header(event, "Action");
                     if (strcmp(action, "hold") == 0) {
