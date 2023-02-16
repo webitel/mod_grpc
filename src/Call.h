@@ -200,7 +200,7 @@ public:
             b = cJSON_PrintUnformatted(body_);
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DATA, b);
         }
-        DUMP_EVENT(out)
+//        DUMP_EVENT(out)
         switch_event_fire(&out);
         if (b) {
             cJSON_free(b);
