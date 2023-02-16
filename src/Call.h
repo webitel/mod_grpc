@@ -611,7 +611,7 @@ public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Active, e) {
         auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
         if (!eavesdrop.empty()) {
-            notifyEavesdropPartner("active");
+            notifyEavesdropPartner("joined");
         }
     };
 };
@@ -846,8 +846,10 @@ public:
 template <> class CallEvent<Eavesdrop> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Eavesdrop, e) {
-        addAttribute("state", eavesdropStateName());
+        auto state = eavesdropStateName();
+        addAttribute("state", state);
         addIfExists(body_, "type", "variable_wbt_eavesdrop_type");
+        notifyEavesdropPartner(state);
     };
 };
 
