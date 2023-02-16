@@ -155,7 +155,7 @@ namespace mod_grpc {
         void Run();
         void Shutdown();
         std::shared_ptr<grpc::Channel> AMDAiChannel();
-        bool AllowAMDAi();
+        bool AllowAMDAi() const;
 
         int PushWaitCallback() const;
         int AutoAnswerDelayTime() const;

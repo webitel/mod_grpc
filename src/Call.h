@@ -41,6 +41,7 @@ extern "C" {
 #define WBT_AMD_AI_LOG  "wbt_amd_ai_log"
 #define WBT_AMD_AI_ERROR  "wbt_amd_ai_error"
 #define WBT_AMD_AI_POSITIVE  "wbt_amd_ai_positive"
+#define WBT_EAVESDROP_STATE  "wbt_eavesdrop_state"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -172,13 +173,34 @@ public:
         addAttribute(var_name, arr);
     }
 
+    void notifyEavesdropPartner(const std::string& type) {
+        if ( parent_ != nullptr) {
+            switch_core_session_t *other_session;
+            other_session = switch_core_session_locate(parent_);
+            if (other_session) {
+                switch_event_t *other_event;
+                if (switch_event_create_subclass(&other_event, SWITCH_EVENT_CUSTOM, EAVESDROP_EVENT_NAME) == SWITCH_STATUS_SUCCESS) {
+                    switch_channel_event_set_data(switch_core_session_get_channel(other_session), other_event);
+                    switch_event_add_header_string(other_event, SWITCH_STACK_BOTTOM, "variable_" WBT_EAVESDROP_STATE, eavesdropStateName().c_str());
+                    switch_event_add_header_string(other_event, SWITCH_STACK_BOTTOM, "variable_wbt_eavesdrop_type", type.c_str());
+                }
+                switch_core_session_rwunlock(other_session);
+
+                if (other_event) {
+                    switch_event_fire(&other_event);
+                    free(other_event);
+                }
+            }
+        }
+    }
+
     void fire() {
         char *b = nullptr;
         if (body_->child) {
             b = cJSON_PrintUnformatted(body_);
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DATA, b);
         }
-//        DUMP_EVENT(out)
+        DUMP_EVENT(out)
         switch_event_fire(&out);
         if (b) {
             cJSON_free(b);
@@ -255,23 +277,16 @@ protected:
         }
     }
 
-    std::string eavesdropStateName() {
-        std::string tmp;
-        bool whisperALeg = event_->getVar("variable_eavesdrop_whisper_aleg") == "true";
-        bool whisperBLeg = event_->getVar("variable_eavesdrop_whisper_bleg") == "true";
-
-        if (!whisperALeg && !whisperBLeg) {
-            tmp = "muted";
-        } else if (whisperALeg && whisperBLeg) {
-            tmp = "conference";
-        } else {
-            tmp = "prompt";
+    inline std::string eavesdropStateName() {
+        std::string tmp = event_->getVar("variable_" WBT_EAVESDROP_STATE);
+        if (tmp.empty()) {
+            tmp = "none";
         }
 
         return std::move(tmp);
     }
 
-    void setEavesdrop(cJSON *j, std::string &type) {
+    void setEavesdrop(std::string &type) {
         cJSON *cj;
         cj = cJSON_CreateObject();
         cJSON_AddItemToObject(cj, "type", cJSON_CreateString(type.c_str()));
@@ -561,7 +576,7 @@ public:
         auto info = getCallInfo();
         auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
         if (!eavesdrop.empty()) {
-            setEavesdrop(body_, eavesdrop);
+            setEavesdrop(eavesdrop);
         }
 
         setBodyCallInfo(body_, &info);
@@ -594,7 +609,10 @@ public:
 template <> class CallEvent<Active> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Active, e) {
-
+        auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
+        if (!eavesdrop.empty()) {
+            notifyEavesdropPartner("active");
+        }
     };
 };
 
@@ -690,6 +708,11 @@ public:
         auto wbt_transfer_to_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_to_attempt"));
         auto wbt_talk_sec = get_str(switch_event_get_header(e, "variable_wbt_talk_sec"));
         auto wbt_amd = get_str(switch_event_get_header(e, "variable_"  WBT_AMD_AI));
+
+        auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
+        if (!eavesdrop.empty()) {
+            notifyEavesdropPartner("leave");
+        }
 
 //        DUMP_EVENT(e);
 
@@ -824,6 +847,7 @@ template <> class CallEvent<Eavesdrop> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Eavesdrop, e) {
         addAttribute("state", eavesdropStateName());
+        addIfExists(body_, "type", "variable_wbt_eavesdrop_type");
     };
 };
 

@@ -652,16 +652,13 @@ namespace mod_grpc {
             std::string dtmf;
             if (request->state() == "muted") {
                 dtmf = "0";
-                switch_channel_set_variable(channel, "eavesdrop_whisper_aleg", "false");
-                switch_channel_set_variable(channel, "eavesdrop_whisper_bleg", "false");
+                switch_channel_set_variable(channel, WBT_EAVESDROP_STATE, request->state().c_str());
             } else if (request->state() == "conference") {
                 dtmf = "3";
-                switch_channel_set_variable(channel, "eavesdrop_whisper_aleg", "true");
-                switch_channel_set_variable(channel, "eavesdrop_whisper_bleg", "true");
+                switch_channel_set_variable(channel, WBT_EAVESDROP_STATE, request->state().c_str());
             } else {
                 dtmf = "2";
-                switch_channel_set_variable(channel, "eavesdrop_whisper_aleg", "false");
-                switch_channel_set_variable(channel, "eavesdrop_whisper_bleg", "true");
+                switch_channel_set_variable(channel, WBT_EAVESDROP_STATE, "prompt");
             }
 
             if (switch_channel_queue_dtmf_string(switch_core_session_get_channel(session), dtmf.c_str()) == SWITCH_STATUS_GENERR) {
@@ -735,7 +732,7 @@ namespace mod_grpc {
         return amdAiChannel_;
     }
 
-    bool ServerImpl::AllowAMDAi() {
+    bool ServerImpl::AllowAMDAi() const {
         return allowAMDAi;
     }
 
@@ -1520,6 +1517,8 @@ namespace mod_grpc {
                     WBT_AMD_SYNTAX,
                     SAF_NONE);
 
+            switch_event_reserve_subclass("SWITCH_EVENT_CUSTOM::" EVENT_NAME);
+
             server_ = new ServerImpl(loadConfig());
 
             server_->Run();
@@ -1542,6 +1541,7 @@ namespace mod_grpc {
 
     SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_grpc_shutdown) {
         try {
+            switch_event_free_subclass("SWITCH_EVENT_CUSTOM::" EVENT_NAME);
             switch_core_remove_state_handler(&wbt_state_handlers);
             server_->Shutdown();
             delete server_;
