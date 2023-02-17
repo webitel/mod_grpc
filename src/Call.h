@@ -174,9 +174,10 @@ public:
     }
 
     void notifyEavesdropPartner(const std::string& type) {
-        if ( parent_ != nullptr) {
+        auto agentCallId = event_->getVar("variable_wbt_eavesdrop_agent_id");
+        if (!agentCallId.empty()) {
             switch_core_session_t *other_session;
-            other_session = switch_core_session_locate(parent_);
+            other_session = switch_core_session_locate(agentCallId.c_str());
             if (other_session) {
                 switch_event_t *other_event;
                 if (switch_event_create_subclass(&other_event, SWITCH_EVENT_CUSTOM, EAVESDROP_EVENT_NAME) == SWITCH_STATUS_SUCCESS) {
