@@ -1116,7 +1116,7 @@ namespace mod_grpc {
                 number = name = switch_channel_get_variable(channel, "wbt_destination");
             }
         }
-        if (autoDelayTime > 0 && !switch_false(wbt_auto_answer)) {
+        if (autoDelayTime > 0 && switch_true(wbt_auto_answer)) {
             pData->auto_answer = autoDelayTime;
         } else {
             pData->auto_answer = 0;
