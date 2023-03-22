@@ -130,7 +130,7 @@ namespace mod_grpc {
                 abort();
             }
 
-            for (const auto &ex: request->extensions()) {
+            for (const auto &ex : request->extensions()) {
                 switch_caller_extension_add_application(caller_session, extension,
                                                         ex.appname().c_str(),
                                                         ex.args().c_str());
@@ -487,8 +487,8 @@ namespace mod_grpc {
             }
 
             if (!switch_channel_down(chan_a_s) && !switch_core_media_bug_count(leg_a_s, "session_record") &&
-                switch_true(switch_channel_get_variable_partner(chan_a_s, "recording_follow_transfer")) &&
-                !switch_core_media_bug_count(leg_b_s, "session_record")) {
+                    switch_true(switch_channel_get_variable_partner(chan_a_s, "recording_follow_transfer")) &&
+                    !switch_core_media_bug_count(leg_b_s, "session_record")) {
 
                 auto pas = switch_core_session_locate(pa);
                 if (pas) {
@@ -618,8 +618,7 @@ namespace mod_grpc {
                     switch_ivr_sleep(session, 100, SWITCH_TRUE, NULL);
                 }
             }
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "broadcast: %s\n",
-                              request->args().c_str());
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "broadcast: %s\n", request->args().c_str());
             switch_core_session_rwunlock(session);
 
             if (switch_ivr_broadcast(request->id().c_str(), request->args().c_str(), flags) == SWITCH_STATUS_SUCCESS) {
@@ -637,9 +636,8 @@ namespace mod_grpc {
         return Status::OK;
     }
 
-    Status
-    ApiServiceImpl::SetEavesdropState(::grpc::ServerContext *context, const ::fs::SetEavesdropStateRequest *request,
-                                      ::fs::SetEavesdropStateResponse *reply) {
+    Status ApiServiceImpl::SetEavesdropState(::grpc::ServerContext* context, const ::fs::SetEavesdropStateRequest* request,
+                                             ::fs::SetEavesdropStateResponse* reply) {
 
         if (request->id().empty()) {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
@@ -663,8 +661,7 @@ namespace mod_grpc {
                 switch_channel_set_variable(channel, WBT_EAVESDROP_STATE, "prompt");
             }
 
-            if (switch_channel_queue_dtmf_string(switch_core_session_get_channel(session), dtmf.c_str()) ==
-                SWITCH_STATUS_GENERR) {
+            if (switch_channel_queue_dtmf_string(switch_core_session_get_channel(session), dtmf.c_str()) == SWITCH_STATUS_GENERR) {
 
             }
             switch_core_session_rwunlock(session);
@@ -695,16 +692,13 @@ namespace mod_grpc {
         }
 
         this->push_wait_callback = config_.push_wait_callback;
-        this->push_fcm_uri = config_.push_fcm_uri ? std::string(config_.push_fcm_uri)
-                                                  : "https://fcm.googleapis.com/fcm/send";
+        this->push_fcm_uri = config_.push_fcm_uri ? std::string(config_.push_fcm_uri) : "https://fcm.googleapis.com/fcm/send";
         if (config_.push_fcm_auth != nullptr) {
             this->push_fcm_auth = "Authorization: " + std::string(config_.push_fcm_auth);
         }
-        this->push_fcm_enabled =
-                config_.push_fcm_enabled && !this->push_fcm_auth.empty() && !this->push_fcm_uri.empty();
+        this->push_fcm_enabled = config_.push_fcm_enabled && !this->push_fcm_auth.empty() && !this->push_fcm_uri.empty();
 
-        this->push_apn_uri = config_.push_apn_uri ? std::string(config_.push_apn_uri)
-                                                  : "https://api.sandbox.push.apple.com:443/3/device";
+        this->push_apn_uri = config_.push_apn_uri ? std::string(config_.push_apn_uri) : "https://api.sandbox.push.apple.com:443/3/device";
         if (config_.push_apn_cert_file) {
             this->push_apn_cert_file = std::string(config_.push_apn_cert_file);
         }
@@ -717,8 +711,7 @@ namespace mod_grpc {
         if (config_.push_apn_topic) {
             this->push_apn_topic = std::string(config_.push_apn_topic);
         }
-        this->push_apn_enabled =
-                config_.push_apn_enabled && !this->push_apn_cert_file.empty() && !this->push_apn_key_pass.empty()
+        this->push_apn_enabled = config_.push_apn_enabled && !this->push_apn_cert_file.empty() && !this->push_apn_key_pass.empty()
                 && !this->push_apn_key_file.empty() && !this->push_apn_topic.empty();
 
         this->auto_answer_delay = config_.auto_answer_delay;
@@ -933,27 +926,25 @@ namespace mod_grpc {
     }
 
     long ServerImpl::SendPushAPN(const char *devices, const PushData *data) {
-        switch_CURL *cli = switch_curl_easy_init();
+        switch_CURL  *cli = switch_curl_easy_init();
         long response_code = -1;
 
         if (cli) {
             switch_CURLcode res;
             switch_curl_slist_t *headers = nullptr;
 
-            switch_curl_easy_setopt(cli, CURLOPT_URL, (this->push_apn_uri + "/" + std::string(devices)).c_str());
+            switch_curl_easy_setopt(cli, CURLOPT_URL,  (this->push_apn_uri + "/" + std::string(devices)).c_str());
             headers = switch_curl_slist_append(headers, "Content-Type: application/json");
             headers = switch_curl_slist_append(headers, this->push_apn_topic.c_str());
             headers = switch_curl_slist_append(headers, (std::string("apns-expiration: ") +
-                                                         std::to_string(
-                                                                 (long) ((unixTimestamp() + this->push_wait_callback +
-                                                                          2000) / 1000))
+                std::to_string((long)((unixTimestamp() + this->push_wait_callback + 2000) / 1000))
             ).c_str());
 
             switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
 
             std::string body = "{"
                                "\"aps\":" + toJson(data) + ","
-                                                           "\"priority\":10}";
+                               "\"priority\":10}";
 
             /* HTTP/2 please */
             curl_easy_setopt(cli, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
@@ -972,9 +963,9 @@ namespace mod_grpc {
             /* disconnect if we cannot validate server's cert */
             curl_easy_setopt(cli, CURLOPT_SSL_VERIFYPEER, 1L);
 
-#ifdef DEBUG_CURL
+            #ifdef DEBUG_CURL
             switch_curl_easy_setopt(cli, CURLOPT_VERBOSE, 1L);
-#endif
+            #endif
             switch_curl_easy_setopt(cli, CURLOPT_CUSTOMREQUEST, "POST");
 
             switch_curl_easy_setopt(cli, CURLOPT_POSTFIELDS, body.c_str());
@@ -989,7 +980,7 @@ namespace mod_grpc {
 #endif
 
             res = switch_curl_easy_perform(cli);
-            if (res == CURLE_OK) {
+            if(res == CURLE_OK) {
                 curl_easy_getinfo(cli, CURLINFO_RESPONSE_CODE, &response_code);
             }
 
@@ -1004,9 +995,9 @@ namespace mod_grpc {
         return response_code;
     }
 
-    std::string ReplaceAll(std::string str, const std::string &from, const std::string &to) {
+    std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
         size_t start_pos = 0;
-        while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
             str.replace(start_pos, from.length(), to);
             start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
         }
@@ -1014,23 +1005,22 @@ namespace mod_grpc {
     }
 
     long ServerImpl::SendPushFCM(const char *devices, const PushData *data) {
-        switch_CURL *cli = switch_curl_easy_init();
+        switch_CURL  *cli = switch_curl_easy_init();
         long response_code = -1;
 
         if (cli) {
             switch_CURLcode res;
             switch_curl_slist_t *headers = nullptr;
-            switch_curl_easy_setopt(cli, CURLOPT_URL, this->push_fcm_uri.c_str());
+            switch_curl_easy_setopt(cli, CURLOPT_URL,  this->push_fcm_uri.c_str());
             headers = switch_curl_slist_append(headers, "Content-Type: application/json");
             headers = switch_curl_slist_append(headers, this->push_fcm_auth.c_str());
             switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
 
             std::string body = "{"
                                "\"time_to_live\":" + std::to_string(int(this->push_wait_callback / 1000) + 2) + ","
-                                                                                                                "\"data\":" +
-                               toJson(data) + ","
-                                              "\"registration_ids\":[\"" + ReplaceAll(devices, "::", "\",\"") + "\"],"
-                                                                                                                "\"priority\":10}";
+                               "\"data\":" + toJson(data) + ","
+                               "\"registration_ids\":[\"" + ReplaceAll(devices, "::", "\",\"") + "\"],"
+                                                                                   "\"priority\":10}";
 
 //#ifdef DEBUG_CURL
             switch_curl_easy_setopt(cli, CURLOPT_VERBOSE, 1L);
@@ -1043,7 +1033,7 @@ namespace mod_grpc {
             switch_curl_easy_setopt(cli, CURLOPT_POSTFIELDS, body.c_str());
 
             res = switch_curl_easy_perform(cli);
-            if (res == CURLE_OK) {
+            if(res == CURLE_OK) {
                 curl_easy_getinfo(cli, CURLINFO_RESPONSE_CODE, &response_code);
             }
 
@@ -1070,11 +1060,11 @@ namespace mod_grpc {
         return this->auto_answer_delay;
     }
 
-    AsyncClientCall *ServerImpl::AsyncStreamPCMA(int64_t domain_id, const char *uuid, const char *name, int32_t rate) {
+    AsyncClientCall* ServerImpl::AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate) {
         return amdClient_->Stream(domain_id, uuid, name, rate);
     }
 
-    static void split_str(const std::string &str, const std::string &delimiter, std::vector<std::string> &out) {
+    static void split_str(const std::string& str, const std::string& delimiter, std::vector<std::string> &out) {
         size_t pos = 0;
         std::string s = str;
         while ((pos = s.find(delimiter)) != std::string::npos) {
@@ -1099,14 +1089,14 @@ namespace mod_grpc {
                     t2 = cp->times->hungup ? cp->times->hungup : switch_micro_time_now();
                 }
                 talk += difftime(t2,
-                                 (switch_time_t) (cp->times->bridged));
+                                 (switch_time_t)(cp->times->bridged));
             }
         }
         switch_channel_set_variable(channel, WBT_TALK_SEC, std::to_string(static_cast<int>(talk / 1000000)).c_str());
         return SWITCH_STATUS_SUCCESS;
     }
 
-    static PushData *get_push_body(const char *uuid, switch_channel *channel, int autoDelayTime) {
+    static PushData* get_push_body(const char *uuid, switch_channel *channel, int autoDelayTime) {
         auto *pData = new PushData;
         pData->call_id = std::string(uuid);
         const char *name = nullptr;
@@ -1140,8 +1130,8 @@ namespace mod_grpc {
     }
 
     static inline void fire_event(switch_channel_t *channel, const char *name) {
-        switch_event_t *event;
-        switch_status_t status;
+        switch_event_t      *event;
+        switch_status_t     status;
         status = switch_event_create_subclass(&event, SWITCH_EVENT_CLONE, name);
         if (status != SWITCH_STATUS_SUCCESS) {
             return;
@@ -1169,12 +1159,12 @@ namespace mod_grpc {
         expanded = switch_channel_expand_variables(channel, variable);
         app = switch_core_session_strdup(session, expanded);
 
-        for (p = app; p && *p; p++) {
-            if (*p == ' ' || (*p == ':' && (*(p + 1) != ':'))) {
+        for(p = app; p && *p; p++) {
+            if (*p == ' ' || (*p == ':' && (*(p+1) != ':'))) {
                 *p++ = '\0';
                 arg = p;
                 break;
-            } else if (*p == ':' && (*(p + 1) == ':')) {
+            } else if (*p == ':' && (*(p+1) == ':')) {
                 bg++;
                 break;
             }
@@ -1201,10 +1191,6 @@ namespace mod_grpc {
                 try {
 
                     switch_core_session_get_read_impl(ud->session, &ud->read_impl);
-
-                    ud->vad = switch_vad_init((int) ud->read_impl.actual_samples_per_second, 1);
-                    switch_vad_set_param(ud->vad, "thresh", 200);
-
                     if (ud->read_impl.actual_samples_per_second != MODEL_RATE) {
                         switch_resample_create(&ud->resampler,
                                                ud->read_impl.actual_samples_per_second,
@@ -1230,15 +1216,10 @@ namespace mod_grpc {
                         switch_resample_destroy(&ud->resampler);
                     }
 
-                    if (ud->vad) {
-                        switch_vad_destroy(&ud->vad);
-                    }
-
                     ud->client_->Finish();
 
                     std::string amd_result;
-                    std::vector<std::string> amd_results(ud->client_->reply.results().begin(),
-                                                         ud->client_->reply.results().end());
+                    std::vector<std::string> amd_results(ud->client_->reply.results().begin(), ud->client_->reply.results().end());
 
                     bool skip_hangup = false;
 
@@ -1250,7 +1231,7 @@ namespace mod_grpc {
                         do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
                     } else {
                         amd_result = ud->client_->reply.result();
-                        for (auto &l: ud->positive) {
+                        for (auto &l : ud->positive) {
                             if (l == amd_result) {
                                 skip_hangup = true;
                                 do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
@@ -1260,9 +1241,8 @@ namespace mod_grpc {
                     }
 
                     switch_channel_set_variable(ud->channel, WBT_AMD_AI, amd_result.c_str());
-                    for (auto &r: amd_results) {
-                        switch_channel_add_variable_var_check(ud->channel, WBT_AMD_AI_LOG, r.c_str(), SWITCH_FALSE,
-                                                              SWITCH_STACK_PUSH);
+                    for (auto &r : amd_results) {
+                        switch_channel_add_variable_var_check(ud->channel, WBT_AMD_AI_LOG, r.c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
                     }
 
                     if (!amd_results.empty()) {
@@ -1282,8 +1262,7 @@ namespace mod_grpc {
                         switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, "false");
                         switch_channel_hangup(ud->channel, SWITCH_CAUSE_NORMAL_UNSPECIFIED);
                     } else {
-                        switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE,
-                                                    amd_results.size() > 0 ? "true" : "false");
+                        switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, amd_results.size() > 0 ? "true" : "false");
                     }
 
                     delete ud->client_;
@@ -1300,7 +1279,7 @@ namespace mod_grpc {
             case SWITCH_ABC_TYPE_READ:
             case SWITCH_ABC_TYPE_WRITE: {
                 uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
-                switch_frame_t read_frame = {0};
+                switch_frame_t read_frame = { 0 };
                 switch_status_t status;
 
                 read_frame.data = data;
@@ -1315,20 +1294,6 @@ namespace mod_grpc {
                     if (status != SWITCH_STATUS_SUCCESS && status != SWITCH_STATUS_BREAK) {
                         return SWITCH_TRUE;
                     };
-
-                    if (ud->vad) {
-                        auto vad_state = switch_vad_process(ud->vad, (int16_t *) read_frame.data,
-                                                            read_frame.datalen / 2);
-                        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "vad_state: %s\n",
-                                          switch_vad_state2str(vad_state));
-                        if (vad_state == SWITCH_VAD_STATE_STOP_TALKING) {
-                            switch_vad_reset(ud->vad);
-                        }
-
-                        if (vad_state != SWITCH_VAD_STATE_TALKING) {
-                            break;
-                        }
-                    }
 
                     if (ud->resampler) {
                         uint8_t resample_data[SWITCH_RECOMMENDED_BUFFER_SIZE];
@@ -1354,8 +1319,7 @@ namespace mod_grpc {
         return SWITCH_TRUE;
     }
 
-#define WBT_AMD_SYNTAX "<positive labels>"
-
+    #define WBT_AMD_SYNTAX "<positive labels>"
     SWITCH_STANDARD_APP(wbt_amd_function) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
         switch_media_bug_t *bug = nullptr;
@@ -1380,15 +1344,13 @@ namespace mod_grpc {
 
         tmp = switch_channel_get_variable(channel, "sip_h_X-Webitel-Domain-Id");
         if (!tmp || !(domain_id = atoi(tmp))) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
-                              "Can not stream session.  Not found sip_h_X-Webitel-Domain-Id\n");
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  Not found sip_h_X-Webitel-Domain-Id\n");
             err = "ai_bad_request";
             goto error_;
         }
 
         if (!switch_channel_media_up(channel) || !switch_core_session_get_read_codec(session)) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
-                              "Can not stream session.  Media not enabled on channel\n");
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  Media not enabled on channel\n");
             err = "ai_no_media";
             goto error_;
         }
@@ -1397,10 +1359,7 @@ namespace mod_grpc {
         ud->session = session;
         ud->channel = channel;
         ud->positive = std::move(positive_labels);
-        ud->client_ = server_->AsyncStreamPCMA(domain_id, switch_channel_get_uuid(channel),
-                                               switch_channel_get_uuid(channel), MODEL_RATE);
-
-        ud->vad = switch_vad_init(MODEL_RATE, 1);
+        ud->client_ = server_->AsyncStreamPCMA(domain_id, switch_channel_get_uuid(channel), switch_channel_get_uuid(channel), MODEL_RATE);
 
         if (!ud->client_) {
             err = "ai_create_client";
@@ -1415,23 +1374,22 @@ namespace mod_grpc {
                 ud, //user_data
                 0, //TODO
                 flags,
-                &bug) != SWITCH_STATUS_SUCCESS) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
-                              "Can not add media bug.  Media not enabled on channel\n");
+                &bug) != SWITCH_STATUS_SUCCESS ) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
             err = "ai_no_media";
             goto error_;
         }
         return;
 
         error_:
-        // todo add positive application ?
-        delete ud;
+            // todo add positive application ?
+            delete ud;
 
-        switch_channel_set_variable(channel, WBT_AMD_AI_ERROR, err);
-        switch_channel_set_variable(channel, "execute_on_answer", NULL); // TODO
-        do_execute(session, channel, AMD_EXECUTE_VARIABLE);
-        amd_fire_event(channel);
-        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "AMD error code: %s\n", err);
+            switch_channel_set_variable(channel, WBT_AMD_AI_ERROR, err);
+            switch_channel_set_variable(channel, "execute_on_answer", NULL); // TODO
+            do_execute(session, channel, AMD_EXECUTE_VARIABLE);
+            amd_fire_event(channel);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "AMD error code: %s\n", err);
     }
 
     SWITCH_STANDARD_APP(wbr_send_hook_function) {
@@ -1455,23 +1413,19 @@ namespace mod_grpc {
         if (wbt_push_fcm && server_->UseFCM()) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start request FCM %s\n", uuid);
             auto res = server_->SendPushFCM(wbt_push_fcm, pData);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop request FCM %s [%ld]\n",
-                              uuid, res);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop request FCM %s [%ld]\n", uuid, res);
             if (res == 200) {
                 send++;
             }
         }
         if (wbt_push_apn && server_->UseAPN()) {
-            std::vector<std::string> out;
+            std::vector <std::string> out;
             split_str(wbt_push_apn, "::", out);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG,
-                              "start APN request %s tokens[%s]\n", uuid, wbt_push_apn);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start APN request %s tokens[%s]\n", uuid, wbt_push_apn);
             for (const auto &token: out) {
-                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start APN request %s\n",
-                                  uuid);
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start APN request %s\n", uuid);
                 auto res = server_->SendPushAPN(token.c_str(), pData);
-                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop APN request %s [%ld]\n",
-                                  uuid, res);
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop APN request %s [%ld]\n", uuid, res);
                 if (res == 200) {
                     send++;
                 }
@@ -1479,10 +1433,8 @@ namespace mod_grpc {
         }
 
         if (send && server_->PushWaitCallback() > 0) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start wait callback %s [%d]\n",
-                              uuid, server_->PushWaitCallback());
-            switch_channel_wait_for_flag(channel, CF_SLA_INTERCEPT, SWITCH_TRUE, server_->PushWaitCallback(),
-                                         NULL); //10s
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start wait callback %s [%d]\n", uuid, server_->PushWaitCallback());
+            switch_channel_wait_for_flag(channel, CF_SLA_INTERCEPT, SWITCH_TRUE, server_->PushWaitCallback(), NULL); //10s
             switch_channel_clear_flag(channel, CF_SLA_INTERCEPT);
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop wait callback %s\n", uuid);
         }
@@ -1551,8 +1503,7 @@ namespace mod_grpc {
             switch_core_add_state_handler(&wbt_state_handlers);
             SWITCH_ADD_API(api_interface, "wbt_version", "Show build version", version_api_function, "");
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
-            SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "",
-                           SAF_NONE | SAF_SUPPORT_NOMEDIA);
+            SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "", SAF_NONE | SAF_SUPPORT_NOMEDIA);
             SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer",
                            wbt_blind_transfer_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback",
@@ -1571,8 +1522,7 @@ namespace mod_grpc {
             server_ = new ServerImpl(loadConfig());
 
             server_->Run();
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed FCM=%d APN=%d\n",
-                              server_->UseFCM(), server_->UseAPN());
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed FCM=%d APN=%d\n", server_->UseFCM(), server_->UseAPN());
             return SWITCH_STATUS_SUCCESS;
         } catch (std::string &err) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module: %s\n",
