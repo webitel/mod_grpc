@@ -1491,7 +1491,8 @@ namespace mod_grpc {
     }
 
     SWITCH_STANDARD_API(version_api_function) {
-        stream->write_function(stream, "%s", MOD_BUILD_VERSION);
+        stream->write_function(stream, "%s\n", MOD_BUILD_VERSION);
+        stream->write_function(stream, "grpc: %s", grpc::Version().c_str());
         return SWITCH_STATUS_SUCCESS;
     }
 
