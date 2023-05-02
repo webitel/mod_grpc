@@ -15,19 +15,21 @@ endif()
 
 include(FetchContent)
 
-set(USE_GRPC_VERSION "v1.54.0" CACHE STRING "GRPC version")
+set(USE_GRPC_VERSION "v1.54.1" CACHE STRING "GRPC version")
 set(FREESWITCH_INCLUDE_DIR "" CACHE PATH "Location of FreeSWITCH headers")
 set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
 #add_compile_definitions(DEBUG_CURL)
+set(third_party_DIR "${CMAKE_SOURCE_DIR}/third_party")
 
-FetchContent_Declare(
-        gRPC
-        GIT_REPOSITORY https://github.com/grpc/grpc
-        GIT_TAG        ${USE_GRPC_VERSION}
-)
+file(MAKE_DIRECTORY ${third_party_DIR})
 
-set(FETCHCONTENT_QUIET OFF)
-FetchContent_MakeAvailable(gRPC)
+if (NOT EXISTS "${third_party_DIR}/grpc")
+    execute_process(
+            COMMAND git clone --recurse-submodules -b ${USE_GRPC_VERSION} --depth 1 --shallow-submodules "https://github.com/grpc/grpc.git" grpc
+            WORKING_DIRECTORY ${third_party_DIR})
+endif()
+
+add_subdirectory(${third_party_DIR}/grpc EXCLUDE_FROM_ALL)
 
 # After using add_subdirectory, we can now use the grpc targets directly from
 # this build.
