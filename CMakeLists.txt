@@ -16,7 +16,7 @@ endif()
 include(FetchContent)
 
 set(USE_GRPC_VERSION "v1.54.1" CACHE STRING "GRPC version")
-set(FREESWITCH_INCLUDE_DIR "" CACHE PATH "Location of FreeSWITCH headers")
+set(FREESWITCH_INCLUDE_DIR "/usr/local/freeswitch/include/freeswitch" CACHE PATH "Location of FreeSWITCH headers")
 set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
 #add_compile_definitions(DEBUG_CURL)
 set(third_party_DIR "${CMAKE_SOURCE_DIR}/third_party")
@@ -32,18 +32,16 @@ endif()
 add_subdirectory(${third_party_DIR}/grpc EXCLUDE_FROM_ALL)
 set(_PROTOBUF_LIBPROTOBUF libprotobuf)
 set(_REFLECTION grpc++_reflection)
-set(_PROTOBUF_PROTOC protoc)
 set(_GRPC_GRPCPP grpc++)
-set(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
 set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
 
 set(WBT_GENERATED_PROTOBUF_PATH "${CMAKE_SOURCE_DIR}/src/generated")
 
+include(proto.cmake)
+
 if (NOT EXISTS "${FREESWITCH_INCLUDE_DIR}")
     message( SEND_ERROR "Not exists FREESWITCH_INCLUDE_DIR = ${FREESWITCH_INCLUDE_DIR}" )
 endif()
-
-include(proto.cmake)
 
 set(WBT_GENERATED_PROTOBUF_FILES ${WBT_PROTO_HDRS} ${WBT_PROTO_SRCS})
 
