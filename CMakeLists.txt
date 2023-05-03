@@ -36,8 +36,7 @@ set(_GRPC_GRPCPP grpc++)
 set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
 
 set(WBT_GENERATED_PROTOBUF_PATH "${CMAKE_SOURCE_DIR}/src/generated")
-
-include(proto.cmake)
+file(GLOB_RECURSE wbt_proto_src ${WBT_GENERATED_PROTOBUF_PATH}/*.cc)
 
 if (NOT EXISTS "${FREESWITCH_INCLUDE_DIR}")
     message( SEND_ERROR "Not exists FREESWITCH_INCLUDE_DIR = ${FREESWITCH_INCLUDE_DIR}" )
@@ -46,7 +45,7 @@ endif()
 set(WBT_GENERATED_PROTOBUF_FILES ${WBT_PROTO_HDRS} ${WBT_PROTO_SRCS})
 
 add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h
-        src/amd_client.cpp src/amd_client.h ${WBT_GENERATED_PROTOBUF_FILES}
+        src/amd_client.cpp src/amd_client.h ${wbt_proto_src}
         src/utils.h)
 target_include_directories(mod_grpc PRIVATE ${WBT_GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE})
