@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.8)
 
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
@@ -29,17 +29,14 @@ if (NOT EXISTS "${third_party_DIR}/grpc")
             WORKING_DIRECTORY ${third_party_DIR})
 endif()
 
-#find_program(_PROTOBUF_PROTOC protoc)
-#find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
 add_subdirectory(${third_party_DIR}/grpc EXCLUDE_FROM_ALL)
-
-# After using add_subdirectory, we can now use the grpc targets directly from
-# this build.
 set(_PROTOBUF_LIBPROTOBUF libprotobuf)
-set(_PROTOBUF_PROTOC $<TARGET_FILE:protoc>)
-
+set(_REFLECTION grpc++_reflection)
+set(_PROTOBUF_PROTOC protoc)
+set(_GRPC_GRPCPP grpc++)
+set(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
 set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
-set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
+
 set(WBT_GENERATED_PROTOBUF_PATH "${CMAKE_SOURCE_DIR}/src/generated")
 
 if (NOT EXISTS "${FREESWITCH_INCLUDE_DIR}")
@@ -48,10 +45,10 @@ endif()
 
 include(proto.cmake)
 
-set(GENERATED_PROTOBUF_FILES ${WBT_PROTO_HDRS} ${WBT_PROTO_SRCS})
+set(WBT_GENERATED_PROTOBUF_FILES ${WBT_PROTO_HDRS} ${WBT_PROTO_SRCS})
 
 add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h
-        src/amd_client.cpp src/amd_client.h ${GENERATED_PROTOBUF_FILES}
+        src/amd_client.cpp src/amd_client.h ${WBT_GENERATED_PROTOBUF_FILES}
         src/utils.h)
 target_include_directories(mod_grpc PRIVATE ${WBT_GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE})
