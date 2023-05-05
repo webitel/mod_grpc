@@ -42,8 +42,6 @@ if (NOT EXISTS "${FREESWITCH_INCLUDE_DIR}")
     message( SEND_ERROR "Not exists FREESWITCH_INCLUDE_DIR = ${FREESWITCH_INCLUDE_DIR}" )
 endif()
 
-set(WBT_GENERATED_PROTOBUF_FILES ${WBT_PROTO_HDRS} ${WBT_PROTO_SRCS})
-
 add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h
         src/amd_client.cpp src/amd_client.h ${wbt_proto_src}
         src/utils.h)
