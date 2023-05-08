@@ -758,6 +758,8 @@ public:
         if (switch_event_get_header(e, "variable_grpc_send_hangup") != nullptr || hangup_by == "recv_bye" ||
             hangup_by == "recv_refuse" || hangup_by == "recv_cancel" || (hangup_by == "send_refuse" && parent_)) {
             addAttribute("hangup_by", parent_ ? "B" : "A");
+        } else if ((get_str(switch_event_get_header(e, "variable_last_app"))) == "hangup") {
+            addAttribute("hangup_by", "F");
         } else {
             addAttribute("hangup_by", parent_ ? "A" : "B");
         }
