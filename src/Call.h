@@ -242,7 +242,7 @@ protected:
     struct OutboundCallParameters {
         bool Video;
         bool Screen;
-        bool AutoAnswer;
+        std::string AutoAnswer;
         bool DisableStun;
     };
 
@@ -259,7 +259,9 @@ protected:
         auto j = cJSON_CreateObject();
         cJSON_AddItemToObject(j, "video", e->Video ? cJSON_CreateTrue() : cJSON_CreateFalse());
         cJSON_AddItemToObject(j, "screen", e->Screen ? cJSON_CreateTrue() : cJSON_CreateFalse());
-        cJSON_AddItemToObject(j, "autoAnswer", e->AutoAnswer ? cJSON_CreateTrue() : cJSON_CreateFalse());
+        if (!e->AutoAnswer.empty()) {
+            cJSON_AddItemToObject(j, "autoAnswer", cJSON_CreateString(e->AutoAnswer.c_str()));
+        }
         cJSON_AddItemToObject(j, "disableStun", e->DisableStun ? cJSON_CreateTrue() : cJSON_CreateFalse());
         return j;
     }
@@ -343,7 +345,7 @@ protected:
         auto params = OutboundCallParameters();
         params.Video = event_->getVar("variable_wbt_video") == "true";
         params.Screen = event_->getVar("variable_wbt_screen") == "true";
-        params.AutoAnswer = event_->getVar("variable_wbt_auto_answer") == "true";
+        params.AutoAnswer = event_->getVar("variable_wbt_auto_answer");
         params.DisableStun = event_->getVar("variable_wbt_disable_stun") == "true";
         return params;
     }
