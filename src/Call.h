@@ -33,7 +33,7 @@ extern "C" {
 #define VALET_PARK_NAME "valet_parking::info"
 #define AMD_EVENT_NAME "amd::info"
 #define EAVESDROP_EVENT_NAME "eavesdrop::info"
-#define SKIP_EVENT_VARIABLE "skip_channel_events"
+#define SKIP_EVENT_VARIABLE "process_cdr"
 #define RECORD_SESSION_START_NAME  "wbt_start_record"
 #define RECORD_SESSION_STOP_NAME  "wbt_stop_record"
 #define WBT_TALK_SEC  "wbt_talk_sec"
