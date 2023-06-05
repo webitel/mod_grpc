@@ -244,7 +244,6 @@ protected:
         bool Screen;
         std::string AutoAnswer;
         bool DisableStun;
-        bool HideNumber;
     };
 
     static cJSON* toJson(CallEndpoint *e) {
@@ -264,9 +263,6 @@ protected:
             cJSON_AddItemToObject(j, "autoAnswer", cJSON_CreateString(e->AutoAnswer.c_str()));
         }
         cJSON_AddItemToObject(j, "disableStun", e->DisableStun ? cJSON_CreateTrue() : cJSON_CreateFalse());
-        if (e->HideNumber) {
-            cJSON_AddItemToObject(j, "hideNumber", cJSON_CreateTrue());
-        }
         return j;
     }
 
@@ -351,7 +347,6 @@ protected:
         params.Screen = event_->getVar("variable_wbt_screen") == "true";
         params.AutoAnswer = event_->getVar("variable_wbt_auto_answer");
         params.DisableStun = event_->getVar("variable_wbt_disable_stun") == "true";
-        params.HideNumber = event_->getVar("variable_wbt_hide_number") == "true";
         return params;
     }
 
@@ -581,6 +576,9 @@ template <> class CallEvent<Ringing> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Ringing, e) {
         setOnCreateAttr();
+        if (event_->getVar("variable_wbt_hide_number") == "true") {
+            addAttribute("hideNumber", true);
+        }
         auto info = getCallInfo();
         auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
         if (!eavesdrop.empty()) {
@@ -653,6 +651,10 @@ public:
         } else {
             to->number = event_->getVar("Caller-Callee-ID-Number");
             to->name = event_->getVar("Caller-Callee-ID-Name");
+        }
+
+        if (event_->getVar("variable_wbt_hide_number") == "true") {
+            addAttribute("hideNumber", true);
         }
 
         addAttribute("to", toJson(to));
