@@ -244,6 +244,7 @@ protected:
         bool Screen;
         std::string AutoAnswer;
         bool DisableStun;
+        bool HideNumber;
     };
 
     static cJSON* toJson(CallEndpoint *e) {
@@ -263,6 +264,9 @@ protected:
             cJSON_AddItemToObject(j, "autoAnswer", cJSON_CreateString(e->AutoAnswer.c_str()));
         }
         cJSON_AddItemToObject(j, "disableStun", e->DisableStun ? cJSON_CreateTrue() : cJSON_CreateFalse());
+        if (e->HideNumber) {
+            cJSON_AddItemToObject(j, "hideNumber", cJSON_CreateTrue());
+        }
         return j;
     }
 
@@ -347,6 +351,7 @@ protected:
         params.Screen = event_->getVar("variable_wbt_screen") == "true";
         params.AutoAnswer = event_->getVar("variable_wbt_auto_answer");
         params.DisableStun = event_->getVar("variable_wbt_disable_stun") == "true";
+        params.HideNumber = event_->getVar("variable_wbt_hide_number") == "true";
         return params;
     }
 
