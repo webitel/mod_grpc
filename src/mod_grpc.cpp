@@ -832,7 +832,7 @@ namespace mod_grpc {
                         SWITCH_CONFIG_INT,
                         CONFIG_RELOADABLE,
                         &config.auto_answer_delay,
-                        (void *) 2,
+                        (void *) 0,
                         nullptr, nullptr, "Auto answer delay time is seconds"),
                 SWITCH_CONFIG_ITEM(
                         "push_wait_callback",
