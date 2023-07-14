@@ -715,10 +715,10 @@ namespace mod_grpc {
                 && !this->push_apn_key_file.empty() && !this->push_apn_topic.empty();
 
         this->auto_answer_delay = config_.auto_answer_delay;
-
+        this->allowAMDAi = false;
         if (config_.amd_ai_address) {
             auto amd_ai_address = std::string(config_.amd_ai_address);
-            if (!amd_ai_address.empty()) {
+            if (!amd_ai_address.empty() && amd_ai_address.size() > 5) {
                 this->amdAiChannel_ = grpc::CreateChannel(amd_ai_address, grpc::InsecureChannelCredentials());
                 this->allowAMDAi = true;
                 this->amdClient_.reset(new AMDClient(this->amdAiChannel_));
@@ -1189,8 +1189,21 @@ namespace mod_grpc {
             case SWITCH_ABC_TYPE_INIT: {
                 // connect
                 try {
-
                     switch_core_session_get_read_impl(ud->session, &ud->read_impl);
+
+                    auto thresh = switch_channel_get_variable(ud->channel, "wbt_ai_thresh");
+                    if (thresh) {
+                        auto t = atoi(thresh);
+                        if (t) {
+                            ud->vad = switch_vad_init((int) ud->read_impl.actual_samples_per_second, 1);
+                            switch_vad_set_param(ud->vad, "thresh", t);
+                            switch_log_printf(
+                                    SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                    SWITCH_LOG_DEBUG,
+                                    "amd use vad thresh %d \n", t);
+                        }
+                    }
+
                     if (ud->read_impl.actual_samples_per_second != MODEL_RATE) {
                         switch_resample_create(&ud->resampler,
                                                ud->read_impl.actual_samples_per_second,
@@ -1214,6 +1227,10 @@ namespace mod_grpc {
                 try {
                     if (ud->resampler) {
                         switch_resample_destroy(&ud->resampler);
+                    }
+
+                    if (ud->vad) {
+                        switch_vad_destroy(&ud->vad);
                     }
 
                     ud->client_->Finish();
@@ -1286,14 +1303,24 @@ namespace mod_grpc {
                 read_frame.buflen = SWITCH_RECOMMENDED_BUFFER_SIZE;
 
                 try {
-                    if (ud->client_->Finished()) {
-                        return SWITCH_FALSE;
-                    }
-
                     status = switch_core_media_bug_read(bug, &read_frame, SWITCH_FALSE);
                     if (status != SWITCH_STATUS_SUCCESS && status != SWITCH_STATUS_BREAK) {
+                        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "switch_core_media_bug_read SWITCH_TRUE \n");
                         return SWITCH_TRUE;
                     };
+
+                    switch_vad_state_t vad_state = SWITCH_VAD_STATE_NONE;
+                    if (ud->vad) {
+                        vad_state = switch_vad_process(ud->vad, (int16_t *) read_frame.data,
+                                                            read_frame.datalen / 2);
+                        if (vad_state == SWITCH_VAD_STATE_STOP_TALKING) {
+                            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "amd vad reset: %s\n",
+                                              switch_vad_state2str(vad_state));
+                            switch_vad_reset(ud->vad);
+                        }
+                    } else {
+                        vad_state = SWITCH_VAD_STATE_ERROR;
+                    }
 
                     if (ud->resampler) {
                         uint8_t resample_data[SWITCH_RECOMMENDED_BUFFER_SIZE];
@@ -1301,9 +1328,14 @@ namespace mod_grpc {
                         switch_resample_process(ud->resampler, data, (int) read_frame.datalen / 2);
                         auto linear_len = ud->resampler->to_len * 2;
                         memcpy(resample_data, ud->resampler->to, linear_len);
-                        ud->client_->Write(resample_data, linear_len);
+                        ud->client_->Write(resample_data, linear_len, vad_state);
                     } else {
-                        ud->client_->Write(read_frame.data, read_frame.datalen);
+                        ud->client_->Write(read_frame.data, read_frame.datalen, vad_state);
+                    }
+
+                    if (ud->client_->Finished()) {
+                        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Finished\n");
+                        return SWITCH_FALSE;
                     }
 
                 } catch (...) {
@@ -1360,6 +1392,7 @@ namespace mod_grpc {
         ud->channel = channel;
         ud->positive = std::move(positive_labels);
         ud->client_ = server_->AsyncStreamPCMA(domain_id, switch_channel_get_uuid(channel), switch_channel_get_uuid(channel), MODEL_RATE);
+        ud->vad = nullptr;
 
         if (!ud->client_) {
             err = "ai_create_client";

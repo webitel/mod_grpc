@@ -39,6 +39,7 @@ namespace mod_grpc {
         switch_codec_implementation_t read_impl;
         std::vector<std::string> positive;
         AsyncClientCall* client_;
+        switch_vad_t *vad;
     };
 
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);

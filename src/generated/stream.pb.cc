@@ -40,7 +40,8 @@ struct StreamPCMRequest_MetadataDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StreamPCMRequest_MetadataDefaultTypeInternal _StreamPCMRequest_Metadata_default_instance_;
 PROTOBUF_CONSTEXPR StreamPCMRequest::StreamPCMRequest(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.data_)*/{}
+    /*decltype(_impl_.vad_)*/0
+  , /*decltype(_impl_.data_)*/{}
   , /*decltype(_impl_._cached_size_)*/{}
   , /*decltype(_impl_._oneof_case_)*/{}} {}
 struct StreamPCMRequestDefaultTypeInternal {
@@ -91,6 +92,7 @@ const uint32_t TableStruct_stream_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   ~0u,  // no _inlined_string_donated_
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
+  PROTOBUF_FIELD_OFFSET(::amd::StreamPCMRequest, _impl_.vad_),
   PROTOBUF_FIELD_OFFSET(::amd::StreamPCMRequest, _impl_.data_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::amd::StreamPCMResponse, _internal_metadata_),
@@ -104,7 +106,7 @@ const uint32_t TableStruct_stream_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::amd::StreamPCMRequest_Metadata)},
   { 11, -1, -1, sizeof(::amd::StreamPCMRequest)},
-  { 20, -1, -1, sizeof(::amd::StreamPCMResponse)},
+  { 21, -1, -1, sizeof(::amd::StreamPCMResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -114,21 +116,21 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_stream_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\014stream.proto\022\003amd\"\302\001\n\020StreamPCMRequest"
+  "\n\014stream.proto\022\003amd\"\317\001\n\020StreamPCMRequest"
   "\0222\n\010metadata\030\001 \001(\0132\036.amd.StreamPCMReques"
-  "t.MetadataH\000\022\017\n\005chunk\030\002 \001(\014H\000\032a\n\010Metadat"
-  "a\022\021\n\tdomain_id\030\001 \001(\003\022\014\n\004name\030\002 \001(\t\022\021\n\tmi"
-  "me_type\030\003 \001(\t\022\014\n\004uuid\030\004 \001(\t\022\023\n\013sample_ra"
-  "te\030\005 \001(\005B\006\n\004data\"4\n\021StreamPCMResponse\022\016\n"
-  "\006result\030\001 \001(\t\022\017\n\007results\030\002 \003(\t*3\n\020Upload"
-  "StatusCode\022\013\n\007Unknown\020\000\022\006\n\002Ok\020\001\022\n\n\006Faile"
-  "d\020\0022G\n\003Api\022@\n\tStreamPCM\022\025.amd.StreamPCMR"
-  "equest\032\026.amd.StreamPCMResponse\"\000(\0010\001b\006pr"
-  "oto3"
+  "t.MetadataH\000\022\017\n\005chunk\030\002 \001(\014H\000\022\013\n\003vad\030\003 \001"
+  "(\005\032a\n\010Metadata\022\021\n\tdomain_id\030\001 \001(\003\022\014\n\004nam"
+  "e\030\002 \001(\t\022\021\n\tmime_type\030\003 \001(\t\022\014\n\004uuid\030\004 \001(\t"
+  "\022\023\n\013sample_rate\030\005 \001(\005B\006\n\004data\"4\n\021StreamP"
+  "CMResponse\022\016\n\006result\030\001 \001(\t\022\017\n\007results\030\002 "
+  "\003(\t*3\n\020UploadStatusCode\022\013\n\007Unknown\020\000\022\006\n\002"
+  "Ok\020\001\022\n\n\006Failed\020\0022G\n\003Api\022@\n\tStreamPCM\022\025.a"
+  "md.StreamPCMRequest\032\026.amd.StreamPCMRespo"
+  "nse\"\000(\0010\001b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_stream_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_stream_2eproto = {
-    false, false, 404, descriptor_table_protodef_stream_2eproto,
+    false, false, 417, descriptor_table_protodef_stream_2eproto,
     "stream.proto",
     &descriptor_table_stream_2eproto_once, nullptr, 0, 3,
     schemas, file_default_instances, TableStruct_stream_2eproto::offsets,
@@ -557,11 +559,13 @@ StreamPCMRequest::StreamPCMRequest(const StreamPCMRequest& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   StreamPCMRequest* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.data_){}
+      decltype(_impl_.vad_){}
+    , decltype(_impl_.data_){}
     , /*decltype(_impl_._cached_size_)*/{}
     , /*decltype(_impl_._oneof_case_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.vad_ = from._impl_.vad_;
   clear_has_data();
   switch (from.data_case()) {
     case kMetadata: {
@@ -585,7 +589,8 @@ inline void StreamPCMRequest::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.data_){}
+      decltype(_impl_.vad_){0}
+    , decltype(_impl_.data_){}
     , /*decltype(_impl_._cached_size_)*/{}
     , /*decltype(_impl_._oneof_case_)*/{}
   };
@@ -639,6 +644,7 @@ void StreamPCMRequest::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  _impl_.vad_ = 0;
   clear_data();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
@@ -662,6 +668,14 @@ const char* StreamPCMRequest::_InternalParse(const char* ptr, ::_pbi::ParseConte
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_chunk();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 vad = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.vad_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -708,6 +722,12 @@ uint8_t* StreamPCMRequest::_InternalSerialize(
         2, this->_internal_chunk(), target);
   }
 
+  // int32 vad = 3;
+  if (this->_internal_vad() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_vad(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -723,6 +743,11 @@ size_t StreamPCMRequest::ByteSizeLong() const {
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
+
+  // int32 vad = 3;
+  if (this->_internal_vad() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_vad());
+  }
 
   switch (data_case()) {
     // .amd.StreamPCMRequest.Metadata metadata = 1;
@@ -761,6 +786,9 @@ void StreamPCMRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (from._internal_vad() != 0) {
+    _this->_internal_set_vad(from._internal_vad());
+  }
   switch (from.data_case()) {
     case kMetadata: {
       _this->_internal_mutable_metadata()->::amd::StreamPCMRequest_Metadata::MergeFrom(
@@ -792,6 +820,7 @@ bool StreamPCMRequest::IsInitialized() const {
 void StreamPCMRequest::InternalSwap(StreamPCMRequest* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.vad_, other->_impl_.vad_);
   swap(_impl_.data_, other->_impl_.data_);
   swap(_impl_._oneof_case_[0], other->_impl_._oneof_case_[0]);
 }

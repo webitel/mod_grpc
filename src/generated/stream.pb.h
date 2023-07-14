@@ -427,9 +427,19 @@ class StreamPCMRequest final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kVadFieldNumber = 3,
     kMetadataFieldNumber = 1,
     kChunkFieldNumber = 2,
   };
+  // int32 vad = 3;
+  void clear_vad();
+  int32_t vad() const;
+  void set_vad(int32_t value);
+  private:
+  int32_t _internal_vad() const;
+  void _internal_set_vad(int32_t value);
+  public:
+
   // .amd.StreamPCMRequest.Metadata metadata = 1;
   bool has_metadata() const;
   private:
@@ -481,6 +491,7 @@ class StreamPCMRequest final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    int32_t vad_;
     union DataUnion {
       constexpr DataUnion() : _constinit_{} {}
         ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized _constinit_;
@@ -1027,6 +1038,26 @@ inline void StreamPCMRequest::set_allocated_chunk(std::string* chunk) {
     _impl_.data_.chunk_.InitAllocated(chunk, GetArenaForAllocation());
   }
   // @@protoc_insertion_point(field_set_allocated:amd.StreamPCMRequest.chunk)
+}
+
+// int32 vad = 3;
+inline void StreamPCMRequest::clear_vad() {
+  _impl_.vad_ = 0;
+}
+inline int32_t StreamPCMRequest::_internal_vad() const {
+  return _impl_.vad_;
+}
+inline int32_t StreamPCMRequest::vad() const {
+  // @@protoc_insertion_point(field_get:amd.StreamPCMRequest.vad)
+  return _internal_vad();
+}
+inline void StreamPCMRequest::_internal_set_vad(int32_t value) {
+  
+  _impl_.vad_ = value;
+}
+inline void StreamPCMRequest::set_vad(int32_t value) {
+  _internal_set_vad(value);
+  // @@protoc_insertion_point(field_set:amd.StreamPCMRequest.vad)
 }
 
 inline bool StreamPCMRequest::has_data() const {

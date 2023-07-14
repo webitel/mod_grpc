@@ -46,15 +46,17 @@ public:
         return true;
     }
 
-    inline bool Write(void *data, size_t len) const {
+    inline bool Write(void *data, size_t len, switch_vad_state_t vad) const {
         ::amd::StreamPCMRequest msg;
         msg.set_chunk(data, len);
+        msg.set_vad(vad);
         return rw->Write(msg);
     }
 
-    inline bool Write(uint8_t *data, size_t len) const {
+    inline bool Write(uint8_t *data, size_t len, switch_vad_state_t vad) const {
         ::amd::StreamPCMRequest msg;
         msg.set_chunk(data, len);
+        msg.set_vad(vad);
         return rw->Write(msg);
     }
 

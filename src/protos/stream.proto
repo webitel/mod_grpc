@@ -25,6 +25,8 @@ message StreamPCMRequest {
         Metadata metadata = 1;
         bytes chunk = 2;
     };
+
+    int32 vad = 3;
 }
 
 message StreamPCMResponse {
