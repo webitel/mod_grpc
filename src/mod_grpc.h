@@ -40,6 +40,7 @@ namespace mod_grpc {
         std::vector<std::string> positive;
         AsyncClientCall* client_;
         switch_vad_t *vad;
+        bool stop_vad_on_answer;
     };
 
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);

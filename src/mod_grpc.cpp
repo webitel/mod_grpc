@@ -1191,11 +1191,13 @@ namespace mod_grpc {
                 try {
                     switch_core_session_get_read_impl(ud->session, &ud->read_impl);
 
-                    auto thresh = switch_channel_get_variable(ud->channel, "wbt_ai_thresh");
+                    auto thresh = switch_channel_get_variable(ud->channel, "wbt_ai_vad_threshold");
                     if (thresh) {
                         auto t = atoi(thresh);
                         if (t) {
                             ud->vad = switch_vad_init((int) ud->read_impl.actual_samples_per_second, 1);
+                            ud->stop_vad_on_answer =
+                                    switch_true(switch_channel_get_variable(ud->channel, "wbt_ai_vad_stop_on_answer")) == 1;
                             switch_vad_set_param(ud->vad, "thresh", t);
                             switch_log_printf(
                                     SWITCH_CHANNEL_SESSION_LOG(ud->session),
@@ -1309,17 +1311,22 @@ namespace mod_grpc {
                         return SWITCH_TRUE;
                     };
 
-                    switch_vad_state_t vad_state = SWITCH_VAD_STATE_NONE;
+                    switch_vad_state_t vad_state = SWITCH_VAD_STATE_ERROR;
+
                     if (ud->vad) {
-                        vad_state = switch_vad_process(ud->vad, (int16_t *) read_frame.data,
-                                                            read_frame.datalen / 2);
-                        if (vad_state == SWITCH_VAD_STATE_STOP_TALKING) {
-                            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "amd vad reset: %s\n",
-                                              switch_vad_state2str(vad_state));
-                            switch_vad_reset(ud->vad);
+                        if (ud->stop_vad_on_answer && switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
+                            switch_vad_destroy(&ud->vad);
+                            ud->vad = nullptr;
+                        } else {
+                            vad_state = SWITCH_VAD_STATE_NONE;
+                            vad_state = switch_vad_process(ud->vad, (int16_t *) read_frame.data,
+                                                           read_frame.datalen / 2);
+                            if (vad_state == SWITCH_VAD_STATE_STOP_TALKING) {
+                                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "amd vad reset: %s\n",
+                                                  switch_vad_state2str(vad_state));
+                                switch_vad_reset(ud->vad);
+                            }
                         }
-                    } else {
-                        vad_state = SWITCH_VAD_STATE_ERROR;
                     }
 
                     if (ud->resampler) {
