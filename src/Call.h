@@ -14,6 +14,7 @@
 
 extern "C" {
 #include <switch.h>
+#include <switch_utils.h>
 }
 
 #define EVENT_NAME "WEBITEL_CALL"
@@ -217,7 +218,7 @@ protected:
         ~Event() {
             e_ = nullptr;
         }
-        std::string getVar(const char *name) {
+        inline std::string getVar(const char *name) {
             return get_str(switch_event_get_header(e_, name));
         }
 
@@ -326,7 +327,7 @@ protected:
         cJSON_AddItemToObject(j, "params", toJson(params));
     }
 
-    std::string getDestination() {
+    inline std::string getDestination() {
         std::string res = event_->getVar("Channel-Destination-Number");
         if (!res.empty()) {
             return res;
@@ -368,11 +369,15 @@ protected:
             info.direction = logicalDirection == "outbound" && !isOriginate ? "inbound" : "outbound";
         }
 
+        char *destination = nullptr;
         if (isOriginate) {
-            info.destination = event_->getVar("variable_effective_callee_id_number");
+            destination = strdup(event_->getVar("variable_effective_callee_id_number").data());
         } else {
-            info.destination = getDestination();
+            destination = strdup(getDestination().data());
         }
+        switch_url_decode(destination);
+        info.destination = std::string(destination);
+        delete destination;
 
         auto gateway = event_->getVar("variable_sip_h_X-Webitel-Gateway-Id");
         auto user = event_->getVar("variable_sip_h_X-Webitel-User-Id");
