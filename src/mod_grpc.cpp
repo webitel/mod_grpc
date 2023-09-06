@@ -1276,12 +1276,10 @@ namespace mod_grpc {
                                 "ML amd result: %s [%s]\n", amd_result.c_str(), s.c_str());
                     }
 
+                    switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, !skip_hangup ? "false" : "true");
                     amd_fire_event(ud->channel);
                     if (!skip_hangup) {
-                        switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, "false");
                         switch_channel_hangup(ud->channel, SWITCH_CAUSE_NORMAL_UNSPECIFIED);
-                    } else {
-                        switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, amd_results.size() > 0 ? "true" : "false");
                     }
 
                     delete ud->client_;
@@ -1426,9 +1424,9 @@ namespace mod_grpc {
             delete ud;
 
             switch_channel_set_variable(channel, WBT_AMD_AI_ERROR, err);
-            switch_channel_set_variable(channel, "execute_on_answer", NULL); // TODO
-            do_execute(session, channel, AMD_EXECUTE_VARIABLE);
+            switch_channel_set_variable(channel, "execute_on_answer", nullptr); // TODO
             amd_fire_event(channel);
+            do_execute(session, channel, AMD_EXECUTE_VARIABLE);
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "AMD error code: %s\n", err);
     }
 
