@@ -50,6 +50,15 @@ struct TableStruct_fs_2eproto {
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_fs_2eproto;
 namespace fs {
+class BlindTransferRequest;
+struct BlindTransferRequestDefaultTypeInternal;
+extern BlindTransferRequestDefaultTypeInternal _BlindTransferRequest_default_instance_;
+class BlindTransferRequest_VariablesEntry_DoNotUse;
+struct BlindTransferRequest_VariablesEntry_DoNotUseDefaultTypeInternal;
+extern BlindTransferRequest_VariablesEntry_DoNotUseDefaultTypeInternal _BlindTransferRequest_VariablesEntry_DoNotUse_default_instance_;
+class BlindTransferResponse;
+struct BlindTransferResponseDefaultTypeInternal;
+extern BlindTransferResponseDefaultTypeInternal _BlindTransferResponse_default_instance_;
 class BridgeCallRequest;
 struct BridgeCallRequestDefaultTypeInternal;
 extern BridgeCallRequestDefaultTypeInternal _BridgeCallRequest_default_instance_;
@@ -175,6 +184,9 @@ struct UnHoldResponseDefaultTypeInternal;
 extern UnHoldResponseDefaultTypeInternal _UnHoldResponse_default_instance_;
 }  // namespace fs
 PROTOBUF_NAMESPACE_OPEN
+template<> ::fs::BlindTransferRequest* Arena::CreateMaybeMessage<::fs::BlindTransferRequest>(Arena*);
+template<> ::fs::BlindTransferRequest_VariablesEntry_DoNotUse* Arena::CreateMaybeMessage<::fs::BlindTransferRequest_VariablesEntry_DoNotUse>(Arena*);
+template<> ::fs::BlindTransferResponse* Arena::CreateMaybeMessage<::fs::BlindTransferResponse>(Arena*);
 template<> ::fs::BridgeCallRequest* Arena::CreateMaybeMessage<::fs::BridgeCallRequest>(Arena*);
 template<> ::fs::BridgeCallRequest_VariablesEntry_DoNotUse* Arena::CreateMaybeMessage<::fs::BridgeCallRequest_VariablesEntry_DoNotUse>(Arena*);
 template<> ::fs::BridgeCallResponse* Arena::CreateMaybeMessage<::fs::BridgeCallResponse>(Arena*);
@@ -271,6 +283,418 @@ inline bool OriginateRequest_Strategy_Parse(
 }
 // ===================================================================
 
+class BlindTransferRequest_VariablesEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<BlindTransferRequest_VariablesEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<BlindTransferRequest_VariablesEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> SuperType;
+  BlindTransferRequest_VariablesEntry_DoNotUse();
+  explicit PROTOBUF_CONSTEXPR BlindTransferRequest_VariablesEntry_DoNotUse(
+      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit BlindTransferRequest_VariablesEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const BlindTransferRequest_VariablesEntry_DoNotUse& other);
+  static const BlindTransferRequest_VariablesEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const BlindTransferRequest_VariablesEntry_DoNotUse*>(&_BlindTransferRequest_VariablesEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "fs.BlindTransferRequest.VariablesEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "fs.BlindTransferRequest.VariablesEntry.value");
+ }
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  friend struct ::TableStruct_fs_2eproto;
+};
+
+// -------------------------------------------------------------------
+
+class BlindTransferRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:fs.BlindTransferRequest) */ {
+ public:
+  inline BlindTransferRequest() : BlindTransferRequest(nullptr) {}
+  ~BlindTransferRequest() override;
+  explicit PROTOBUF_CONSTEXPR BlindTransferRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  BlindTransferRequest(const BlindTransferRequest& from);
+  BlindTransferRequest(BlindTransferRequest&& from) noexcept
+    : BlindTransferRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline BlindTransferRequest& operator=(const BlindTransferRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline BlindTransferRequest& operator=(BlindTransferRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const BlindTransferRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const BlindTransferRequest* internal_default_instance() {
+    return reinterpret_cast<const BlindTransferRequest*>(
+               &_BlindTransferRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(BlindTransferRequest& a, BlindTransferRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(BlindTransferRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(BlindTransferRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  BlindTransferRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<BlindTransferRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const BlindTransferRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const BlindTransferRequest& from) {
+    BlindTransferRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(BlindTransferRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "fs.BlindTransferRequest";
+  }
+  protected:
+  explicit BlindTransferRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kVariablesFieldNumber = 3,
+    kIdFieldNumber = 1,
+    kDestinationFieldNumber = 2,
+    kDialplanFieldNumber = 4,
+    kContextFieldNumber = 5,
+  };
+  // map<string, string> variables = 3;
+  int variables_size() const;
+  private:
+  int _internal_variables_size() const;
+  public:
+  void clear_variables();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_variables() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_variables();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      variables() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_variables();
+
+  // string id = 1;
+  void clear_id();
+  const std::string& id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_id();
+  PROTOBUF_NODISCARD std::string* release_id();
+  void set_allocated_id(std::string* id);
+  private:
+  const std::string& _internal_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_id(const std::string& value);
+  std::string* _internal_mutable_id();
+  public:
+
+  // string destination = 2;
+  void clear_destination();
+  const std::string& destination() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_destination(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_destination();
+  PROTOBUF_NODISCARD std::string* release_destination();
+  void set_allocated_destination(std::string* destination);
+  private:
+  const std::string& _internal_destination() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_destination(const std::string& value);
+  std::string* _internal_mutable_destination();
+  public:
+
+  // string dialplan = 4;
+  void clear_dialplan();
+  const std::string& dialplan() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_dialplan(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_dialplan();
+  PROTOBUF_NODISCARD std::string* release_dialplan();
+  void set_allocated_dialplan(std::string* dialplan);
+  private:
+  const std::string& _internal_dialplan() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_dialplan(const std::string& value);
+  std::string* _internal_mutable_dialplan();
+  public:
+
+  // string context = 5;
+  void clear_context();
+  const std::string& context() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_context(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_context();
+  PROTOBUF_NODISCARD std::string* release_context();
+  void set_allocated_context(std::string* context);
+  private:
+  const std::string& _internal_context() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_context(const std::string& value);
+  std::string* _internal_mutable_context();
+  public:
+
+  // @@protoc_insertion_point(class_scope:fs.BlindTransferRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+        BlindTransferRequest_VariablesEntry_DoNotUse,
+        std::string, std::string,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> variables_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr destination_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dialplan_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr context_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_fs_2eproto;
+};
+// -------------------------------------------------------------------
+
+class BlindTransferResponse final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:fs.BlindTransferResponse) */ {
+ public:
+  inline BlindTransferResponse() : BlindTransferResponse(nullptr) {}
+  ~BlindTransferResponse() override;
+  explicit PROTOBUF_CONSTEXPR BlindTransferResponse(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  BlindTransferResponse(const BlindTransferResponse& from);
+  BlindTransferResponse(BlindTransferResponse&& from) noexcept
+    : BlindTransferResponse() {
+    *this = ::std::move(from);
+  }
+
+  inline BlindTransferResponse& operator=(const BlindTransferResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline BlindTransferResponse& operator=(BlindTransferResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const BlindTransferResponse& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const BlindTransferResponse* internal_default_instance() {
+    return reinterpret_cast<const BlindTransferResponse*>(
+               &_BlindTransferResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(BlindTransferResponse& a, BlindTransferResponse& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(BlindTransferResponse* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(BlindTransferResponse* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  BlindTransferResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<BlindTransferResponse>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const BlindTransferResponse& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const BlindTransferResponse& from) {
+    BlindTransferResponse::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(BlindTransferResponse* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "fs.BlindTransferResponse";
+  }
+  protected:
+  explicit BlindTransferResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kErrorFieldNumber = 1,
+  };
+  // .fs.ErrorExecute error = 1;
+  bool has_error() const;
+  private:
+  bool _internal_has_error() const;
+  public:
+  void clear_error();
+  const ::fs::ErrorExecute& error() const;
+  PROTOBUF_NODISCARD ::fs::ErrorExecute* release_error();
+  ::fs::ErrorExecute* mutable_error();
+  void set_allocated_error(::fs::ErrorExecute* error);
+  private:
+  const ::fs::ErrorExecute& _internal_error() const;
+  ::fs::ErrorExecute* _internal_mutable_error();
+  public:
+  void unsafe_arena_set_allocated_error(
+      ::fs::ErrorExecute* error);
+  ::fs::ErrorExecute* unsafe_arena_release_error();
+
+  // @@protoc_insertion_point(class_scope:fs.BlindTransferResponse)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::fs::ErrorExecute* error_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_fs_2eproto;
+};
+// -------------------------------------------------------------------
+
 class SetEavesdropStateRequest final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:fs.SetEavesdropStateRequest) */ {
  public:
@@ -319,7 +743,7 @@ class SetEavesdropStateRequest final :
                &_SetEavesdropStateRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    3;
 
   friend void swap(SetEavesdropStateRequest& a, SetEavesdropStateRequest& b) {
     a.Swap(&b);
@@ -488,7 +912,7 @@ class SetEavesdropStateResponse final :
                &_SetEavesdropStateResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    4;
 
   friend void swap(SetEavesdropStateResponse& a, SetEavesdropStateResponse& b) {
     a.Swap(&b);
@@ -645,7 +1069,7 @@ class BroadcastRequest final :
                &_BroadcastRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    5;
 
   friend void swap(BroadcastRequest& a, BroadcastRequest& b) {
     a.Swap(&b);
@@ -841,7 +1265,7 @@ class BroadcastResponse final :
                &_BroadcastResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    6;
 
   friend void swap(BroadcastResponse& a, BroadcastResponse& b) {
     a.Swap(&b);
@@ -1014,7 +1438,7 @@ class ConfirmPushRequest final :
                &_ConfirmPushRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    7;
 
   friend void swap(ConfirmPushRequest& a, ConfirmPushRequest& b) {
     a.Swap(&b);
@@ -1167,7 +1591,7 @@ class ConfirmPushResponse final :
                &_ConfirmPushResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    8;
 
   friend void swap(ConfirmPushResponse& a, ConfirmPushResponse& b) {
     a.Swap(&b);
@@ -1352,7 +1776,7 @@ class SetProfileVarRequest final :
                &_SetProfileVarRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    10;
 
   friend void swap(SetProfileVarRequest& a, SetProfileVarRequest& b) {
     a.Swap(&b);
@@ -1530,7 +1954,7 @@ class SetProfileVarResponse final :
                &_SetProfileVarResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    11;
 
   friend void swap(SetProfileVarResponse& a, SetProfileVarResponse& b) {
     a.Swap(&b);
@@ -1649,7 +2073,7 @@ class StopPlaybackRequest final :
                &_StopPlaybackRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    12;
 
   friend void swap(StopPlaybackRequest& a, StopPlaybackRequest& b) {
     a.Swap(&b);
@@ -1801,7 +2225,7 @@ class StopPlaybackResponse final :
                &_StopPlaybackResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    13;
 
   friend void swap(StopPlaybackResponse& a, StopPlaybackResponse& b) {
     a.Swap(&b);
@@ -1948,7 +2372,7 @@ class BridgeCallRequest final :
                &_BridgeCallRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    15;
 
   friend void swap(BridgeCallRequest& a, BridgeCallRequest& b) {
     a.Swap(&b);
@@ -2143,7 +2567,7 @@ class BridgeCallResponse final :
                &_BridgeCallResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    16;
 
   friend void swap(BridgeCallResponse& a, BridgeCallResponse& b) {
     a.Swap(&b);
@@ -2316,7 +2740,7 @@ class HoldRequest final :
                &_HoldRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    17;
 
   friend void swap(HoldRequest& a, HoldRequest& b) {
     a.Swap(&b);
@@ -2479,7 +2903,7 @@ class HoldResponse final :
                &_HoldResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    18;
 
   friend void swap(HoldResponse& a, HoldResponse& b) {
     a.Swap(&b);
@@ -2642,7 +3066,7 @@ class UnHoldRequest final :
                &_UnHoldRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    19;
 
   friend void swap(UnHoldRequest& a, UnHoldRequest& b) {
     a.Swap(&b);
@@ -2805,7 +3229,7 @@ class UnHoldResponse final :
                &_UnHoldResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    20;
 
   friend void swap(UnHoldResponse& a, UnHoldResponse& b) {
     a.Swap(&b);
@@ -2968,7 +3392,7 @@ class HangupManyRequest final :
                &_HangupManyRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    21;
 
   friend void swap(HangupManyRequest& a, HangupManyRequest& b) {
     a.Swap(&b);
@@ -3147,7 +3571,7 @@ class HangupManyResponse final :
                &_HangupManyResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    22;
 
   friend void swap(HangupManyResponse& a, HangupManyResponse& b) {
     a.Swap(&b);
@@ -3338,7 +3762,7 @@ class QueueRequest final :
                &_QueueRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    24;
 
   friend void swap(QueueRequest& a, QueueRequest& b) {
     a.Swap(&b);
@@ -3544,7 +3968,7 @@ class QueueResponse final :
                &_QueueResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    25;
 
   friend void swap(QueueResponse& a, QueueResponse& b) {
     a.Swap(&b);
@@ -3701,7 +4125,7 @@ class ErrorExecute final :
                &_ErrorExecute_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    26;
 
   friend void swap(ErrorExecute& a, ErrorExecute& b) {
     a.Swap(&b);
@@ -3895,7 +4319,7 @@ class ExecuteRequest final :
                &_ExecuteRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    27;
 
   friend void swap(ExecuteRequest& a, ExecuteRequest& b) {
     a.Swap(&b);
@@ -4064,7 +4488,7 @@ class ExecuteResponse final :
                &_ExecuteResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    28;
 
   friend void swap(ExecuteResponse& a, ExecuteResponse& b) {
     a.Swap(&b);
@@ -4265,7 +4689,7 @@ class HangupRequest final :
                &_HangupRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    27;
+    30;
 
   friend void swap(HangupRequest& a, HangupRequest& b) {
     a.Swap(&b);
@@ -4471,7 +4895,7 @@ class HangupResponse final :
                &_HangupResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    28;
+    31;
 
   friend void swap(HangupResponse& a, HangupResponse& b) {
     a.Swap(&b);
@@ -4628,7 +5052,7 @@ class OriginateRequest_Extension final :
                &_OriginateRequest_Extension_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    29;
+    32;
 
   friend void swap(OriginateRequest_Extension& a, OriginateRequest_Extension& b) {
     a.Swap(&b);
@@ -4825,7 +5249,7 @@ class OriginateRequest final :
                &_OriginateRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    31;
+    34;
 
   friend void swap(OriginateRequest& a, OriginateRequest& b) {
     a.Swap(&b);
@@ -5167,7 +5591,7 @@ class OriginateResponse final :
                &_OriginateResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    32;
+    35;
 
   friend void swap(OriginateResponse& a, OriginateResponse& b) {
     a.Swap(&b);
@@ -5351,7 +5775,7 @@ class BridgeRequest final :
                &_BridgeRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    36;
 
   friend void swap(BridgeRequest& a, BridgeRequest& b) {
     a.Swap(&b);
@@ -5536,7 +5960,7 @@ class BridgeResponse final :
                &_BridgeResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    37;
 
   friend void swap(BridgeResponse& a, BridgeResponse& b) {
     a.Swap(&b);
@@ -5737,7 +6161,7 @@ class SetVariablesRequest final :
                &_SetVariablesRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    39;
 
   friend void swap(SetVariablesRequest& a, SetVariablesRequest& b) {
     a.Swap(&b);
@@ -5916,7 +6340,7 @@ class SetVariablesResponse final :
                &_SetVariablesResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    40;
 
   friend void swap(SetVariablesResponse& a, SetVariablesResponse& b) {
     a.Swap(&b);
@@ -6101,7 +6525,7 @@ class HangupMatchingVarsReqeust final :
                &_HangupMatchingVarsReqeust_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    39;
+    42;
 
   friend void swap(HangupMatchingVarsReqeust& a, HangupMatchingVarsReqeust& b) {
     a.Swap(&b);
@@ -6280,7 +6704,7 @@ class HangupMatchingVarsResponse final :
                &_HangupMatchingVarsResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    43;
 
   friend void swap(HangupMatchingVarsResponse& a, HangupMatchingVarsResponse& b) {
     a.Swap(&b);
@@ -6387,6 +6811,335 @@ class HangupMatchingVarsResponse final :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// BlindTransferRequest
+
+// string id = 1;
+inline void BlindTransferRequest::clear_id() {
+  _impl_.id_.ClearToEmpty();
+}
+inline const std::string& BlindTransferRequest::id() const {
+  // @@protoc_insertion_point(field_get:fs.BlindTransferRequest.id)
+  return _internal_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void BlindTransferRequest::set_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:fs.BlindTransferRequest.id)
+}
+inline std::string* BlindTransferRequest::mutable_id() {
+  std::string* _s = _internal_mutable_id();
+  // @@protoc_insertion_point(field_mutable:fs.BlindTransferRequest.id)
+  return _s;
+}
+inline const std::string& BlindTransferRequest::_internal_id() const {
+  return _impl_.id_.Get();
+}
+inline void BlindTransferRequest::_internal_set_id(const std::string& value) {
+  
+  _impl_.id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* BlindTransferRequest::_internal_mutable_id() {
+  
+  return _impl_.id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* BlindTransferRequest::release_id() {
+  // @@protoc_insertion_point(field_release:fs.BlindTransferRequest.id)
+  return _impl_.id_.Release();
+}
+inline void BlindTransferRequest::set_allocated_id(std::string* id) {
+  if (id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.id_.SetAllocated(id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.id_.IsDefault()) {
+    _impl_.id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:fs.BlindTransferRequest.id)
+}
+
+// string destination = 2;
+inline void BlindTransferRequest::clear_destination() {
+  _impl_.destination_.ClearToEmpty();
+}
+inline const std::string& BlindTransferRequest::destination() const {
+  // @@protoc_insertion_point(field_get:fs.BlindTransferRequest.destination)
+  return _internal_destination();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void BlindTransferRequest::set_destination(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.destination_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:fs.BlindTransferRequest.destination)
+}
+inline std::string* BlindTransferRequest::mutable_destination() {
+  std::string* _s = _internal_mutable_destination();
+  // @@protoc_insertion_point(field_mutable:fs.BlindTransferRequest.destination)
+  return _s;
+}
+inline const std::string& BlindTransferRequest::_internal_destination() const {
+  return _impl_.destination_.Get();
+}
+inline void BlindTransferRequest::_internal_set_destination(const std::string& value) {
+  
+  _impl_.destination_.Set(value, GetArenaForAllocation());
+}
+inline std::string* BlindTransferRequest::_internal_mutable_destination() {
+  
+  return _impl_.destination_.Mutable(GetArenaForAllocation());
+}
+inline std::string* BlindTransferRequest::release_destination() {
+  // @@protoc_insertion_point(field_release:fs.BlindTransferRequest.destination)
+  return _impl_.destination_.Release();
+}
+inline void BlindTransferRequest::set_allocated_destination(std::string* destination) {
+  if (destination != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.destination_.SetAllocated(destination, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.destination_.IsDefault()) {
+    _impl_.destination_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:fs.BlindTransferRequest.destination)
+}
+
+// map<string, string> variables = 3;
+inline int BlindTransferRequest::_internal_variables_size() const {
+  return _impl_.variables_.size();
+}
+inline int BlindTransferRequest::variables_size() const {
+  return _internal_variables_size();
+}
+inline void BlindTransferRequest::clear_variables() {
+  _impl_.variables_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+BlindTransferRequest::_internal_variables() const {
+  return _impl_.variables_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+BlindTransferRequest::variables() const {
+  // @@protoc_insertion_point(field_map:fs.BlindTransferRequest.variables)
+  return _internal_variables();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+BlindTransferRequest::_internal_mutable_variables() {
+  return _impl_.variables_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+BlindTransferRequest::mutable_variables() {
+  // @@protoc_insertion_point(field_mutable_map:fs.BlindTransferRequest.variables)
+  return _internal_mutable_variables();
+}
+
+// string dialplan = 4;
+inline void BlindTransferRequest::clear_dialplan() {
+  _impl_.dialplan_.ClearToEmpty();
+}
+inline const std::string& BlindTransferRequest::dialplan() const {
+  // @@protoc_insertion_point(field_get:fs.BlindTransferRequest.dialplan)
+  return _internal_dialplan();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void BlindTransferRequest::set_dialplan(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.dialplan_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:fs.BlindTransferRequest.dialplan)
+}
+inline std::string* BlindTransferRequest::mutable_dialplan() {
+  std::string* _s = _internal_mutable_dialplan();
+  // @@protoc_insertion_point(field_mutable:fs.BlindTransferRequest.dialplan)
+  return _s;
+}
+inline const std::string& BlindTransferRequest::_internal_dialplan() const {
+  return _impl_.dialplan_.Get();
+}
+inline void BlindTransferRequest::_internal_set_dialplan(const std::string& value) {
+  
+  _impl_.dialplan_.Set(value, GetArenaForAllocation());
+}
+inline std::string* BlindTransferRequest::_internal_mutable_dialplan() {
+  
+  return _impl_.dialplan_.Mutable(GetArenaForAllocation());
+}
+inline std::string* BlindTransferRequest::release_dialplan() {
+  // @@protoc_insertion_point(field_release:fs.BlindTransferRequest.dialplan)
+  return _impl_.dialplan_.Release();
+}
+inline void BlindTransferRequest::set_allocated_dialplan(std::string* dialplan) {
+  if (dialplan != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.dialplan_.SetAllocated(dialplan, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.dialplan_.IsDefault()) {
+    _impl_.dialplan_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:fs.BlindTransferRequest.dialplan)
+}
+
+// string context = 5;
+inline void BlindTransferRequest::clear_context() {
+  _impl_.context_.ClearToEmpty();
+}
+inline const std::string& BlindTransferRequest::context() const {
+  // @@protoc_insertion_point(field_get:fs.BlindTransferRequest.context)
+  return _internal_context();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void BlindTransferRequest::set_context(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.context_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:fs.BlindTransferRequest.context)
+}
+inline std::string* BlindTransferRequest::mutable_context() {
+  std::string* _s = _internal_mutable_context();
+  // @@protoc_insertion_point(field_mutable:fs.BlindTransferRequest.context)
+  return _s;
+}
+inline const std::string& BlindTransferRequest::_internal_context() const {
+  return _impl_.context_.Get();
+}
+inline void BlindTransferRequest::_internal_set_context(const std::string& value) {
+  
+  _impl_.context_.Set(value, GetArenaForAllocation());
+}
+inline std::string* BlindTransferRequest::_internal_mutable_context() {
+  
+  return _impl_.context_.Mutable(GetArenaForAllocation());
+}
+inline std::string* BlindTransferRequest::release_context() {
+  // @@protoc_insertion_point(field_release:fs.BlindTransferRequest.context)
+  return _impl_.context_.Release();
+}
+inline void BlindTransferRequest::set_allocated_context(std::string* context) {
+  if (context != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.context_.SetAllocated(context, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.context_.IsDefault()) {
+    _impl_.context_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:fs.BlindTransferRequest.context)
+}
+
+// -------------------------------------------------------------------
+
+// BlindTransferResponse
+
+// .fs.ErrorExecute error = 1;
+inline bool BlindTransferResponse::_internal_has_error() const {
+  return this != internal_default_instance() && _impl_.error_ != nullptr;
+}
+inline bool BlindTransferResponse::has_error() const {
+  return _internal_has_error();
+}
+inline void BlindTransferResponse::clear_error() {
+  if (GetArenaForAllocation() == nullptr && _impl_.error_ != nullptr) {
+    delete _impl_.error_;
+  }
+  _impl_.error_ = nullptr;
+}
+inline const ::fs::ErrorExecute& BlindTransferResponse::_internal_error() const {
+  const ::fs::ErrorExecute* p = _impl_.error_;
+  return p != nullptr ? *p : reinterpret_cast<const ::fs::ErrorExecute&>(
+      ::fs::_ErrorExecute_default_instance_);
+}
+inline const ::fs::ErrorExecute& BlindTransferResponse::error() const {
+  // @@protoc_insertion_point(field_get:fs.BlindTransferResponse.error)
+  return _internal_error();
+}
+inline void BlindTransferResponse::unsafe_arena_set_allocated_error(
+    ::fs::ErrorExecute* error) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.error_);
+  }
+  _impl_.error_ = error;
+  if (error) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:fs.BlindTransferResponse.error)
+}
+inline ::fs::ErrorExecute* BlindTransferResponse::release_error() {
+  
+  ::fs::ErrorExecute* temp = _impl_.error_;
+  _impl_.error_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::fs::ErrorExecute* BlindTransferResponse::unsafe_arena_release_error() {
+  // @@protoc_insertion_point(field_release:fs.BlindTransferResponse.error)
+  
+  ::fs::ErrorExecute* temp = _impl_.error_;
+  _impl_.error_ = nullptr;
+  return temp;
+}
+inline ::fs::ErrorExecute* BlindTransferResponse::_internal_mutable_error() {
+  
+  if (_impl_.error_ == nullptr) {
+    auto* p = CreateMaybeMessage<::fs::ErrorExecute>(GetArenaForAllocation());
+    _impl_.error_ = p;
+  }
+  return _impl_.error_;
+}
+inline ::fs::ErrorExecute* BlindTransferResponse::mutable_error() {
+  ::fs::ErrorExecute* _msg = _internal_mutable_error();
+  // @@protoc_insertion_point(field_mutable:fs.BlindTransferResponse.error)
+  return _msg;
+}
+inline void BlindTransferResponse::set_allocated_error(::fs::ErrorExecute* error) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.error_;
+  }
+  if (error) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(error);
+    if (message_arena != submessage_arena) {
+      error = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, error, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.error_ = error;
+  // @@protoc_insertion_point(field_set_allocated:fs.BlindTransferResponse.error)
+}
+
+// -------------------------------------------------------------------
+
 // SetEavesdropStateRequest
 
 // string id = 1;
@@ -10116,6 +10869,12 @@ inline void HangupMatchingVarsResponse::set_count(int32_t value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -21,6 +21,47 @@ namespace _pb = ::PROTOBUF_NAMESPACE_ID;
 namespace _pbi = _pb::internal;
 
 namespace fs {
+PROTOBUF_CONSTEXPR BlindTransferRequest_VariablesEntry_DoNotUse::BlindTransferRequest_VariablesEntry_DoNotUse(
+    ::_pbi::ConstantInitialized) {}
+struct BlindTransferRequest_VariablesEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR BlindTransferRequest_VariablesEntry_DoNotUseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~BlindTransferRequest_VariablesEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    BlindTransferRequest_VariablesEntry_DoNotUse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 BlindTransferRequest_VariablesEntry_DoNotUseDefaultTypeInternal _BlindTransferRequest_VariablesEntry_DoNotUse_default_instance_;
+PROTOBUF_CONSTEXPR BlindTransferRequest::BlindTransferRequest(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.variables_)*/{::_pbi::ConstantInitialized()}
+  , /*decltype(_impl_.id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.destination_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.dialplan_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.context_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct BlindTransferRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR BlindTransferRequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~BlindTransferRequestDefaultTypeInternal() {}
+  union {
+    BlindTransferRequest _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 BlindTransferRequestDefaultTypeInternal _BlindTransferRequest_default_instance_;
+PROTOBUF_CONSTEXPR BlindTransferResponse::BlindTransferResponse(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.error_)*/nullptr
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct BlindTransferResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR BlindTransferResponseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~BlindTransferResponseDefaultTypeInternal() {}
+  union {
+    BlindTransferResponse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 BlindTransferResponseDefaultTypeInternal _BlindTransferResponse_default_instance_;
 PROTOBUF_CONSTEXPR SetEavesdropStateRequest::SetEavesdropStateRequest(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -573,11 +614,39 @@ struct HangupMatchingVarsResponseDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 HangupMatchingVarsResponseDefaultTypeInternal _HangupMatchingVarsResponse_default_instance_;
 }  // namespace fs
-static ::_pb::Metadata file_level_metadata_fs_2eproto[41];
+static ::_pb::Metadata file_level_metadata_fs_2eproto[44];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_fs_2eproto[2];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_fs_2eproto = nullptr;
 
 const uint32_t TableStruct_fs_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest_VariablesEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest_VariablesEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest_VariablesEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest_VariablesEntry_DoNotUse, value_),
+  0,
+  1,
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest, _impl_.id_),
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest, _impl_.destination_),
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest, _impl_.variables_),
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest, _impl_.dialplan_),
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferRequest, _impl_.context_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::fs::BlindTransferResponse, _impl_.error_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::fs::SetEavesdropStateRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -922,50 +991,56 @@ const uint32_t TableStruct_fs_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(proto
   PROTOBUF_FIELD_OFFSET(::fs::HangupMatchingVarsResponse, _impl_.count_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, -1, sizeof(::fs::SetEavesdropStateRequest)},
-  { 8, -1, -1, sizeof(::fs::SetEavesdropStateResponse)},
-  { 15, -1, -1, sizeof(::fs::BroadcastRequest)},
-  { 25, -1, -1, sizeof(::fs::BroadcastResponse)},
-  { 33, -1, -1, sizeof(::fs::ConfirmPushRequest)},
-  { 40, -1, -1, sizeof(::fs::ConfirmPushResponse)},
-  { 47, 55, -1, sizeof(::fs::SetProfileVarRequest_VariablesEntry_DoNotUse)},
-  { 57, -1, -1, sizeof(::fs::SetProfileVarRequest)},
-  { 65, -1, -1, sizeof(::fs::SetProfileVarResponse)},
-  { 71, -1, -1, sizeof(::fs::StopPlaybackRequest)},
-  { 78, -1, -1, sizeof(::fs::StopPlaybackResponse)},
-  { 84, 92, -1, sizeof(::fs::BridgeCallRequest_VariablesEntry_DoNotUse)},
-  { 94, -1, -1, sizeof(::fs::BridgeCallRequest)},
-  { 103, -1, -1, sizeof(::fs::BridgeCallResponse)},
-  { 111, -1, -1, sizeof(::fs::HoldRequest)},
-  { 118, -1, -1, sizeof(::fs::HoldResponse)},
-  { 125, -1, -1, sizeof(::fs::UnHoldRequest)},
-  { 132, -1, -1, sizeof(::fs::UnHoldResponse)},
-  { 139, -1, -1, sizeof(::fs::HangupManyRequest)},
-  { 147, -1, -1, sizeof(::fs::HangupManyResponse)},
-  { 154, 162, -1, sizeof(::fs::QueueRequest_VariablesEntry_DoNotUse)},
-  { 164, -1, -1, sizeof(::fs::QueueRequest)},
-  { 174, -1, -1, sizeof(::fs::QueueResponse)},
-  { 181, -1, -1, sizeof(::fs::ErrorExecute)},
-  { 189, -1, -1, sizeof(::fs::ExecuteRequest)},
-  { 197, -1, -1, sizeof(::fs::ExecuteResponse)},
-  { 205, 213, -1, sizeof(::fs::HangupRequest_VariablesEntry_DoNotUse)},
-  { 215, -1, -1, sizeof(::fs::HangupRequest)},
-  { 225, -1, -1, sizeof(::fs::HangupResponse)},
-  { 232, -1, -1, sizeof(::fs::OriginateRequest_Extension)},
-  { 240, 248, -1, sizeof(::fs::OriginateRequest_VariablesEntry_DoNotUse)},
-  { 250, -1, -1, sizeof(::fs::OriginateRequest)},
-  { 266, -1, -1, sizeof(::fs::OriginateResponse)},
-  { 275, -1, -1, sizeof(::fs::BridgeRequest)},
-  { 284, -1, -1, sizeof(::fs::BridgeResponse)},
-  { 292, 300, -1, sizeof(::fs::SetVariablesRequest_VariablesEntry_DoNotUse)},
-  { 302, -1, -1, sizeof(::fs::SetVariablesRequest)},
-  { 310, -1, -1, sizeof(::fs::SetVariablesResponse)},
-  { 317, 325, -1, sizeof(::fs::HangupMatchingVarsReqeust_VariablesEntry_DoNotUse)},
-  { 327, -1, -1, sizeof(::fs::HangupMatchingVarsReqeust)},
-  { 335, -1, -1, sizeof(::fs::HangupMatchingVarsResponse)},
+  { 0, 8, -1, sizeof(::fs::BlindTransferRequest_VariablesEntry_DoNotUse)},
+  { 10, -1, -1, sizeof(::fs::BlindTransferRequest)},
+  { 21, -1, -1, sizeof(::fs::BlindTransferResponse)},
+  { 28, -1, -1, sizeof(::fs::SetEavesdropStateRequest)},
+  { 36, -1, -1, sizeof(::fs::SetEavesdropStateResponse)},
+  { 43, -1, -1, sizeof(::fs::BroadcastRequest)},
+  { 53, -1, -1, sizeof(::fs::BroadcastResponse)},
+  { 61, -1, -1, sizeof(::fs::ConfirmPushRequest)},
+  { 68, -1, -1, sizeof(::fs::ConfirmPushResponse)},
+  { 75, 83, -1, sizeof(::fs::SetProfileVarRequest_VariablesEntry_DoNotUse)},
+  { 85, -1, -1, sizeof(::fs::SetProfileVarRequest)},
+  { 93, -1, -1, sizeof(::fs::SetProfileVarResponse)},
+  { 99, -1, -1, sizeof(::fs::StopPlaybackRequest)},
+  { 106, -1, -1, sizeof(::fs::StopPlaybackResponse)},
+  { 112, 120, -1, sizeof(::fs::BridgeCallRequest_VariablesEntry_DoNotUse)},
+  { 122, -1, -1, sizeof(::fs::BridgeCallRequest)},
+  { 131, -1, -1, sizeof(::fs::BridgeCallResponse)},
+  { 139, -1, -1, sizeof(::fs::HoldRequest)},
+  { 146, -1, -1, sizeof(::fs::HoldResponse)},
+  { 153, -1, -1, sizeof(::fs::UnHoldRequest)},
+  { 160, -1, -1, sizeof(::fs::UnHoldResponse)},
+  { 167, -1, -1, sizeof(::fs::HangupManyRequest)},
+  { 175, -1, -1, sizeof(::fs::HangupManyResponse)},
+  { 182, 190, -1, sizeof(::fs::QueueRequest_VariablesEntry_DoNotUse)},
+  { 192, -1, -1, sizeof(::fs::QueueRequest)},
+  { 202, -1, -1, sizeof(::fs::QueueResponse)},
+  { 209, -1, -1, sizeof(::fs::ErrorExecute)},
+  { 217, -1, -1, sizeof(::fs::ExecuteRequest)},
+  { 225, -1, -1, sizeof(::fs::ExecuteResponse)},
+  { 233, 241, -1, sizeof(::fs::HangupRequest_VariablesEntry_DoNotUse)},
+  { 243, -1, -1, sizeof(::fs::HangupRequest)},
+  { 253, -1, -1, sizeof(::fs::HangupResponse)},
+  { 260, -1, -1, sizeof(::fs::OriginateRequest_Extension)},
+  { 268, 276, -1, sizeof(::fs::OriginateRequest_VariablesEntry_DoNotUse)},
+  { 278, -1, -1, sizeof(::fs::OriginateRequest)},
+  { 294, -1, -1, sizeof(::fs::OriginateResponse)},
+  { 303, -1, -1, sizeof(::fs::BridgeRequest)},
+  { 312, -1, -1, sizeof(::fs::BridgeResponse)},
+  { 320, 328, -1, sizeof(::fs::SetVariablesRequest_VariablesEntry_DoNotUse)},
+  { 330, -1, -1, sizeof(::fs::SetVariablesRequest)},
+  { 338, -1, -1, sizeof(::fs::SetVariablesResponse)},
+  { 345, 353, -1, sizeof(::fs::HangupMatchingVarsReqeust_VariablesEntry_DoNotUse)},
+  { 355, -1, -1, sizeof(::fs::HangupMatchingVarsReqeust)},
+  { 363, -1, -1, sizeof(::fs::HangupMatchingVarsResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
+  &::fs::_BlindTransferRequest_VariablesEntry_DoNotUse_default_instance_._instance,
+  &::fs::_BlindTransferRequest_default_instance_._instance,
+  &::fs::_BlindTransferResponse_default_instance_._instance,
   &::fs::_SetEavesdropStateRequest_default_instance_._instance,
   &::fs::_SetEavesdropStateResponse_default_instance_._instance,
   &::fs::_BroadcastRequest_default_instance_._instance,
@@ -1010,107 +1085,116 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_fs_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\010fs.proto\022\002fs\"5\n\030SetEavesdropStateReque"
-  "st\022\n\n\002id\030\001 \001(\t\022\r\n\005state\030\002 \001(\t\"<\n\031SetEave"
-  "sdropStateResponse\022\037\n\005error\030\001 \001(\0132\020.fs.E"
-  "rrorExecute\"R\n\020BroadcastRequest\022\n\n\002id\030\001 "
-  "\001(\t\022\014\n\004args\030\002 \001(\t\022\027\n\017wait_for_answer\030\003 \001"
-  "(\010\022\013\n\003leg\030\004 \001(\t\"B\n\021BroadcastResponse\022\014\n\004"
-  "data\030\001 \001(\t\022\037\n\005error\030\002 \001(\0132\020.fs.ErrorExec"
-  "ute\" \n\022ConfirmPushRequest\022\n\n\002id\030\001 \001(\t\"6\n"
-  "\023ConfirmPushResponse\022\037\n\005error\030\001 \001(\0132\020.fs"
-  ".ErrorExecute\"\220\001\n\024SetProfileVarRequest\022\n"
-  "\n\002id\030\001 \001(\t\022:\n\tvariables\030\002 \003(\0132\'.fs.SetPr"
-  "ofileVarRequest.VariablesEntry\0320\n\016Variab"
-  "lesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001"
-  "\"\027\n\025SetProfileVarResponse\"!\n\023StopPlaybac"
-  "kRequest\022\n\n\002id\030\001 \001(\t\"\026\n\024StopPlaybackResp"
-  "onse\"\242\001\n\021BridgeCallRequest\022\020\n\010leg_a_id\030\001"
-  " \001(\t\022\020\n\010leg_b_id\030\002 \001(\t\0227\n\tvariables\030\003 \003("
-  "\0132$.fs.BridgeCallRequest.VariablesEntry\032"
-  "0\n\016VariablesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030"
-  "\002 \001(\t:\0028\001\"C\n\022BridgeCallResponse\022\014\n\004uuid\030"
-  "\001 \001(\t\022\037\n\005error\030\002 \001(\0132\020.fs.ErrorExecute\"\031"
-  "\n\013HoldRequest\022\n\n\002id\030\001 \003(\t\"\032\n\014HoldRespons"
-  "e\022\n\n\002id\030\001 \003(\t\"\033\n\rUnHoldRequest\022\n\n\002id\030\001 \003"
-  "(\t\"\034\n\016UnHoldResponse\022\n\n\002id\030\001 \003(\t\".\n\021Hang"
-  "upManyRequest\022\n\n\002id\030\001 \003(\t\022\r\n\005cause\030\002 \001(\t"
-  "\" \n\022HangupManyResponse\022\n\n\002id\030\001 \003(\t\"\256\001\n\014Q"
-  "ueueRequest\022\n\n\002id\030\001 \001(\t\0222\n\tvariables\030\002 \003"
-  "(\0132\037.fs.QueueRequest.VariablesEntry\022\025\n\rp"
-  "layback_file\030\003 \001(\t\022\025\n\rplayback_args\030\004 \001("
-  "\005\0320\n\016VariablesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu"
-  "e\030\002 \001(\t:\0028\001\"0\n\rQueueResponse\022\037\n\005error\030\001 "
-  "\001(\0132\020.fs.ErrorExecute\"b\n\014ErrorExecute\022\017\n"
-  "\007message\030\001 \001(\t\022#\n\004type\030\002 \001(\0162\025.fs.ErrorE"
-  "xecute.Type\"\034\n\004Type\022\t\n\005ERROR\020\000\022\t\n\005USAGE\020"
-  "\001\"/\n\016ExecuteRequest\022\017\n\007command\030\001 \001(\t\022\014\n\004"
-  "args\030\002 \001(\t\"@\n\017ExecuteResponse\022\014\n\004data\030\001 "
-  "\001(\t\022\037\n\005error\030\002 \001(\0132\020.fs.ErrorExecute\"\246\001\n"
-  "\rHangupRequest\022\014\n\004uuid\030\001 \001(\t\022\r\n\005cause\030\002 "
-  "\001(\t\022\021\n\treporting\030\003 \001(\010\0223\n\tvariables\030\004 \003("
-  "\0132 .fs.HangupRequest.VariablesEntry\0320\n\016V"
-  "ariablesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001("
-  "\t:\0028\001\"1\n\016HangupResponse\022\037\n\005error\030\001 \001(\0132\020"
-  ".fs.ErrorExecute\"\273\003\n\020OriginateRequest\0226\n"
-  "\tvariables\030\001 \003(\0132#.fs.OriginateRequest.V"
-  "ariablesEntry\022\021\n\tendpoints\030\002 \003(\t\022/\n\010stra"
-  "tegy\030\003 \001(\0162\035.fs.OriginateRequest.Strateg"
-  "y\022\023\n\013destination\030\004 \001(\t\022\017\n\007timeout\030\005 \001(\005\022"
-  "\024\n\014callerNumber\030\006 \001(\t\022\022\n\ncallerName\030\007 \001("
-  "\t\022\017\n\007context\030\010 \001(\t\022\020\n\010dialplan\030\t \001(\t\0222\n\n"
-  "extensions\030\n \003(\0132\036.fs.OriginateRequest.E"
-  "xtension\032*\n\tExtension\022\017\n\007appName\030\001 \001(\t\022\014"
-  "\n\004args\030\002 \001(\t\0320\n\016VariablesEntry\022\013\n\003key\030\001 "
-  "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"&\n\010Strategy\022\014\n\010FA"
-  "ILOVER\020\000\022\014\n\010MULTIPLE\020\001\"V\n\021OriginateRespo"
-  "nse\022\014\n\004uuid\030\001 \001(\t\022\037\n\005error\030\002 \001(\0132\020.fs.Er"
-  "rorExecute\022\022\n\nerror_code\030\003 \001(\005\"M\n\rBridge"
+  "\n\010fs.proto\022\002fs\"\310\001\n\024BlindTransferRequest\022"
+  "\n\n\002id\030\001 \001(\t\022\023\n\013destination\030\002 \001(\t\022:\n\tvari"
+  "ables\030\003 \003(\0132\'.fs.BlindTransferRequest.Va"
+  "riablesEntry\022\020\n\010dialplan\030\004 \001(\t\022\017\n\007contex"
+  "t\030\005 \001(\t\0320\n\016VariablesEntry\022\013\n\003key\030\001 \001(\t\022\r"
+  "\n\005value\030\002 \001(\t:\0028\001\"8\n\025BlindTransferRespon"
+  "se\022\037\n\005error\030\001 \001(\0132\020.fs.ErrorExecute\"5\n\030S"
+  "etEavesdropStateRequest\022\n\n\002id\030\001 \001(\t\022\r\n\005s"
+  "tate\030\002 \001(\t\"<\n\031SetEavesdropStateResponse\022"
+  "\037\n\005error\030\001 \001(\0132\020.fs.ErrorExecute\"R\n\020Broa"
+  "dcastRequest\022\n\n\002id\030\001 \001(\t\022\014\n\004args\030\002 \001(\t\022\027"
+  "\n\017wait_for_answer\030\003 \001(\010\022\013\n\003leg\030\004 \001(\t\"B\n\021"
+  "BroadcastResponse\022\014\n\004data\030\001 \001(\t\022\037\n\005error"
+  "\030\002 \001(\0132\020.fs.ErrorExecute\" \n\022ConfirmPushR"
+  "equest\022\n\n\002id\030\001 \001(\t\"6\n\023ConfirmPushRespons"
+  "e\022\037\n\005error\030\001 \001(\0132\020.fs.ErrorExecute\"\220\001\n\024S"
+  "etProfileVarRequest\022\n\n\002id\030\001 \001(\t\022:\n\tvaria"
+  "bles\030\002 \003(\0132\'.fs.SetProfileVarRequest.Var"
+  "iablesEntry\0320\n\016VariablesEntry\022\013\n\003key\030\001 \001"
+  "(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\027\n\025SetProfileVarRe"
+  "sponse\"!\n\023StopPlaybackRequest\022\n\n\002id\030\001 \001("
+  "\t\"\026\n\024StopPlaybackResponse\"\242\001\n\021BridgeCall"
   "Request\022\020\n\010leg_a_id\030\001 \001(\t\022\020\n\010leg_b_id\030\002 "
-  "\001(\t\022\030\n\020leg_b_reserve_id\030\003 \001(\t\"\?\n\016BridgeR"
-  "esponse\022\014\n\004uuid\030\001 \001(\t\022\037\n\005error\030\002 \001(\0132\020.f"
-  "s.ErrorExecute\"\220\001\n\023SetVariablesRequest\022\014"
-  "\n\004uuid\030\001 \001(\t\0229\n\tvariables\030\002 \003(\0132&.fs.Set"
-  "VariablesRequest.VariablesEntry\0320\n\016Varia"
-  "blesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028"
-  "\001\"7\n\024SetVariablesResponse\022\037\n\005error\030\001 \001(\013"
-  "2\020.fs.ErrorExecute\"\235\001\n\031HangupMatchingVar"
-  "sReqeust\022\r\n\005cause\030\001 \001(\t\022\?\n\tvariables\030\002 \003"
-  "(\0132,.fs.HangupMatchingVarsReqeust.Variab"
-  "lesEntry\0320\n\016VariablesEntry\022\013\n\003key\030\001 \001(\t\022"
-  "\r\n\005value\030\002 \001(\t:\0028\001\"+\n\032HangupMatchingVars"
-  "Response\022\r\n\005count\030\001 \001(\0052\346\007\n\003Api\022:\n\tOrigi"
-  "nate\022\024.fs.OriginateRequest\032\025.fs.Originat"
-  "eResponse\"\000\0224\n\007Execute\022\022.fs.ExecuteReque"
-  "st\032\023.fs.ExecuteResponse\"\000\022C\n\014SetVariable"
-  "s\022\027.fs.SetVariablesRequest\032\030.fs.SetVaria"
-  "blesResponse\"\000\0221\n\006Bridge\022\021.fs.BridgeRequ"
-  "est\032\022.fs.BridgeResponse\"\000\022=\n\nBridgeCall\022"
-  "\025.fs.BridgeCallRequest\032\026.fs.BridgeCallRe"
-  "sponse\"\000\022C\n\014StopPlayback\022\027.fs.StopPlayba"
-  "ckRequest\032\030.fs.StopPlaybackResponse\"\000\0221\n"
-  "\006Hangup\022\021.fs.HangupRequest\032\022.fs.HangupRe"
-  "sponse\"\000\022U\n\022HangupMatchingVars\022\035.fs.Hang"
-  "upMatchingVarsReqeust\032\036.fs.HangupMatchin"
-  "gVarsResponse\"\000\022.\n\005Queue\022\020.fs.QueueReque"
-  "st\032\021.fs.QueueResponse\"\000\022=\n\nHangupMany\022\025."
-  "fs.HangupManyRequest\032\026.fs.HangupManyResp"
-  "onse\"\000\022+\n\004Hold\022\017.fs.HoldRequest\032\020.fs.Hol"
-  "dResponse\"\000\0221\n\006UnHold\022\021.fs.UnHoldRequest"
-  "\032\022.fs.UnHoldResponse\"\000\022F\n\rSetProfileVar\022"
-  "\030.fs.SetProfileVarRequest\032\031.fs.SetProfil"
-  "eVarResponse\"\000\022@\n\013ConfirmPush\022\026.fs.Confi"
-  "rmPushRequest\032\027.fs.ConfirmPushResponse\"\000"
-  "\022:\n\tBroadcast\022\024.fs.BroadcastRequest\032\025.fs"
-  ".BroadcastResponse\"\000\022R\n\021SetEavesdropStat"
-  "e\022\034.fs.SetEavesdropStateRequest\032\035.fs.Set"
-  "EavesdropStateResponse\"\000b\006proto3"
+  "\001(\t\0227\n\tvariables\030\003 \003(\0132$.fs.BridgeCallRe"
+  "quest.VariablesEntry\0320\n\016VariablesEntry\022\013"
+  "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"C\n\022Bridge"
+  "CallResponse\022\014\n\004uuid\030\001 \001(\t\022\037\n\005error\030\002 \001("
+  "\0132\020.fs.ErrorExecute\"\031\n\013HoldRequest\022\n\n\002id"
+  "\030\001 \003(\t\"\032\n\014HoldResponse\022\n\n\002id\030\001 \003(\t\"\033\n\rUn"
+  "HoldRequest\022\n\n\002id\030\001 \003(\t\"\034\n\016UnHoldRespons"
+  "e\022\n\n\002id\030\001 \003(\t\".\n\021HangupManyRequest\022\n\n\002id"
+  "\030\001 \003(\t\022\r\n\005cause\030\002 \001(\t\" \n\022HangupManyRespo"
+  "nse\022\n\n\002id\030\001 \003(\t\"\256\001\n\014QueueRequest\022\n\n\002id\030\001"
+  " \001(\t\0222\n\tvariables\030\002 \003(\0132\037.fs.QueueReques"
+  "t.VariablesEntry\022\025\n\rplayback_file\030\003 \001(\t\022"
+  "\025\n\rplayback_args\030\004 \001(\005\0320\n\016VariablesEntry"
+  "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"0\n\rQueu"
+  "eResponse\022\037\n\005error\030\001 \001(\0132\020.fs.ErrorExecu"
+  "te\"b\n\014ErrorExecute\022\017\n\007message\030\001 \001(\t\022#\n\004t"
+  "ype\030\002 \001(\0162\025.fs.ErrorExecute.Type\"\034\n\004Type"
+  "\022\t\n\005ERROR\020\000\022\t\n\005USAGE\020\001\"/\n\016ExecuteRequest"
+  "\022\017\n\007command\030\001 \001(\t\022\014\n\004args\030\002 \001(\t\"@\n\017Execu"
+  "teResponse\022\014\n\004data\030\001 \001(\t\022\037\n\005error\030\002 \001(\0132"
+  "\020.fs.ErrorExecute\"\246\001\n\rHangupRequest\022\014\n\004u"
+  "uid\030\001 \001(\t\022\r\n\005cause\030\002 \001(\t\022\021\n\treporting\030\003 "
+  "\001(\010\0223\n\tvariables\030\004 \003(\0132 .fs.HangupReques"
+  "t.VariablesEntry\0320\n\016VariablesEntry\022\013\n\003ke"
+  "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"1\n\016HangupResp"
+  "onse\022\037\n\005error\030\001 \001(\0132\020.fs.ErrorExecute\"\273\003"
+  "\n\020OriginateRequest\0226\n\tvariables\030\001 \003(\0132#."
+  "fs.OriginateRequest.VariablesEntry\022\021\n\ten"
+  "dpoints\030\002 \003(\t\022/\n\010strategy\030\003 \001(\0162\035.fs.Ori"
+  "ginateRequest.Strategy\022\023\n\013destination\030\004 "
+  "\001(\t\022\017\n\007timeout\030\005 \001(\005\022\024\n\014callerNumber\030\006 \001"
+  "(\t\022\022\n\ncallerName\030\007 \001(\t\022\017\n\007context\030\010 \001(\t\022"
+  "\020\n\010dialplan\030\t \001(\t\0222\n\nextensions\030\n \003(\0132\036."
+  "fs.OriginateRequest.Extension\032*\n\tExtensi"
+  "on\022\017\n\007appName\030\001 \001(\t\022\014\n\004args\030\002 \001(\t\0320\n\016Var"
+  "iablesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:"
+  "\0028\001\"&\n\010Strategy\022\014\n\010FAILOVER\020\000\022\014\n\010MULTIPL"
+  "E\020\001\"V\n\021OriginateResponse\022\014\n\004uuid\030\001 \001(\t\022\037"
+  "\n\005error\030\002 \001(\0132\020.fs.ErrorExecute\022\022\n\nerror"
+  "_code\030\003 \001(\005\"M\n\rBridgeRequest\022\020\n\010leg_a_id"
+  "\030\001 \001(\t\022\020\n\010leg_b_id\030\002 \001(\t\022\030\n\020leg_b_reserv"
+  "e_id\030\003 \001(\t\"\?\n\016BridgeResponse\022\014\n\004uuid\030\001 \001"
+  "(\t\022\037\n\005error\030\002 \001(\0132\020.fs.ErrorExecute\"\220\001\n\023"
+  "SetVariablesRequest\022\014\n\004uuid\030\001 \001(\t\0229\n\tvar"
+  "iables\030\002 \003(\0132&.fs.SetVariablesRequest.Va"
+  "riablesEntry\0320\n\016VariablesEntry\022\013\n\003key\030\001 "
+  "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"7\n\024SetVariablesRe"
+  "sponse\022\037\n\005error\030\001 \001(\0132\020.fs.ErrorExecute\""
+  "\235\001\n\031HangupMatchingVarsReqeust\022\r\n\005cause\030\001"
+  " \001(\t\022\?\n\tvariables\030\002 \003(\0132,.fs.HangupMatch"
+  "ingVarsReqeust.VariablesEntry\0320\n\016Variabl"
+  "esEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\""
+  "+\n\032HangupMatchingVarsResponse\022\r\n\005count\030\001"
+  " \001(\0052\256\010\n\003Api\022:\n\tOriginate\022\024.fs.Originate"
+  "Request\032\025.fs.OriginateResponse\"\000\0224\n\007Exec"
+  "ute\022\022.fs.ExecuteRequest\032\023.fs.ExecuteResp"
+  "onse\"\000\022C\n\014SetVariables\022\027.fs.SetVariables"
+  "Request\032\030.fs.SetVariablesResponse\"\000\0221\n\006B"
+  "ridge\022\021.fs.BridgeRequest\032\022.fs.BridgeResp"
+  "onse\"\000\022=\n\nBridgeCall\022\025.fs.BridgeCallRequ"
+  "est\032\026.fs.BridgeCallResponse\"\000\022C\n\014StopPla"
+  "yback\022\027.fs.StopPlaybackRequest\032\030.fs.Stop"
+  "PlaybackResponse\"\000\0221\n\006Hangup\022\021.fs.Hangup"
+  "Request\032\022.fs.HangupResponse\"\000\022U\n\022HangupM"
+  "atchingVars\022\035.fs.HangupMatchingVarsReqeu"
+  "st\032\036.fs.HangupMatchingVarsResponse\"\000\022.\n\005"
+  "Queue\022\020.fs.QueueRequest\032\021.fs.QueueRespon"
+  "se\"\000\022=\n\nHangupMany\022\025.fs.HangupManyReques"
+  "t\032\026.fs.HangupManyResponse\"\000\022+\n\004Hold\022\017.fs"
+  ".HoldRequest\032\020.fs.HoldResponse\"\000\0221\n\006UnHo"
+  "ld\022\021.fs.UnHoldRequest\032\022.fs.UnHoldRespons"
+  "e\"\000\022F\n\rSetProfileVar\022\030.fs.SetProfileVarR"
+  "equest\032\031.fs.SetProfileVarResponse\"\000\022@\n\013C"
+  "onfirmPush\022\026.fs.ConfirmPushRequest\032\027.fs."
+  "ConfirmPushResponse\"\000\022:\n\tBroadcast\022\024.fs."
+  "BroadcastRequest\032\025.fs.BroadcastResponse\""
+  "\000\022R\n\021SetEavesdropState\022\034.fs.SetEavesdrop"
+  "StateRequest\032\035.fs.SetEavesdropStateRespo"
+  "nse\"\000\022F\n\rBlindTransfer\022\030.fs.BlindTransfe"
+  "rRequest\032\031.fs.BlindTransferResponse\"\000b\006p"
+  "roto3"
   ;
 static ::_pbi::once_flag descriptor_table_fs_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_fs_2eproto = {
-    false, false, 3792, descriptor_table_protodef_fs_2eproto,
+    false, false, 4125, descriptor_table_protodef_fs_2eproto,
     "fs.proto",
-    &descriptor_table_fs_2eproto_once, nullptr, 0, 41,
+    &descriptor_table_fs_2eproto_once, nullptr, 0, 44,
     schemas, file_default_instances, TableStruct_fs_2eproto::offsets,
     file_level_metadata_fs_2eproto, file_level_enum_descriptors_fs_2eproto,
     file_level_service_descriptors_fs_2eproto,
@@ -1164,6 +1248,634 @@ constexpr OriginateRequest_Strategy OriginateRequest::Strategy_MIN;
 constexpr OriginateRequest_Strategy OriginateRequest::Strategy_MAX;
 constexpr int OriginateRequest::Strategy_ARRAYSIZE;
 #endif  // (__cplusplus < 201703) && (!defined(_MSC_VER) || (_MSC_VER >= 1900 && _MSC_VER < 1912))
+
+// ===================================================================
+
+BlindTransferRequest_VariablesEntry_DoNotUse::BlindTransferRequest_VariablesEntry_DoNotUse() {}
+BlindTransferRequest_VariablesEntry_DoNotUse::BlindTransferRequest_VariablesEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
+void BlindTransferRequest_VariablesEntry_DoNotUse::MergeFrom(const BlindTransferRequest_VariablesEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::PROTOBUF_NAMESPACE_ID::Metadata BlindTransferRequest_VariablesEntry_DoNotUse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
+      file_level_metadata_fs_2eproto[0]);
+}
+
+// ===================================================================
+
+class BlindTransferRequest::_Internal {
+ public:
+};
+
+BlindTransferRequest::BlindTransferRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  if (arena != nullptr && !is_message_owned) {
+    arena->OwnCustomDestructor(this, &BlindTransferRequest::ArenaDtor);
+  }
+  // @@protoc_insertion_point(arena_constructor:fs.BlindTransferRequest)
+}
+BlindTransferRequest::BlindTransferRequest(const BlindTransferRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  BlindTransferRequest* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      /*decltype(_impl_.variables_)*/{}
+    , decltype(_impl_.id_){}
+    , decltype(_impl_.destination_){}
+    , decltype(_impl_.dialplan_){}
+    , decltype(_impl_.context_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.variables_.MergeFrom(from._impl_.variables_);
+  _impl_.id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_id().empty()) {
+    _this->_impl_.id_.Set(from._internal_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.destination_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.destination_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_destination().empty()) {
+    _this->_impl_.destination_.Set(from._internal_destination(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.dialplan_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.dialplan_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_dialplan().empty()) {
+    _this->_impl_.dialplan_.Set(from._internal_dialplan(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.context_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.context_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_context().empty()) {
+    _this->_impl_.context_.Set(from._internal_context(), 
+      _this->GetArenaForAllocation());
+  }
+  // @@protoc_insertion_point(copy_constructor:fs.BlindTransferRequest)
+}
+
+inline void BlindTransferRequest::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      /*decltype(_impl_.variables_)*/{::_pbi::ArenaInitialized(), arena}
+    , decltype(_impl_.id_){}
+    , decltype(_impl_.destination_){}
+    , decltype(_impl_.dialplan_){}
+    , decltype(_impl_.context_){}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.destination_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.destination_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.dialplan_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.dialplan_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.context_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.context_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+BlindTransferRequest::~BlindTransferRequest() {
+  // @@protoc_insertion_point(destructor:fs.BlindTransferRequest)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    ArenaDtor(this);
+    return;
+  }
+  SharedDtor();
+}
+
+inline void BlindTransferRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.variables_.Destruct();
+  _impl_.variables_.~MapField();
+  _impl_.id_.Destroy();
+  _impl_.destination_.Destroy();
+  _impl_.dialplan_.Destroy();
+  _impl_.context_.Destroy();
+}
+
+void BlindTransferRequest::ArenaDtor(void* object) {
+  BlindTransferRequest* _this = reinterpret_cast< BlindTransferRequest* >(object);
+  _this->_impl_.variables_.Destruct();
+}
+void BlindTransferRequest::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void BlindTransferRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:fs.BlindTransferRequest)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.variables_.Clear();
+  _impl_.id_.ClearToEmpty();
+  _impl_.destination_.ClearToEmpty();
+  _impl_.dialplan_.ClearToEmpty();
+  _impl_.context_.ClearToEmpty();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* BlindTransferRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "fs.BlindTransferRequest.id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string destination = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_destination();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "fs.BlindTransferRequest.destination"));
+        } else
+          goto handle_unusual;
+        continue;
+      // map<string, string> variables = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&_impl_.variables_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // string dialplan = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_dialplan();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "fs.BlindTransferRequest.dialplan"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string context = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_context();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "fs.BlindTransferRequest.context"));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* BlindTransferRequest::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:fs.BlindTransferRequest)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string id = 1;
+  if (!this->_internal_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_id().data(), static_cast<int>(this->_internal_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "fs.BlindTransferRequest.id");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_id(), target);
+  }
+
+  // string destination = 2;
+  if (!this->_internal_destination().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_destination().data(), static_cast<int>(this->_internal_destination().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "fs.BlindTransferRequest.destination");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_destination(), target);
+  }
+
+  // map<string, string> variables = 3;
+  if (!this->_internal_variables().empty()) {
+    using MapType = ::_pb::Map<std::string, std::string>;
+    using WireHelper = BlindTransferRequest_VariablesEntry_DoNotUse::Funcs;
+    const auto& map_field = this->_internal_variables();
+    auto check_utf8 = [](const MapType::value_type& entry) {
+      (void)entry;
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.first.data(), static_cast<int>(entry.first.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "fs.BlindTransferRequest.VariablesEntry.key");
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.second.data(), static_cast<int>(entry.second.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "fs.BlindTransferRequest.VariablesEntry.value");
+    };
+
+    if (stream->IsSerializationDeterministic() && map_field.size() > 1) {
+      for (const auto& entry : ::_pbi::MapSorterPtr<MapType>(map_field)) {
+        target = WireHelper::InternalSerialize(3, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    } else {
+      for (const auto& entry : map_field) {
+        target = WireHelper::InternalSerialize(3, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    }
+  }
+
+  // string dialplan = 4;
+  if (!this->_internal_dialplan().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_dialplan().data(), static_cast<int>(this->_internal_dialplan().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "fs.BlindTransferRequest.dialplan");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_dialplan(), target);
+  }
+
+  // string context = 5;
+  if (!this->_internal_context().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_context().data(), static_cast<int>(this->_internal_context().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "fs.BlindTransferRequest.context");
+    target = stream->WriteStringMaybeAliased(
+        5, this->_internal_context(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:fs.BlindTransferRequest)
+  return target;
+}
+
+size_t BlindTransferRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:fs.BlindTransferRequest)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // map<string, string> variables = 3;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_variables_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
+      it = this->_internal_variables().begin();
+      it != this->_internal_variables().end(); ++it) {
+    total_size += BlindTransferRequest_VariablesEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
+  }
+
+  // string id = 1;
+  if (!this->_internal_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_id());
+  }
+
+  // string destination = 2;
+  if (!this->_internal_destination().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_destination());
+  }
+
+  // string dialplan = 4;
+  if (!this->_internal_dialplan().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_dialplan());
+  }
+
+  // string context = 5;
+  if (!this->_internal_context().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_context());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData BlindTransferRequest::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    BlindTransferRequest::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*BlindTransferRequest::GetClassData() const { return &_class_data_; }
+
+
+void BlindTransferRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<BlindTransferRequest*>(&to_msg);
+  auto& from = static_cast<const BlindTransferRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:fs.BlindTransferRequest)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.variables_.MergeFrom(from._impl_.variables_);
+  if (!from._internal_id().empty()) {
+    _this->_internal_set_id(from._internal_id());
+  }
+  if (!from._internal_destination().empty()) {
+    _this->_internal_set_destination(from._internal_destination());
+  }
+  if (!from._internal_dialplan().empty()) {
+    _this->_internal_set_dialplan(from._internal_dialplan());
+  }
+  if (!from._internal_context().empty()) {
+    _this->_internal_set_context(from._internal_context());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void BlindTransferRequest::CopyFrom(const BlindTransferRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:fs.BlindTransferRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool BlindTransferRequest::IsInitialized() const {
+  return true;
+}
+
+void BlindTransferRequest::InternalSwap(BlindTransferRequest* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.variables_.InternalSwap(&other->_impl_.variables_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.id_, lhs_arena,
+      &other->_impl_.id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.destination_, lhs_arena,
+      &other->_impl_.destination_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.dialplan_, lhs_arena,
+      &other->_impl_.dialplan_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.context_, lhs_arena,
+      &other->_impl_.context_, rhs_arena
+  );
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata BlindTransferRequest::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
+      file_level_metadata_fs_2eproto[1]);
+}
+
+// ===================================================================
+
+class BlindTransferResponse::_Internal {
+ public:
+  static const ::fs::ErrorExecute& error(const BlindTransferResponse* msg);
+};
+
+const ::fs::ErrorExecute&
+BlindTransferResponse::_Internal::error(const BlindTransferResponse* msg) {
+  return *msg->_impl_.error_;
+}
+BlindTransferResponse::BlindTransferResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:fs.BlindTransferResponse)
+}
+BlindTransferResponse::BlindTransferResponse(const BlindTransferResponse& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  BlindTransferResponse* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.error_){nullptr}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  if (from._internal_has_error()) {
+    _this->_impl_.error_ = new ::fs::ErrorExecute(*from._impl_.error_);
+  }
+  // @@protoc_insertion_point(copy_constructor:fs.BlindTransferResponse)
+}
+
+inline void BlindTransferResponse::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.error_){nullptr}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+BlindTransferResponse::~BlindTransferResponse() {
+  // @@protoc_insertion_point(destructor:fs.BlindTransferResponse)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void BlindTransferResponse::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  if (this != internal_default_instance()) delete _impl_.error_;
+}
+
+void BlindTransferResponse::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void BlindTransferResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:fs.BlindTransferResponse)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  if (GetArenaForAllocation() == nullptr && _impl_.error_ != nullptr) {
+    delete _impl_.error_;
+  }
+  _impl_.error_ = nullptr;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* BlindTransferResponse::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // .fs.ErrorExecute error = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr = ctx->ParseMessage(_internal_mutable_error(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* BlindTransferResponse::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:fs.BlindTransferResponse)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .fs.ErrorExecute error = 1;
+  if (this->_internal_has_error()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(1, _Internal::error(this),
+        _Internal::error(this).GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:fs.BlindTransferResponse)
+  return target;
+}
+
+size_t BlindTransferResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:fs.BlindTransferResponse)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // .fs.ErrorExecute error = 1;
+  if (this->_internal_has_error()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.error_);
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData BlindTransferResponse::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    BlindTransferResponse::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*BlindTransferResponse::GetClassData() const { return &_class_data_; }
+
+
+void BlindTransferResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<BlindTransferResponse*>(&to_msg);
+  auto& from = static_cast<const BlindTransferResponse&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:fs.BlindTransferResponse)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_has_error()) {
+    _this->_internal_mutable_error()->::fs::ErrorExecute::MergeFrom(
+        from._internal_error());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void BlindTransferResponse::CopyFrom(const BlindTransferResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:fs.BlindTransferResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool BlindTransferResponse::IsInitialized() const {
+  return true;
+}
+
+void BlindTransferResponse::InternalSwap(BlindTransferResponse* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.error_, other->_impl_.error_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata BlindTransferResponse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
+      file_level_metadata_fs_2eproto[2]);
+}
 
 // ===================================================================
 
@@ -1415,7 +2127,7 @@ void SetEavesdropStateRequest::InternalSwap(SetEavesdropStateRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetEavesdropStateRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[0]);
+      file_level_metadata_fs_2eproto[3]);
 }
 
 // ===================================================================
@@ -1608,7 +2320,7 @@ void SetEavesdropStateResponse::InternalSwap(SetEavesdropStateResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetEavesdropStateResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[1]);
+      file_level_metadata_fs_2eproto[4]);
 }
 
 // ===================================================================
@@ -1938,7 +2650,7 @@ void BroadcastRequest::InternalSwap(BroadcastRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata BroadcastRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[2]);
+      file_level_metadata_fs_2eproto[5]);
 }
 
 // ===================================================================
@@ -2183,7 +2895,7 @@ void BroadcastResponse::InternalSwap(BroadcastResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata BroadcastResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[3]);
+      file_level_metadata_fs_2eproto[6]);
 }
 
 // ===================================================================
@@ -2386,7 +3098,7 @@ void ConfirmPushRequest::InternalSwap(ConfirmPushRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ConfirmPushRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[4]);
+      file_level_metadata_fs_2eproto[7]);
 }
 
 // ===================================================================
@@ -2579,7 +3291,7 @@ void ConfirmPushResponse::InternalSwap(ConfirmPushResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ConfirmPushResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[5]);
+      file_level_metadata_fs_2eproto[8]);
 }
 
 // ===================================================================
@@ -2593,7 +3305,7 @@ void SetProfileVarRequest_VariablesEntry_DoNotUse::MergeFrom(const SetProfileVar
 ::PROTOBUF_NAMESPACE_ID::Metadata SetProfileVarRequest_VariablesEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[6]);
+      file_level_metadata_fs_2eproto[9]);
 }
 
 // ===================================================================
@@ -2864,7 +3576,7 @@ void SetProfileVarRequest::InternalSwap(SetProfileVarRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetProfileVarRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[7]);
+      file_level_metadata_fs_2eproto[10]);
 }
 
 // ===================================================================
@@ -2904,7 +3616,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*SetProfileVarResponse::GetClas
 ::PROTOBUF_NAMESPACE_ID::Metadata SetProfileVarResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[8]);
+      file_level_metadata_fs_2eproto[11]);
 }
 
 // ===================================================================
@@ -3107,7 +3819,7 @@ void StopPlaybackRequest::InternalSwap(StopPlaybackRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StopPlaybackRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[9]);
+      file_level_metadata_fs_2eproto[12]);
 }
 
 // ===================================================================
@@ -3147,7 +3859,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*StopPlaybackResponse::GetClass
 ::PROTOBUF_NAMESPACE_ID::Metadata StopPlaybackResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[10]);
+      file_level_metadata_fs_2eproto[13]);
 }
 
 // ===================================================================
@@ -3161,7 +3873,7 @@ void BridgeCallRequest_VariablesEntry_DoNotUse::MergeFrom(const BridgeCallReques
 ::PROTOBUF_NAMESPACE_ID::Metadata BridgeCallRequest_VariablesEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[11]);
+      file_level_metadata_fs_2eproto[14]);
 }
 
 // ===================================================================
@@ -3482,7 +4194,7 @@ void BridgeCallRequest::InternalSwap(BridgeCallRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata BridgeCallRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[12]);
+      file_level_metadata_fs_2eproto[15]);
 }
 
 // ===================================================================
@@ -3727,7 +4439,7 @@ void BridgeCallResponse::InternalSwap(BridgeCallResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata BridgeCallResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[13]);
+      file_level_metadata_fs_2eproto[16]);
 }
 
 // ===================================================================
@@ -3917,7 +4629,7 @@ void HoldRequest::InternalSwap(HoldRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata HoldRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[14]);
+      file_level_metadata_fs_2eproto[17]);
 }
 
 // ===================================================================
@@ -4107,7 +4819,7 @@ void HoldResponse::InternalSwap(HoldResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata HoldResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[15]);
+      file_level_metadata_fs_2eproto[18]);
 }
 
 // ===================================================================
@@ -4297,7 +5009,7 @@ void UnHoldRequest::InternalSwap(UnHoldRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata UnHoldRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[16]);
+      file_level_metadata_fs_2eproto[19]);
 }
 
 // ===================================================================
@@ -4487,7 +5199,7 @@ void UnHoldResponse::InternalSwap(UnHoldResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata UnHoldResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[17]);
+      file_level_metadata_fs_2eproto[20]);
 }
 
 // ===================================================================
@@ -4729,7 +5441,7 @@ void HangupManyRequest::InternalSwap(HangupManyRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata HangupManyRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[18]);
+      file_level_metadata_fs_2eproto[21]);
 }
 
 // ===================================================================
@@ -4919,7 +5631,7 @@ void HangupManyResponse::InternalSwap(HangupManyResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata HangupManyResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[19]);
+      file_level_metadata_fs_2eproto[22]);
 }
 
 // ===================================================================
@@ -4933,7 +5645,7 @@ void QueueRequest_VariablesEntry_DoNotUse::MergeFrom(const QueueRequest_Variable
 ::PROTOBUF_NAMESPACE_ID::Metadata QueueRequest_VariablesEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[20]);
+      file_level_metadata_fs_2eproto[23]);
 }
 
 // ===================================================================
@@ -5281,7 +5993,7 @@ void QueueRequest::InternalSwap(QueueRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata QueueRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[21]);
+      file_level_metadata_fs_2eproto[24]);
 }
 
 // ===================================================================
@@ -5474,7 +6186,7 @@ void QueueResponse::InternalSwap(QueueResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata QueueResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[22]);
+      file_level_metadata_fs_2eproto[25]);
 }
 
 // ===================================================================
@@ -5707,7 +6419,7 @@ void ErrorExecute::InternalSwap(ErrorExecute* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ErrorExecute::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[23]);
+      file_level_metadata_fs_2eproto[26]);
 }
 
 // ===================================================================
@@ -5960,7 +6672,7 @@ void ExecuteRequest::InternalSwap(ExecuteRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ExecuteRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[24]);
+      file_level_metadata_fs_2eproto[27]);
 }
 
 // ===================================================================
@@ -6205,7 +6917,7 @@ void ExecuteResponse::InternalSwap(ExecuteResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ExecuteResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[25]);
+      file_level_metadata_fs_2eproto[28]);
 }
 
 // ===================================================================
@@ -6219,7 +6931,7 @@ void HangupRequest_VariablesEntry_DoNotUse::MergeFrom(const HangupRequest_Variab
 ::PROTOBUF_NAMESPACE_ID::Metadata HangupRequest_VariablesEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[26]);
+      file_level_metadata_fs_2eproto[29]);
 }
 
 // ===================================================================
@@ -6567,7 +7279,7 @@ void HangupRequest::InternalSwap(HangupRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata HangupRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[27]);
+      file_level_metadata_fs_2eproto[30]);
 }
 
 // ===================================================================
@@ -6760,7 +7472,7 @@ void HangupResponse::InternalSwap(HangupResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata HangupResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[28]);
+      file_level_metadata_fs_2eproto[31]);
 }
 
 // ===================================================================
@@ -7013,7 +7725,7 @@ void OriginateRequest_Extension::InternalSwap(OriginateRequest_Extension* other)
 ::PROTOBUF_NAMESPACE_ID::Metadata OriginateRequest_Extension::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[29]);
+      file_level_metadata_fs_2eproto[32]);
 }
 
 // ===================================================================
@@ -7027,7 +7739,7 @@ void OriginateRequest_VariablesEntry_DoNotUse::MergeFrom(const OriginateRequest_
 ::PROTOBUF_NAMESPACE_ID::Metadata OriginateRequest_VariablesEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[30]);
+      file_level_metadata_fs_2eproto[33]);
 }
 
 // ===================================================================
@@ -7634,7 +8346,7 @@ void OriginateRequest::InternalSwap(OriginateRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata OriginateRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[31]);
+      file_level_metadata_fs_2eproto[34]);
 }
 
 // ===================================================================
@@ -7910,7 +8622,7 @@ void OriginateResponse::InternalSwap(OriginateResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata OriginateResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[32]);
+      file_level_metadata_fs_2eproto[35]);
 }
 
 // ===================================================================
@@ -8213,7 +8925,7 @@ void BridgeRequest::InternalSwap(BridgeRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata BridgeRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[33]);
+      file_level_metadata_fs_2eproto[36]);
 }
 
 // ===================================================================
@@ -8458,7 +9170,7 @@ void BridgeResponse::InternalSwap(BridgeResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata BridgeResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[34]);
+      file_level_metadata_fs_2eproto[37]);
 }
 
 // ===================================================================
@@ -8472,7 +9184,7 @@ void SetVariablesRequest_VariablesEntry_DoNotUse::MergeFrom(const SetVariablesRe
 ::PROTOBUF_NAMESPACE_ID::Metadata SetVariablesRequest_VariablesEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[35]);
+      file_level_metadata_fs_2eproto[38]);
 }
 
 // ===================================================================
@@ -8743,7 +9455,7 @@ void SetVariablesRequest::InternalSwap(SetVariablesRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetVariablesRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[36]);
+      file_level_metadata_fs_2eproto[39]);
 }
 
 // ===================================================================
@@ -8936,7 +9648,7 @@ void SetVariablesResponse::InternalSwap(SetVariablesResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata SetVariablesResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[37]);
+      file_level_metadata_fs_2eproto[40]);
 }
 
 // ===================================================================
@@ -8950,7 +9662,7 @@ void HangupMatchingVarsReqeust_VariablesEntry_DoNotUse::MergeFrom(const HangupMa
 ::PROTOBUF_NAMESPACE_ID::Metadata HangupMatchingVarsReqeust_VariablesEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[38]);
+      file_level_metadata_fs_2eproto[41]);
 }
 
 // ===================================================================
@@ -9221,7 +9933,7 @@ void HangupMatchingVarsReqeust::InternalSwap(HangupMatchingVarsReqeust* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata HangupMatchingVarsReqeust::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[39]);
+      file_level_metadata_fs_2eproto[42]);
 }
 
 // ===================================================================
@@ -9399,12 +10111,24 @@ void HangupMatchingVarsResponse::InternalSwap(HangupMatchingVarsResponse* other)
 ::PROTOBUF_NAMESPACE_ID::Metadata HangupMatchingVarsResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_fs_2eproto_getter, &descriptor_table_fs_2eproto_once,
-      file_level_metadata_fs_2eproto[40]);
+      file_level_metadata_fs_2eproto[43]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace fs
 PROTOBUF_NAMESPACE_OPEN
+template<> PROTOBUF_NOINLINE ::fs::BlindTransferRequest_VariablesEntry_DoNotUse*
+Arena::CreateMaybeMessage< ::fs::BlindTransferRequest_VariablesEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::fs::BlindTransferRequest_VariablesEntry_DoNotUse >(arena);
+}
+template<> PROTOBUF_NOINLINE ::fs::BlindTransferRequest*
+Arena::CreateMaybeMessage< ::fs::BlindTransferRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::fs::BlindTransferRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::fs::BlindTransferResponse*
+Arena::CreateMaybeMessage< ::fs::BlindTransferResponse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::fs::BlindTransferResponse >(arena);
+}
 template<> PROTOBUF_NOINLINE ::fs::SetEavesdropStateRequest*
 Arena::CreateMaybeMessage< ::fs::SetEavesdropStateRequest >(Arena* arena) {
   return Arena::CreateMessageInternal< ::fs::SetEavesdropStateRequest >(arena);

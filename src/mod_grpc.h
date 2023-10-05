@@ -111,8 +111,11 @@ namespace mod_grpc {
 
         Status Broadcast(ServerContext* context, const fs::BroadcastRequest* request,
                            fs::BroadcastResponse* reply) override;
+
         Status SetEavesdropState(::grpc::ServerContext* context, const ::fs::SetEavesdropStateRequest* request,
                                  ::fs::SetEavesdropStateResponse* reply) override;
+
+        Status BlindTransfer(::grpc::ServerContext* context, const ::fs::BlindTransferRequest* request, ::fs::BlindTransferResponse* response) override;
 
     };
 

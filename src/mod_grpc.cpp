@@ -678,6 +678,45 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::BlindTransfer(::grpc::ServerContext *context, const ::fs::BlindTransferRequest *request,
+                                         ::fs::BlindTransferResponse *reply) {
+
+        if (request->id().empty()) {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("bad request: id is required");
+            return Status::OK;
+        }
+
+
+        if (request->destination().empty()) {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("bad request: destination is required");
+            return Status::OK;
+        }
+
+        switch_core_session_t *session;
+        session = switch_core_session_locate(request->id().c_str());
+        if (session) {
+            switch_channel_t *channel = switch_core_session_get_channel(session);
+
+            for (const auto &kv: request->variables()) {
+                switch_channel_set_variable_var_check(channel, kv.first.c_str(), kv.second.c_str(), SWITCH_FALSE);
+            }
+
+            if (switch_ivr_session_transfer(session, request->destination().c_str(), request->dialplan().c_str(), request->context().c_str()) != SWITCH_STATUS_SUCCESS) {
+                reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+                reply->mutable_error()->set_message("internal error");
+            }
+
+            switch_core_session_rwunlock(session);
+        } else {
+            reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
+            reply->mutable_error()->set_message("No such channel!");
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) {
         if (!config_.grpc_host) {
             char ipV4_[80];

@@ -7,23 +7,23 @@
 #include "fs.pb.h"
 
 #include <functional>
-#include <grpcpp/generic/async_generic_service.h>
-#include <grpcpp/support/async_stream.h>
-#include <grpcpp/support/async_unary_call.h>
-#include <grpcpp/support/client_callback.h>
-#include <grpcpp/client_context.h>
-#include <grpcpp/completion_queue.h>
-#include <grpcpp/support/message_allocator.h>
-#include <grpcpp/support/method_handler.h>
-#include <grpcpp/impl/proto_utils.h>
-#include <grpcpp/impl/rpc_method.h>
-#include <grpcpp/support/server_callback.h>
-#include <grpcpp/impl/server_callback_handlers.h>
-#include <grpcpp/server_context.h>
-#include <grpcpp/impl/service_type.h>
-#include <grpcpp/support/status.h>
-#include <grpcpp/support/stub_options.h>
-#include <grpcpp/support/sync_stream.h>
+#include <grpcpp/impl/codegen/async_generic_service.h>
+#include <grpcpp/impl/codegen/async_stream.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
+#include <grpcpp/impl/codegen/client_callback.h>
+#include <grpcpp/impl/codegen/client_context.h>
+#include <grpcpp/impl/codegen/completion_queue.h>
+#include <grpcpp/impl/codegen/message_allocator.h>
+#include <grpcpp/impl/codegen/method_handler.h>
+#include <grpcpp/impl/codegen/proto_utils.h>
+#include <grpcpp/impl/codegen/rpc_method.h>
+#include <grpcpp/impl/codegen/server_callback.h>
+#include <grpcpp/impl/codegen/server_callback_handlers.h>
+#include <grpcpp/impl/codegen/server_context.h>
+#include <grpcpp/impl/codegen/service_type.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <grpcpp/impl/codegen/stub_options.h>
+#include <grpcpp/impl/codegen/sync_stream.h>
 
 namespace fs {
 
@@ -147,6 +147,13 @@ class Api final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::fs::SetEavesdropStateResponse>> PrepareAsyncSetEavesdropState(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::fs::SetEavesdropStateResponse>>(PrepareAsyncSetEavesdropStateRaw(context, request, cq));
     }
+    virtual ::grpc::Status BlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::fs::BlindTransferResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::fs::BlindTransferResponse>> AsyncBlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::fs::BlindTransferResponse>>(AsyncBlindTransferRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::fs::BlindTransferResponse>> PrepareAsyncBlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::fs::BlindTransferResponse>>(PrepareAsyncBlindTransferRaw(context, request, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -182,6 +189,8 @@ class Api final {
       virtual void Broadcast(::grpc::ClientContext* context, const ::fs::BroadcastRequest* request, ::fs::BroadcastResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void SetEavesdropState(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest* request, ::fs::SetEavesdropStateResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void SetEavesdropState(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest* request, ::fs::SetEavesdropStateResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void BlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest* request, ::fs::BlindTransferResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void BlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest* request, ::fs::BlindTransferResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -219,6 +228,8 @@ class Api final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::fs::BroadcastResponse>* PrepareAsyncBroadcastRaw(::grpc::ClientContext* context, const ::fs::BroadcastRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::fs::SetEavesdropStateResponse>* AsyncSetEavesdropStateRaw(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::fs::SetEavesdropStateResponse>* PrepareAsyncSetEavesdropStateRaw(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::fs::BlindTransferResponse>* AsyncBlindTransferRaw(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::fs::BlindTransferResponse>* PrepareAsyncBlindTransferRaw(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -335,6 +346,13 @@ class Api final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::fs::SetEavesdropStateResponse>> PrepareAsyncSetEavesdropState(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::fs::SetEavesdropStateResponse>>(PrepareAsyncSetEavesdropStateRaw(context, request, cq));
     }
+    ::grpc::Status BlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::fs::BlindTransferResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::fs::BlindTransferResponse>> AsyncBlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::fs::BlindTransferResponse>>(AsyncBlindTransferRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::fs::BlindTransferResponse>> PrepareAsyncBlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::fs::BlindTransferResponse>>(PrepareAsyncBlindTransferRaw(context, request, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
@@ -370,6 +388,8 @@ class Api final {
       void Broadcast(::grpc::ClientContext* context, const ::fs::BroadcastRequest* request, ::fs::BroadcastResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
       void SetEavesdropState(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest* request, ::fs::SetEavesdropStateResponse* response, std::function<void(::grpc::Status)>) override;
       void SetEavesdropState(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest* request, ::fs::SetEavesdropStateResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void BlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest* request, ::fs::BlindTransferResponse* response, std::function<void(::grpc::Status)>) override;
+      void BlindTransfer(::grpc::ClientContext* context, const ::fs::BlindTransferRequest* request, ::fs::BlindTransferResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -413,6 +433,8 @@ class Api final {
     ::grpc::ClientAsyncResponseReader< ::fs::BroadcastResponse>* PrepareAsyncBroadcastRaw(::grpc::ClientContext* context, const ::fs::BroadcastRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::fs::SetEavesdropStateResponse>* AsyncSetEavesdropStateRaw(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::fs::SetEavesdropStateResponse>* PrepareAsyncSetEavesdropStateRaw(::grpc::ClientContext* context, const ::fs::SetEavesdropStateRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::fs::BlindTransferResponse>* AsyncBlindTransferRaw(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::fs::BlindTransferResponse>* PrepareAsyncBlindTransferRaw(::grpc::ClientContext* context, const ::fs::BlindTransferRequest& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_Originate_;
     const ::grpc::internal::RpcMethod rpcmethod_Execute_;
     const ::grpc::internal::RpcMethod rpcmethod_SetVariables_;
@@ -429,6 +451,7 @@ class Api final {
     const ::grpc::internal::RpcMethod rpcmethod_ConfirmPush_;
     const ::grpc::internal::RpcMethod rpcmethod_Broadcast_;
     const ::grpc::internal::RpcMethod rpcmethod_SetEavesdropState_;
+    const ::grpc::internal::RpcMethod rpcmethod_BlindTransfer_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -452,6 +475,7 @@ class Api final {
     virtual ::grpc::Status ConfirmPush(::grpc::ServerContext* context, const ::fs::ConfirmPushRequest* request, ::fs::ConfirmPushResponse* response);
     virtual ::grpc::Status Broadcast(::grpc::ServerContext* context, const ::fs::BroadcastRequest* request, ::fs::BroadcastResponse* response);
     virtual ::grpc::Status SetEavesdropState(::grpc::ServerContext* context, const ::fs::SetEavesdropStateRequest* request, ::fs::SetEavesdropStateResponse* response);
+    virtual ::grpc::Status BlindTransfer(::grpc::ServerContext* context, const ::fs::BlindTransferRequest* request, ::fs::BlindTransferResponse* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_Originate : public BaseClass {
@@ -773,7 +797,27 @@ class Api final {
       ::grpc::Service::RequestAsyncUnary(15, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Originate<WithAsyncMethod_Execute<WithAsyncMethod_SetVariables<WithAsyncMethod_Bridge<WithAsyncMethod_BridgeCall<WithAsyncMethod_StopPlayback<WithAsyncMethod_Hangup<WithAsyncMethod_HangupMatchingVars<WithAsyncMethod_Queue<WithAsyncMethod_HangupMany<WithAsyncMethod_Hold<WithAsyncMethod_UnHold<WithAsyncMethod_SetProfileVar<WithAsyncMethod_ConfirmPush<WithAsyncMethod_Broadcast<WithAsyncMethod_SetEavesdropState<Service > > > > > > > > > > > > > > > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_BlindTransfer : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_BlindTransfer() {
+      ::grpc::Service::MarkMethodAsync(16);
+    }
+    ~WithAsyncMethod_BlindTransfer() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status BlindTransfer(::grpc::ServerContext* /*context*/, const ::fs::BlindTransferRequest* /*request*/, ::fs::BlindTransferResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestBlindTransfer(::grpc::ServerContext* context, ::fs::BlindTransferRequest* request, ::grpc::ServerAsyncResponseWriter< ::fs::BlindTransferResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_Originate<WithAsyncMethod_Execute<WithAsyncMethod_SetVariables<WithAsyncMethod_Bridge<WithAsyncMethod_BridgeCall<WithAsyncMethod_StopPlayback<WithAsyncMethod_Hangup<WithAsyncMethod_HangupMatchingVars<WithAsyncMethod_Queue<WithAsyncMethod_HangupMany<WithAsyncMethod_Hold<WithAsyncMethod_UnHold<WithAsyncMethod_SetProfileVar<WithAsyncMethod_ConfirmPush<WithAsyncMethod_Broadcast<WithAsyncMethod_SetEavesdropState<WithAsyncMethod_BlindTransfer<Service > > > > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_Originate : public BaseClass {
    private:
@@ -1206,7 +1250,34 @@ class Api final {
     virtual ::grpc::ServerUnaryReactor* SetEavesdropState(
       ::grpc::CallbackServerContext* /*context*/, const ::fs::SetEavesdropStateRequest* /*request*/, ::fs::SetEavesdropStateResponse* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_Originate<WithCallbackMethod_Execute<WithCallbackMethod_SetVariables<WithCallbackMethod_Bridge<WithCallbackMethod_BridgeCall<WithCallbackMethod_StopPlayback<WithCallbackMethod_Hangup<WithCallbackMethod_HangupMatchingVars<WithCallbackMethod_Queue<WithCallbackMethod_HangupMany<WithCallbackMethod_Hold<WithCallbackMethod_UnHold<WithCallbackMethod_SetProfileVar<WithCallbackMethod_ConfirmPush<WithCallbackMethod_Broadcast<WithCallbackMethod_SetEavesdropState<Service > > > > > > > > > > > > > > > > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_BlindTransfer : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_BlindTransfer() {
+      ::grpc::Service::MarkMethodCallback(16,
+          new ::grpc::internal::CallbackUnaryHandler< ::fs::BlindTransferRequest, ::fs::BlindTransferResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::fs::BlindTransferRequest* request, ::fs::BlindTransferResponse* response) { return this->BlindTransfer(context, request, response); }));}
+    void SetMessageAllocatorFor_BlindTransfer(
+        ::grpc::MessageAllocator< ::fs::BlindTransferRequest, ::fs::BlindTransferResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(16);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::fs::BlindTransferRequest, ::fs::BlindTransferResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_BlindTransfer() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status BlindTransfer(::grpc::ServerContext* /*context*/, const ::fs::BlindTransferRequest* /*request*/, ::fs::BlindTransferResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* BlindTransfer(
+      ::grpc::CallbackServerContext* /*context*/, const ::fs::BlindTransferRequest* /*request*/, ::fs::BlindTransferResponse* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_Originate<WithCallbackMethod_Execute<WithCallbackMethod_SetVariables<WithCallbackMethod_Bridge<WithCallbackMethod_BridgeCall<WithCallbackMethod_StopPlayback<WithCallbackMethod_Hangup<WithCallbackMethod_HangupMatchingVars<WithCallbackMethod_Queue<WithCallbackMethod_HangupMany<WithCallbackMethod_Hold<WithCallbackMethod_UnHold<WithCallbackMethod_SetProfileVar<WithCallbackMethod_ConfirmPush<WithCallbackMethod_Broadcast<WithCallbackMethod_SetEavesdropState<WithCallbackMethod_BlindTransfer<Service > > > > > > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_Originate : public BaseClass {
@@ -1476,6 +1547,23 @@ class Api final {
     }
     // disable synchronous version of this method
     ::grpc::Status SetEavesdropState(::grpc::ServerContext* /*context*/, const ::fs::SetEavesdropStateRequest* /*request*/, ::fs::SetEavesdropStateResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_BlindTransfer : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_BlindTransfer() {
+      ::grpc::Service::MarkMethodGeneric(16);
+    }
+    ~WithGenericMethod_BlindTransfer() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status BlindTransfer(::grpc::ServerContext* /*context*/, const ::fs::BlindTransferRequest* /*request*/, ::fs::BlindTransferResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1798,6 +1886,26 @@ class Api final {
     }
     void RequestSetEavesdropState(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(15, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_BlindTransfer : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_BlindTransfer() {
+      ::grpc::Service::MarkMethodRaw(16);
+    }
+    ~WithRawMethod_BlindTransfer() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status BlindTransfer(::grpc::ServerContext* /*context*/, const ::fs::BlindTransferRequest* /*request*/, ::fs::BlindTransferResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestBlindTransfer(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(16, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2150,6 +2258,28 @@ class Api final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* SetEavesdropState(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_BlindTransfer : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_BlindTransfer() {
+      ::grpc::Service::MarkMethodRawCallback(16,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->BlindTransfer(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_BlindTransfer() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status BlindTransfer(::grpc::ServerContext* /*context*/, const ::fs::BlindTransferRequest* /*request*/, ::fs::BlindTransferResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* BlindTransfer(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -2584,9 +2714,36 @@ class Api final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedSetEavesdropState(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::fs::SetEavesdropStateRequest,::fs::SetEavesdropStateResponse>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Originate<WithStreamedUnaryMethod_Execute<WithStreamedUnaryMethod_SetVariables<WithStreamedUnaryMethod_Bridge<WithStreamedUnaryMethod_BridgeCall<WithStreamedUnaryMethod_StopPlayback<WithStreamedUnaryMethod_Hangup<WithStreamedUnaryMethod_HangupMatchingVars<WithStreamedUnaryMethod_Queue<WithStreamedUnaryMethod_HangupMany<WithStreamedUnaryMethod_Hold<WithStreamedUnaryMethod_UnHold<WithStreamedUnaryMethod_SetProfileVar<WithStreamedUnaryMethod_ConfirmPush<WithStreamedUnaryMethod_Broadcast<WithStreamedUnaryMethod_SetEavesdropState<Service > > > > > > > > > > > > > > > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_BlindTransfer : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_BlindTransfer() {
+      ::grpc::Service::MarkMethodStreamed(16,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::fs::BlindTransferRequest, ::fs::BlindTransferResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::fs::BlindTransferRequest, ::fs::BlindTransferResponse>* streamer) {
+                       return this->StreamedBlindTransfer(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_BlindTransfer() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status BlindTransfer(::grpc::ServerContext* /*context*/, const ::fs::BlindTransferRequest* /*request*/, ::fs::BlindTransferResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedBlindTransfer(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::fs::BlindTransferRequest,::fs::BlindTransferResponse>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_Originate<WithStreamedUnaryMethod_Execute<WithStreamedUnaryMethod_SetVariables<WithStreamedUnaryMethod_Bridge<WithStreamedUnaryMethod_BridgeCall<WithStreamedUnaryMethod_StopPlayback<WithStreamedUnaryMethod_Hangup<WithStreamedUnaryMethod_HangupMatchingVars<WithStreamedUnaryMethod_Queue<WithStreamedUnaryMethod_HangupMany<WithStreamedUnaryMethod_Hold<WithStreamedUnaryMethod_UnHold<WithStreamedUnaryMethod_SetProfileVar<WithStreamedUnaryMethod_ConfirmPush<WithStreamedUnaryMethod_Broadcast<WithStreamedUnaryMethod_SetEavesdropState<WithStreamedUnaryMethod_BlindTransfer<Service > > > > > > > > > > > > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Originate<WithStreamedUnaryMethod_Execute<WithStreamedUnaryMethod_SetVariables<WithStreamedUnaryMethod_Bridge<WithStreamedUnaryMethod_BridgeCall<WithStreamedUnaryMethod_StopPlayback<WithStreamedUnaryMethod_Hangup<WithStreamedUnaryMethod_HangupMatchingVars<WithStreamedUnaryMethod_Queue<WithStreamedUnaryMethod_HangupMany<WithStreamedUnaryMethod_Hold<WithStreamedUnaryMethod_UnHold<WithStreamedUnaryMethod_SetProfileVar<WithStreamedUnaryMethod_ConfirmPush<WithStreamedUnaryMethod_Broadcast<WithStreamedUnaryMethod_SetEavesdropState<Service > > > > > > > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_Originate<WithStreamedUnaryMethod_Execute<WithStreamedUnaryMethod_SetVariables<WithStreamedUnaryMethod_Bridge<WithStreamedUnaryMethod_BridgeCall<WithStreamedUnaryMethod_StopPlayback<WithStreamedUnaryMethod_Hangup<WithStreamedUnaryMethod_HangupMatchingVars<WithStreamedUnaryMethod_Queue<WithStreamedUnaryMethod_HangupMany<WithStreamedUnaryMethod_Hold<WithStreamedUnaryMethod_UnHold<WithStreamedUnaryMethod_SetProfileVar<WithStreamedUnaryMethod_ConfirmPush<WithStreamedUnaryMethod_Broadcast<WithStreamedUnaryMethod_SetEavesdropState<WithStreamedUnaryMethod_BlindTransfer<Service > > > > > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace fs

@@ -19,6 +19,19 @@ service Api {
     rpc ConfirmPush(ConfirmPushRequest) returns (ConfirmPushResponse) {}
     rpc Broadcast(BroadcastRequest) returns (BroadcastResponse) {}
     rpc SetEavesdropState(SetEavesdropStateRequest) returns (SetEavesdropStateResponse) {}
+    rpc BlindTransfer(BlindTransferRequest) returns (BlindTransferResponse) {}
+}
+
+message BlindTransferRequest {
+    string id = 1;
+    string destination = 2;
+    map<string,string> variables = 3;
+    string dialplan = 4;
+    string context = 5;
+}
+
+message BlindTransferResponse {
+    ErrorExecute error = 1;
 }
 
 message SetEavesdropStateRequest {
