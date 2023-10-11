@@ -499,6 +499,13 @@ namespace mod_grpc {
                 }
             }
 
+            if (!request->variables().empty()) {
+                for (const auto &kv: request->variables()) {
+                    switch_channel_set_variable_var_check(chan_b_s, kv.first.c_str(), kv.second.c_str(), SWITCH_FALSE);
+                    switch_channel_set_variable_var_check(chan_a_s, kv.first.c_str(), kv.second.c_str(), SWITCH_FALSE);
+                }
+            }
+
             if ((status = switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str())) !=
                 SWITCH_STATUS_SUCCESS) {
                 // todo clean variables - transfer fail && rollback transfer recordings
