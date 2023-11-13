@@ -355,6 +355,17 @@ protected:
         return !event_->getVar("variable_sip_h_X-Webitel-Display-Direction").empty();
     }
 
+    void initContact() {
+        if (event_->getVar("variable_wbt_hide_contact") == "true") {
+            addAttribute("hide_contact", true);
+        }
+
+        auto contact = event_->getVar("variable_wbt_contact_id");
+        if (!contact.empty()){
+            addAttribute("contact_id", std::stoi( contact ));
+        }
+    }
+
     Info getCallInfo() {
         auto info = Info();
         if (parent_) {
@@ -597,6 +608,7 @@ public:
         }
 
         setBodyCallInfo(body_, &info);
+        initContact();
         //TODO
         delete info.from;
         delete info.to;
@@ -648,6 +660,7 @@ public:
         }
         //fixme: hold ui!!!
 
+        initContact();
         setVariables("variable_usr_", "payload", e_);
 
 //        DUMP_EVENT(e);
@@ -739,6 +752,7 @@ public:
 
         addIfExists(body_, "amd_result", "variable_amd_result");
         addIfExists(body_, "amd_cause", "variable_amd_cause");
+        initContact();
 
         auto record_seconds = get_str(switch_event_get_header(e, "variable_record_seconds"));
         if (!record_seconds.empty() && record_seconds != "0") {
