@@ -30,7 +30,7 @@ mod_grpc::CallManager::~CallManager() {
 
 void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
     try {
-        if (switch_false(switch_event_get_header(event, "variable_" SKIP_EVENT_VARIABLE))) {
+        if (event->event_id != SWITCH_EVENT_CHANNEL_HANGUP_COMPLETE && switch_false(switch_event_get_header(event, "variable_" SKIP_EVENT_VARIABLE))) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Skip event %s by variable\n", switch_event_name(event->event_id));
             return;
         }

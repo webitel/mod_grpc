@@ -742,6 +742,7 @@ public:
         auto wbt_transfer_to_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_to_attempt"));
         auto wbt_talk_sec = get_str(switch_event_get_header(e, "variable_wbt_talk_sec"));
         auto wbt_amd = get_str(switch_event_get_header(e, "variable_"  WBT_AMD_AI));
+        auto skip_cdr = switch_false(switch_event_get_header(e, "variable_" SKIP_EVENT_VARIABLE));
 
         auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
         if (!eavesdrop.empty()) {
@@ -749,6 +750,9 @@ public:
         }
 
 //        DUMP_EVENT(e);
+        if (skip_cdr) {
+            addAttribute("cdr", false);
+        }
 
         addIfExists(body_, "amd_result", "variable_amd_result");
         addIfExists(body_, "amd_cause", "variable_amd_cause");
