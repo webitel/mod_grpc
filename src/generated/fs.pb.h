@@ -5364,6 +5364,7 @@ class OriginateRequest final :
     kCallerNameFieldNumber = 7,
     kContextFieldNumber = 8,
     kDialplanFieldNumber = 9,
+    kCheckIdFieldNumber = 11,
     kStrategyFieldNumber = 3,
     kTimeoutFieldNumber = 5,
   };
@@ -5496,6 +5497,20 @@ class OriginateRequest final :
   std::string* _internal_mutable_dialplan();
   public:
 
+  // string check_id = 11;
+  void clear_check_id();
+  const std::string& check_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_check_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_check_id();
+  PROTOBUF_NODISCARD std::string* release_check_id();
+  void set_allocated_check_id(std::string* check_id);
+  private:
+  const std::string& _internal_check_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_check_id(const std::string& value);
+  std::string* _internal_mutable_check_id();
+  public:
+
   // .fs.OriginateRequest.Strategy strategy = 3;
   void clear_strategy();
   ::fs::OriginateRequest_Strategy strategy() const;
@@ -5534,6 +5549,7 @@ class OriginateRequest final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr callername_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr context_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dialplan_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr check_id_;
     int strategy_;
     int32_t timeout_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -10114,6 +10130,56 @@ inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::fs::OriginateRequest_E
 OriginateRequest::extensions() const {
   // @@protoc_insertion_point(field_list:fs.OriginateRequest.extensions)
   return _impl_.extensions_;
+}
+
+// string check_id = 11;
+inline void OriginateRequest::clear_check_id() {
+  _impl_.check_id_.ClearToEmpty();
+}
+inline const std::string& OriginateRequest::check_id() const {
+  // @@protoc_insertion_point(field_get:fs.OriginateRequest.check_id)
+  return _internal_check_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void OriginateRequest::set_check_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.check_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:fs.OriginateRequest.check_id)
+}
+inline std::string* OriginateRequest::mutable_check_id() {
+  std::string* _s = _internal_mutable_check_id();
+  // @@protoc_insertion_point(field_mutable:fs.OriginateRequest.check_id)
+  return _s;
+}
+inline const std::string& OriginateRequest::_internal_check_id() const {
+  return _impl_.check_id_.Get();
+}
+inline void OriginateRequest::_internal_set_check_id(const std::string& value) {
+  
+  _impl_.check_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* OriginateRequest::_internal_mutable_check_id() {
+  
+  return _impl_.check_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* OriginateRequest::release_check_id() {
+  // @@protoc_insertion_point(field_release:fs.OriginateRequest.check_id)
+  return _impl_.check_id_.Release();
+}
+inline void OriginateRequest::set_allocated_check_id(std::string* check_id) {
+  if (check_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.check_id_.SetAllocated(check_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.check_id_.IsDefault()) {
+    _impl_.check_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:fs.OriginateRequest.check_id)
 }
 
 // -------------------------------------------------------------------

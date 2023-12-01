@@ -481,6 +481,7 @@ PROTOBUF_CONSTEXPR OriginateRequest::OriginateRequest(
   , /*decltype(_impl_.callername_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.context_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.dialplan_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.check_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.strategy_)*/0
   , /*decltype(_impl_.timeout_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
@@ -913,6 +914,7 @@ const uint32_t TableStruct_fs_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(proto
   PROTOBUF_FIELD_OFFSET(::fs::OriginateRequest, _impl_.context_),
   PROTOBUF_FIELD_OFFSET(::fs::OriginateRequest, _impl_.dialplan_),
   PROTOBUF_FIELD_OFFSET(::fs::OriginateRequest, _impl_.extensions_),
+  PROTOBUF_FIELD_OFFSET(::fs::OriginateRequest, _impl_.check_id_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::fs::OriginateResponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -1026,15 +1028,15 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 260, -1, -1, sizeof(::fs::OriginateRequest_Extension)},
   { 268, 276, -1, sizeof(::fs::OriginateRequest_VariablesEntry_DoNotUse)},
   { 278, -1, -1, sizeof(::fs::OriginateRequest)},
-  { 294, -1, -1, sizeof(::fs::OriginateResponse)},
-  { 303, -1, -1, sizeof(::fs::BridgeRequest)},
-  { 312, -1, -1, sizeof(::fs::BridgeResponse)},
-  { 320, 328, -1, sizeof(::fs::SetVariablesRequest_VariablesEntry_DoNotUse)},
-  { 330, -1, -1, sizeof(::fs::SetVariablesRequest)},
-  { 338, -1, -1, sizeof(::fs::SetVariablesResponse)},
-  { 345, 353, -1, sizeof(::fs::HangupMatchingVarsReqeust_VariablesEntry_DoNotUse)},
-  { 355, -1, -1, sizeof(::fs::HangupMatchingVarsReqeust)},
-  { 363, -1, -1, sizeof(::fs::HangupMatchingVarsResponse)},
+  { 295, -1, -1, sizeof(::fs::OriginateResponse)},
+  { 304, -1, -1, sizeof(::fs::BridgeRequest)},
+  { 313, -1, -1, sizeof(::fs::BridgeResponse)},
+  { 321, 329, -1, sizeof(::fs::SetVariablesRequest_VariablesEntry_DoNotUse)},
+  { 331, -1, -1, sizeof(::fs::SetVariablesRequest)},
+  { 339, -1, -1, sizeof(::fs::SetVariablesResponse)},
+  { 346, 354, -1, sizeof(::fs::HangupMatchingVarsReqeust_VariablesEntry_DoNotUse)},
+  { 356, -1, -1, sizeof(::fs::HangupMatchingVarsReqeust)},
+  { 364, -1, -1, sizeof(::fs::HangupMatchingVarsResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -1133,7 +1135,7 @@ const char descriptor_table_protodef_fs_2eproto[] PROTOBUF_SECTION_VARIABLE(prot
   "\001(\010\0223\n\tvariables\030\004 \003(\0132 .fs.HangupReques"
   "t.VariablesEntry\0320\n\016VariablesEntry\022\013\n\003ke"
   "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"1\n\016HangupResp"
-  "onse\022\037\n\005error\030\001 \001(\0132\020.fs.ErrorExecute\"\273\003"
+  "onse\022\037\n\005error\030\001 \001(\0132\020.fs.ErrorExecute\"\315\003"
   "\n\020OriginateRequest\0226\n\tvariables\030\001 \003(\0132#."
   "fs.OriginateRequest.VariablesEntry\022\021\n\ten"
   "dpoints\030\002 \003(\t\022/\n\010strategy\030\003 \001(\0162\035.fs.Ori"
@@ -1141,58 +1143,58 @@ const char descriptor_table_protodef_fs_2eproto[] PROTOBUF_SECTION_VARIABLE(prot
   "\001(\t\022\017\n\007timeout\030\005 \001(\005\022\024\n\014callerNumber\030\006 \001"
   "(\t\022\022\n\ncallerName\030\007 \001(\t\022\017\n\007context\030\010 \001(\t\022"
   "\020\n\010dialplan\030\t \001(\t\0222\n\nextensions\030\n \003(\0132\036."
-  "fs.OriginateRequest.Extension\032*\n\tExtensi"
-  "on\022\017\n\007appName\030\001 \001(\t\022\014\n\004args\030\002 \001(\t\0320\n\016Var"
-  "iablesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:"
-  "\0028\001\"&\n\010Strategy\022\014\n\010FAILOVER\020\000\022\014\n\010MULTIPL"
-  "E\020\001\"V\n\021OriginateResponse\022\014\n\004uuid\030\001 \001(\t\022\037"
-  "\n\005error\030\002 \001(\0132\020.fs.ErrorExecute\022\022\n\nerror"
-  "_code\030\003 \001(\005\"M\n\rBridgeRequest\022\020\n\010leg_a_id"
-  "\030\001 \001(\t\022\020\n\010leg_b_id\030\002 \001(\t\022\030\n\020leg_b_reserv"
-  "e_id\030\003 \001(\t\"\?\n\016BridgeResponse\022\014\n\004uuid\030\001 \001"
-  "(\t\022\037\n\005error\030\002 \001(\0132\020.fs.ErrorExecute\"\220\001\n\023"
-  "SetVariablesRequest\022\014\n\004uuid\030\001 \001(\t\0229\n\tvar"
-  "iables\030\002 \003(\0132&.fs.SetVariablesRequest.Va"
-  "riablesEntry\0320\n\016VariablesEntry\022\013\n\003key\030\001 "
-  "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"7\n\024SetVariablesRe"
-  "sponse\022\037\n\005error\030\001 \001(\0132\020.fs.ErrorExecute\""
-  "\235\001\n\031HangupMatchingVarsReqeust\022\r\n\005cause\030\001"
-  " \001(\t\022\?\n\tvariables\030\002 \003(\0132,.fs.HangupMatch"
-  "ingVarsReqeust.VariablesEntry\0320\n\016Variabl"
-  "esEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\""
-  "+\n\032HangupMatchingVarsResponse\022\r\n\005count\030\001"
-  " \001(\0052\256\010\n\003Api\022:\n\tOriginate\022\024.fs.Originate"
-  "Request\032\025.fs.OriginateResponse\"\000\0224\n\007Exec"
-  "ute\022\022.fs.ExecuteRequest\032\023.fs.ExecuteResp"
-  "onse\"\000\022C\n\014SetVariables\022\027.fs.SetVariables"
-  "Request\032\030.fs.SetVariablesResponse\"\000\0221\n\006B"
-  "ridge\022\021.fs.BridgeRequest\032\022.fs.BridgeResp"
-  "onse\"\000\022=\n\nBridgeCall\022\025.fs.BridgeCallRequ"
-  "est\032\026.fs.BridgeCallResponse\"\000\022C\n\014StopPla"
-  "yback\022\027.fs.StopPlaybackRequest\032\030.fs.Stop"
-  "PlaybackResponse\"\000\0221\n\006Hangup\022\021.fs.Hangup"
-  "Request\032\022.fs.HangupResponse\"\000\022U\n\022HangupM"
-  "atchingVars\022\035.fs.HangupMatchingVarsReqeu"
-  "st\032\036.fs.HangupMatchingVarsResponse\"\000\022.\n\005"
-  "Queue\022\020.fs.QueueRequest\032\021.fs.QueueRespon"
-  "se\"\000\022=\n\nHangupMany\022\025.fs.HangupManyReques"
-  "t\032\026.fs.HangupManyResponse\"\000\022+\n\004Hold\022\017.fs"
-  ".HoldRequest\032\020.fs.HoldResponse\"\000\0221\n\006UnHo"
-  "ld\022\021.fs.UnHoldRequest\032\022.fs.UnHoldRespons"
-  "e\"\000\022F\n\rSetProfileVar\022\030.fs.SetProfileVarR"
-  "equest\032\031.fs.SetProfileVarResponse\"\000\022@\n\013C"
-  "onfirmPush\022\026.fs.ConfirmPushRequest\032\027.fs."
-  "ConfirmPushResponse\"\000\022:\n\tBroadcast\022\024.fs."
-  "BroadcastRequest\032\025.fs.BroadcastResponse\""
-  "\000\022R\n\021SetEavesdropState\022\034.fs.SetEavesdrop"
-  "StateRequest\032\035.fs.SetEavesdropStateRespo"
-  "nse\"\000\022F\n\rBlindTransfer\022\030.fs.BlindTransfe"
-  "rRequest\032\031.fs.BlindTransferResponse\"\000b\006p"
-  "roto3"
+  "fs.OriginateRequest.Extension\022\020\n\010check_i"
+  "d\030\013 \001(\t\032*\n\tExtension\022\017\n\007appName\030\001 \001(\t\022\014\n"
+  "\004args\030\002 \001(\t\0320\n\016VariablesEntry\022\013\n\003key\030\001 \001"
+  "(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"&\n\010Strategy\022\014\n\010FAI"
+  "LOVER\020\000\022\014\n\010MULTIPLE\020\001\"V\n\021OriginateRespon"
+  "se\022\014\n\004uuid\030\001 \001(\t\022\037\n\005error\030\002 \001(\0132\020.fs.Err"
+  "orExecute\022\022\n\nerror_code\030\003 \001(\005\"M\n\rBridgeR"
+  "equest\022\020\n\010leg_a_id\030\001 \001(\t\022\020\n\010leg_b_id\030\002 \001"
+  "(\t\022\030\n\020leg_b_reserve_id\030\003 \001(\t\"\?\n\016BridgeRe"
+  "sponse\022\014\n\004uuid\030\001 \001(\t\022\037\n\005error\030\002 \001(\0132\020.fs"
+  ".ErrorExecute\"\220\001\n\023SetVariablesRequest\022\014\n"
+  "\004uuid\030\001 \001(\t\0229\n\tvariables\030\002 \003(\0132&.fs.SetV"
+  "ariablesRequest.VariablesEntry\0320\n\016Variab"
+  "lesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001"
+  "\"7\n\024SetVariablesResponse\022\037\n\005error\030\001 \001(\0132"
+  "\020.fs.ErrorExecute\"\235\001\n\031HangupMatchingVars"
+  "Reqeust\022\r\n\005cause\030\001 \001(\t\022\?\n\tvariables\030\002 \003("
+  "\0132,.fs.HangupMatchingVarsReqeust.Variabl"
+  "esEntry\0320\n\016VariablesEntry\022\013\n\003key\030\001 \001(\t\022\r"
+  "\n\005value\030\002 \001(\t:\0028\001\"+\n\032HangupMatchingVarsR"
+  "esponse\022\r\n\005count\030\001 \001(\0052\256\010\n\003Api\022:\n\tOrigin"
+  "ate\022\024.fs.OriginateRequest\032\025.fs.Originate"
+  "Response\"\000\0224\n\007Execute\022\022.fs.ExecuteReques"
+  "t\032\023.fs.ExecuteResponse\"\000\022C\n\014SetVariables"
+  "\022\027.fs.SetVariablesRequest\032\030.fs.SetVariab"
+  "lesResponse\"\000\0221\n\006Bridge\022\021.fs.BridgeReque"
+  "st\032\022.fs.BridgeResponse\"\000\022=\n\nBridgeCall\022\025"
+  ".fs.BridgeCallRequest\032\026.fs.BridgeCallRes"
+  "ponse\"\000\022C\n\014StopPlayback\022\027.fs.StopPlaybac"
+  "kRequest\032\030.fs.StopPlaybackResponse\"\000\0221\n\006"
+  "Hangup\022\021.fs.HangupRequest\032\022.fs.HangupRes"
+  "ponse\"\000\022U\n\022HangupMatchingVars\022\035.fs.Hangu"
+  "pMatchingVarsReqeust\032\036.fs.HangupMatching"
+  "VarsResponse\"\000\022.\n\005Queue\022\020.fs.QueueReques"
+  "t\032\021.fs.QueueResponse\"\000\022=\n\nHangupMany\022\025.f"
+  "s.HangupManyRequest\032\026.fs.HangupManyRespo"
+  "nse\"\000\022+\n\004Hold\022\017.fs.HoldRequest\032\020.fs.Hold"
+  "Response\"\000\0221\n\006UnHold\022\021.fs.UnHoldRequest\032"
+  "\022.fs.UnHoldResponse\"\000\022F\n\rSetProfileVar\022\030"
+  ".fs.SetProfileVarRequest\032\031.fs.SetProfile"
+  "VarResponse\"\000\022@\n\013ConfirmPush\022\026.fs.Confir"
+  "mPushRequest\032\027.fs.ConfirmPushResponse\"\000\022"
+  ":\n\tBroadcast\022\024.fs.BroadcastRequest\032\025.fs."
+  "BroadcastResponse\"\000\022R\n\021SetEavesdropState"
+  "\022\034.fs.SetEavesdropStateRequest\032\035.fs.SetE"
+  "avesdropStateResponse\"\000\022F\n\rBlindTransfer"
+  "\022\030.fs.BlindTransferRequest\032\031.fs.BlindTra"
+  "nsferResponse\"\000b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_fs_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_fs_2eproto = {
-    false, false, 4125, descriptor_table_protodef_fs_2eproto,
+    false, false, 4143, descriptor_table_protodef_fs_2eproto,
     "fs.proto",
     &descriptor_table_fs_2eproto_once, nullptr, 0, 44,
     schemas, file_default_instances, TableStruct_fs_2eproto::offsets,
@@ -7769,6 +7771,7 @@ OriginateRequest::OriginateRequest(const OriginateRequest& from)
     , decltype(_impl_.callername_){}
     , decltype(_impl_.context_){}
     , decltype(_impl_.dialplan_){}
+    , decltype(_impl_.check_id_){}
     , decltype(_impl_.strategy_){}
     , decltype(_impl_.timeout_){}
     , /*decltype(_impl_._cached_size_)*/{}};
@@ -7815,6 +7818,14 @@ OriginateRequest::OriginateRequest(const OriginateRequest& from)
     _this->_impl_.dialplan_.Set(from._internal_dialplan(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.check_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.check_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_check_id().empty()) {
+    _this->_impl_.check_id_.Set(from._internal_check_id(), 
+      _this->GetArenaForAllocation());
+  }
   ::memcpy(&_impl_.strategy_, &from._impl_.strategy_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.timeout_) -
     reinterpret_cast<char*>(&_impl_.strategy_)) + sizeof(_impl_.timeout_));
@@ -7834,6 +7845,7 @@ inline void OriginateRequest::SharedCtor(
     , decltype(_impl_.callername_){}
     , decltype(_impl_.context_){}
     , decltype(_impl_.dialplan_){}
+    , decltype(_impl_.check_id_){}
     , decltype(_impl_.strategy_){0}
     , decltype(_impl_.timeout_){0}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -7858,6 +7870,10 @@ inline void OriginateRequest::SharedCtor(
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.dialplan_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.check_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.check_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 OriginateRequest::~OriginateRequest() {
@@ -7881,6 +7897,7 @@ inline void OriginateRequest::SharedDtor() {
   _impl_.callername_.Destroy();
   _impl_.context_.Destroy();
   _impl_.dialplan_.Destroy();
+  _impl_.check_id_.Destroy();
 }
 
 void OriginateRequest::ArenaDtor(void* object) {
@@ -7905,6 +7922,7 @@ void OriginateRequest::Clear() {
   _impl_.callername_.ClearToEmpty();
   _impl_.context_.ClearToEmpty();
   _impl_.dialplan_.ClearToEmpty();
+  _impl_.check_id_.ClearToEmpty();
   ::memset(&_impl_.strategy_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.timeout_) -
       reinterpret_cast<char*>(&_impl_.strategy_)) + sizeof(_impl_.timeout_));
@@ -8022,6 +8040,16 @@ const char* OriginateRequest::_InternalParse(const char* ptr, ::_pbi::ParseConte
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<82>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // string check_id = 11;
+      case 11:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
+          auto str = _internal_mutable_check_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "fs.OriginateRequest.check_id"));
         } else
           goto handle_unusual;
         continue;
@@ -8165,6 +8193,16 @@ uint8_t* OriginateRequest::_InternalSerialize(
         InternalWriteMessage(10, repfield, repfield.GetCachedSize(), target, stream);
   }
 
+  // string check_id = 11;
+  if (!this->_internal_check_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_check_id().data(), static_cast<int>(this->_internal_check_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "fs.OriginateRequest.check_id");
+    target = stream->WriteStringMaybeAliased(
+        11, this->_internal_check_id(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -8240,6 +8278,13 @@ size_t OriginateRequest::ByteSizeLong() const {
         this->_internal_dialplan());
   }
 
+  // string check_id = 11;
+  if (!this->_internal_check_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_check_id());
+  }
+
   // .fs.OriginateRequest.Strategy strategy = 3;
   if (this->_internal_strategy() != 0) {
     total_size += 1 +
@@ -8286,6 +8331,9 @@ void OriginateRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const
   }
   if (!from._internal_dialplan().empty()) {
     _this->_internal_set_dialplan(from._internal_dialplan());
+  }
+  if (!from._internal_check_id().empty()) {
+    _this->_internal_set_check_id(from._internal_check_id());
   }
   if (from._internal_strategy() != 0) {
     _this->_internal_set_strategy(from._internal_strategy());
@@ -8334,6 +8382,10 @@ void OriginateRequest::InternalSwap(OriginateRequest* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.dialplan_, lhs_arena,
       &other->_impl_.dialplan_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.check_id_, lhs_arena,
+      &other->_impl_.check_id_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(OriginateRequest, _impl_.timeout_)

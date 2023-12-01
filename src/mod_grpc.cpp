@@ -145,6 +145,21 @@ namespace mod_grpc {
         }
 
         reply->set_uuid(switch_core_session_get_uuid(caller_session));
+        if (caller_session && !request->check_id().empty()) {
+            switch_core_session_t *check_session = switch_core_session_locate(request->check_id().c_str());
+            bool hangup = !check_session;
+            if (check_session) {
+                switch_channel_t *check_channel = switch_core_session_get_channel(caller_session);
+                hangup = !switch_channel_ready(caller_channel);
+                switch_core_session_rwunlock(check_session);
+            }
+
+            if (hangup) {
+                switch_channel_hangup(caller_channel, SWITCH_CAUSE_ORIGINATOR_CANCEL);
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "Originate error, not found check id %s\n",
+                                  request->check_id().c_str());
+            }
+        }
 
         switch_core_session_rwunlock(caller_session);
 

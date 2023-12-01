@@ -178,6 +178,7 @@ message OriginateRequest {
     string context = 8;
     string dialplan = 9;
     repeated Extension extensions = 10;
+    string check_id = 11;
 }
 
 message OriginateResponse {
