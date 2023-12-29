@@ -1252,18 +1252,25 @@ namespace mod_grpc {
                 try {
                     switch_core_session_get_read_impl(ud->session, &ud->read_impl);
 
-                    auto thresh = switch_channel_get_variable(ud->channel, "wbt_ai_vad_threshold");
-                    if (thresh) {
-                        auto t = atoi(thresh);
-                        if (t) {
+                    auto var = switch_channel_get_variable(ud->channel, "wbt_ai_vad_threshold");
+                    if (var) {
+                        auto tmp = atoi(var);
+                        if (tmp) {
                             ud->vad = switch_vad_init((int) ud->read_impl.actual_samples_per_second, 1);
                             ud->stop_vad_on_answer =
                                     switch_true(switch_channel_get_variable(ud->channel, "wbt_ai_vad_stop_on_answer")) == 1;
-                            switch_vad_set_param(ud->vad, "thresh", t);
+                            switch_vad_set_param(ud->vad, "thresh", tmp);
                             switch_log_printf(
                                     SWITCH_CHANNEL_SESSION_LOG(ud->session),
                                     SWITCH_LOG_DEBUG,
-                                    "amd use vad thresh %d \n", t);
+                                    "amd use vad thresh %d \n", tmp);
+
+                            if ((var = switch_channel_get_variable(ud->channel, "wbt_ai_vad_debug"))) {
+                                tmp = atoi(var);
+                                if (tmp < 0) tmp = 0;
+
+                                switch_vad_set_param(ud->vad, "debug", tmp);
+                            };
                         }
                     }
 
