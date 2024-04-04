@@ -162,14 +162,14 @@ public:
         cJSON_AddItemToObject(body_, header, attr);
     }
 
-    void addArrayValue(switch_event_header_t *e, const char *var_name) {
+    void addArrayValue(switch_event_header_t *e, const char *var_name, bool number) {
         cJSON *arr = cJSON_CreateArray();
         if (e->idx) {
             for (int i = 0; i < e->idx; i++) {
-                cJSON_AddItemToArray(arr, cJSON_CreateString(e->array[i]));
+                cJSON_AddItemToArray(arr, number ? cJSON_CreateNumber(std::atof(e->array[i])) : cJSON_CreateString(e->array[i]));
             }
         } else if (e->value) {
-            cJSON_AddItemToArray(arr, cJSON_CreateString(e->value));
+            cJSON_AddItemToArray(arr, number ? cJSON_CreateNumber(std::atof(e->value)) : cJSON_CreateString(e->value));
         }
         addAttribute(var_name, arr);
     }
@@ -837,7 +837,12 @@ public:
 
         auto hp = switch_event_get_header_ptr(e, "variable_wbt_tags");
         if (hp) {
-            addArrayValue(hp, "tags");
+            addArrayValue(hp, "tags", false);
+        }
+
+        auto sids = switch_event_get_header_ptr(e, "variable_wbt_schema_ids");
+        if (sids) {
+            addArrayValue(sids, "schema_ids", true);
         }
 
         if (!wbt_amd.empty()) {
@@ -846,7 +851,7 @@ public:
             addAttribute( "amd_ai_positive", positive == "true");
             hp = switch_event_get_header_ptr(e, "variable_" WBT_AMD_AI_LOG);
             if (hp) {
-                addArrayValue(hp, "amd_ai_logs");
+                addArrayValue(hp, "amd_ai_logs", false);
             }
         }
     };
