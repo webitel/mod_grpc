@@ -6,19 +6,19 @@
 #include "fs.grpc.pb.h"
 
 #include <functional>
-#include <grpcpp/impl/codegen/async_stream.h>
-#include <grpcpp/impl/codegen/async_unary_call.h>
-#include <grpcpp/impl/codegen/channel_interface.h>
-#include <grpcpp/impl/codegen/client_unary_call.h>
-#include <grpcpp/impl/codegen/client_callback.h>
-#include <grpcpp/impl/codegen/message_allocator.h>
-#include <grpcpp/impl/codegen/method_handler.h>
-#include <grpcpp/impl/codegen/rpc_service_method.h>
-#include <grpcpp/impl/codegen/server_callback.h>
-#include <grpcpp/impl/codegen/server_callback_handlers.h>
-#include <grpcpp/impl/codegen/server_context.h>
-#include <grpcpp/impl/codegen/service_type.h>
-#include <grpcpp/impl/codegen/sync_stream.h>
+#include <grpcpp/support/async_stream.h>
+#include <grpcpp/support/async_unary_call.h>
+#include <grpcpp/impl/channel_interface.h>
+#include <grpcpp/impl/client_unary_call.h>
+#include <grpcpp/support/client_callback.h>
+#include <grpcpp/support/message_allocator.h>
+#include <grpcpp/support/method_handler.h>
+#include <grpcpp/impl/rpc_service_method.h>
+#include <grpcpp/support/server_callback.h>
+#include <grpcpp/impl/server_callback_handlers.h>
+#include <grpcpp/server_context.h>
+#include <grpcpp/impl/service_type.h>
+#include <grpcpp/support/sync_stream.h>
 namespace fs {
 
 static const char* Api_method_names[] = {
@@ -39,6 +39,7 @@ static const char* Api_method_names[] = {
   "/fs.Api/Broadcast",
   "/fs.Api/SetEavesdropState",
   "/fs.Api/BlindTransfer",
+  "/fs.Api/BreakPark",
 };
 
 std::unique_ptr< Api::Stub> Api::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -65,6 +66,7 @@ Api::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const
   , rpcmethod_Broadcast_(Api_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_SetEavesdropState_(Api_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_BlindTransfer_(Api_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_BreakPark_(Api_method_names[17], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status Api::Stub::Originate(::grpc::ClientContext* context, const ::fs::OriginateRequest& request, ::fs::OriginateResponse* response) {
@@ -458,6 +460,29 @@ void Api::Stub::async::BlindTransfer(::grpc::ClientContext* context, const ::fs:
   return result;
 }
 
+::grpc::Status Api::Stub::BreakPark(::grpc::ClientContext* context, const ::fs::BreakParkRequest& request, ::fs::BreakParkResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::fs::BreakParkRequest, ::fs::BreakParkResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_BreakPark_, context, request, response);
+}
+
+void Api::Stub::async::BreakPark(::grpc::ClientContext* context, const ::fs::BreakParkRequest* request, ::fs::BreakParkResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::fs::BreakParkRequest, ::fs::BreakParkResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_BreakPark_, context, request, response, std::move(f));
+}
+
+void Api::Stub::async::BreakPark(::grpc::ClientContext* context, const ::fs::BreakParkRequest* request, ::fs::BreakParkResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_BreakPark_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::fs::BreakParkResponse>* Api::Stub::PrepareAsyncBreakParkRaw(::grpc::ClientContext* context, const ::fs::BreakParkRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::fs::BreakParkResponse, ::fs::BreakParkRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_BreakPark_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::fs::BreakParkResponse>* Api::Stub::AsyncBreakParkRaw(::grpc::ClientContext* context, const ::fs::BreakParkRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncBreakParkRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 Api::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Api_method_names[0],
@@ -629,6 +654,16 @@ Api::Service::Service() {
              ::fs::BlindTransferResponse* resp) {
                return service->BlindTransfer(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      Api_method_names[17],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< Api::Service, ::fs::BreakParkRequest, ::fs::BreakParkResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](Api::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::fs::BreakParkRequest* req,
+             ::fs::BreakParkResponse* resp) {
+               return service->BreakPark(ctx, req, resp);
+             }, this)));
 }
 
 Api::Service::~Service() {
@@ -747,6 +782,13 @@ Api::Service::~Service() {
 }
 
 ::grpc::Status Api::Service::BlindTransfer(::grpc::ServerContext* context, const ::fs::BlindTransferRequest* request, ::fs::BlindTransferResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status Api::Service::BreakPark(::grpc::ServerContext* context, const ::fs::BreakParkRequest* request, ::fs::BreakParkResponse* response) {
   (void) context;
   (void) request;
   (void) response;

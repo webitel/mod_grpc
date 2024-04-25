@@ -739,6 +739,29 @@ namespace mod_grpc {
         return Status::OK;
     }
 
+    Status ApiServiceImpl::BreakPark(::grpc::ServerContext *context, const ::fs::BreakParkRequest *request,
+                                     ::fs::BreakParkResponse *response) {
+        response->set_ok(false);
+
+        if (!request->id().empty()) {
+            switch_core_session_t *session;
+            session = switch_core_session_locate(request->id().c_str());
+            if (session) {
+                switch_channel_t *channel = switch_core_session_get_channel(session);
+
+                if (switch_channel_test_flag(channel, CF_PARK)) {
+                    switch_channel_clear_flag(channel, CF_PARK);
+                    response->set_ok(true);
+                }
+
+                switch_core_session_rwunlock(session);
+                return Status::OK;
+            }
+        }
+
+        return Status::OK;
+    }
+
     ServerImpl::ServerImpl(Config config_) {
         if (!config_.grpc_host) {
             char ipV4_[80];

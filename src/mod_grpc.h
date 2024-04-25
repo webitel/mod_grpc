@@ -117,6 +117,8 @@ namespace mod_grpc {
 
         Status BlindTransfer(::grpc::ServerContext* context, const ::fs::BlindTransferRequest* request, ::fs::BlindTransferResponse* response) override;
 
+        Status BreakPark(::grpc::ServerContext* context, const ::fs::BreakParkRequest* request, ::fs::BreakParkResponse* response) override;
+
     };
 
     struct PushData {

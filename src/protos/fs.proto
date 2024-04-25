@@ -20,6 +20,15 @@ service Api {
     rpc Broadcast(BroadcastRequest) returns (BroadcastResponse) {}
     rpc SetEavesdropState(SetEavesdropStateRequest) returns (SetEavesdropStateResponse) {}
     rpc BlindTransfer(BlindTransferRequest) returns (BlindTransferResponse) {}
+    rpc BreakPark(BreakParkRequest) returns (BreakParkResponse) {}
+}
+
+message BreakParkRequest {
+    string id = 1;
+    map<string,string> variables = 2;
+}
+message BreakParkResponse {
+    bool ok = 1;
 }
 
 message BlindTransferRequest {
