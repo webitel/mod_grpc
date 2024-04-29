@@ -16,6 +16,7 @@ mod_grpc::CallManager::CallManager() {
 //    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_NOTALK, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_RECORD_START, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_RECORD_STOP, nullptr, CallManager::handle_call_event, nullptr);
+    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_SESSION_HEARTBEAT, nullptr, CallManager::handle_call_event, nullptr);
 
 //    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_EXECUTE, nullptr, CallManager::handle_call_event, nullptr);
 
@@ -96,6 +97,10 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
 
             case SWITCH_EVENT_NOTALK:
                 CallEvent<Silence>(event).fire();
+                break;
+
+            case SWITCH_EVENT_SESSION_HEARTBEAT:
+                CallEvent<Heartbeat>(event).fire();
                 break;
 
             case SWITCH_EVENT_CHANNEL_EXECUTE:

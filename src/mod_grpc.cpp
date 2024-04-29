@@ -926,6 +926,13 @@ namespace mod_grpc {
                         2000,
                         nullptr, "push_wait_callback", "Push wait callback time"),
                 SWITCH_CONFIG_ITEM(
+                        "heartbeat",
+                        SWITCH_CONFIG_INT,
+                        CONFIG_RELOADABLE,
+                        &config.heartbeat,
+                        0,
+                        nullptr, "heartbeat", "Enable Media Heartbeat"),
+                SWITCH_CONFIG_ITEM(
                         "push_fcm_enabled",
                         SWITCH_CONFIG_BOOL,
                         CONFIG_RELOADABLE,
@@ -1177,6 +1184,15 @@ namespace mod_grpc {
             }
         }
         switch_channel_set_variable(channel, WBT_TALK_SEC, std::to_string(static_cast<int>(talk / 1000000)).c_str());
+        return SWITCH_STATUS_SUCCESS;
+    }
+
+    static switch_status_t wbt_tweaks_on_init(switch_core_session_t *session) {
+        if (heartbeat_interval) {
+            auto channel = switch_core_session_get_channel(session);
+            switch_core_session_enable_heartbeat(session, heartbeat_interval);
+            switch_channel_set_variable_var_check(channel, "wbt_heartbeat", std::to_string(heartbeat_interval).c_str(), SWITCH_FALSE);
+        }
         return SWITCH_STATUS_SUCCESS;
     }
 
@@ -1628,8 +1644,15 @@ namespace mod_grpc {
     SWITCH_MODULE_LOAD_FUNCTION(mod_grpc_load) {
         try {
             *module_interface = switch_loadable_module_create_module_interface(pool, modname);
+            auto config = loadConfig();
             switch_application_interface_t *app_interface;
             switch_api_interface_t *api_interface;
+            heartbeat_interval = 0;
+            if (config.heartbeat) {
+                heartbeat_interval = config.heartbeat;
+                wbt_state_handlers.on_init = wbt_tweaks_on_init;
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Use session heartbeat, %d seconds\n", heartbeat_interval);
+            }
             switch_core_add_state_handler(&wbt_state_handlers);
             SWITCH_ADD_API(api_interface, "wbt_version", "Show build version", version_api_function, "");
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
@@ -1649,7 +1672,7 @@ namespace mod_grpc {
 
             switch_event_reserve_subclass("SWITCH_EVENT_CUSTOM::" EVENT_NAME);
 
-            server_ = new ServerImpl(loadConfig());
+            server_ = new ServerImpl(config);
 
             server_->Run();
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed FCM=%d APN=%d\n", server_->UseFCM(), server_->UseAPN());

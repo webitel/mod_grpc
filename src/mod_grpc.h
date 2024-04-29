@@ -44,6 +44,8 @@ namespace mod_grpc {
     };
 
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);
+    static switch_status_t wbt_tweaks_on_init(switch_core_session_t *session);
+    int heartbeat_interval = 0;
     static switch_state_handler_table_t wbt_state_handlers = {
             /*.on_init */ NULL,
             /*.on_routing */ NULL,
@@ -137,6 +139,7 @@ namespace mod_grpc {
         char const *amd_ai_address;
         char const *grpc_host;
         int grpc_port;
+        int heartbeat;
 
         int auto_answer_delay;
 
