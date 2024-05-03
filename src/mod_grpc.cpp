@@ -1384,7 +1384,14 @@ namespace mod_grpc {
                     }
 
                     switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, !skip_hangup ? "false" : "true");
-                    amd_fire_event(ud->channel);
+                    if (switch_channel_ready(ud->channel)) {
+                        amd_fire_event(ud->channel);
+                    } else {
+                        switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                SWITCH_LOG_WARNING,
+                                "GRPC stream: skip amd event, channel state is hangup \n");
+                    }
                     if (!skip_hangup) {
                         switch_channel_hangup(ud->channel, SWITCH_CAUSE_NORMAL_UNSPECIFIED);
                     }
