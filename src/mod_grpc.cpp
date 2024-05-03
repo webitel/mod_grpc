@@ -1383,8 +1383,9 @@ namespace mod_grpc {
                                 "ML amd result: %s [%s]\n", amd_result.c_str(), s.c_str());
                     }
 
-                    switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, !skip_hangup ? "false" : "true");
-                    if (switch_channel_ready(ud->channel)) {
+                    auto ready = switch_channel_ready(ud->channel);
+                    switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, !ready || !skip_hangup ? "false" : "true");
+                    if (ready) {
                         amd_fire_event(ud->channel);
                     } else {
                         switch_log_printf(

@@ -1,3 +1,3 @@
 #bash
-protoc --proto_path=src/protos --cpp_out=src/generated src/protos/*.proto
-protoc --proto_path=src/protos --grpc_out=src/generated --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin src/protos/*.proto
+ /home/igor/work/mod_grpc/cmake-build-debug/third_party/grpc/third_party/protobuf/protoc --proto_path=src/protos --cpp_out=src/generated src/protos/*.proto
+/home/igor/work/mod_grpc/cmake-build-debug/third_party/grpc/third_party/protobuf/protoc --proto_path=src/protos --grpc_out=src/generated --plugin=protoc-gen-grpc=/home/igor/work/mod_grpc/cmake-build-debug/third_party/grpc/grpc_cpp_plugin src/protos/*.proto
