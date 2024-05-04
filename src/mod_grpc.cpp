@@ -1338,10 +1338,6 @@ namespace mod_grpc {
                         switch_resample_destroy(&ud->resampler);
                     }
 
-                    if (ud->vad) {
-                        switch_vad_destroy(&ud->vad);
-                    }
-
                     ud->client_->Finish();
 
                     std::string amd_result;
@@ -1350,20 +1346,25 @@ namespace mod_grpc {
                     bool skip_hangup = false;
 
                     if (ud->client_->reply.result().empty()) {
-                        // TODO
-                        skip_hangup = true;
                         amd_result = "undefined";
-                        switch_channel_set_variable(ud->channel, "execute_on_answer", NULL); // TODO
-                        do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
+                        if (ud->vad && switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
+                            amd_result = "silence";
+                        }
+//                        switch_channel_set_variable(ud->channel, "execute_on_answer", NULL); // TODO
                     } else {
                         amd_result = ud->client_->reply.result();
-                        for (auto &l : ud->positive) {
-                            if (l == amd_result) {
-                                skip_hangup = true;
-                                do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
-                                break;
-                            }
+                    }
+
+                    for (auto &l : ud->positive) {
+                        if (l == amd_result) {
+                            skip_hangup = true;
+                            do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
+                            break;
                         }
+                    }
+
+                    if (ud->vad) {
+                        switch_vad_destroy(&ud->vad);
                     }
 
                     switch_channel_set_variable(ud->channel, WBT_AMD_AI, amd_result.c_str());
