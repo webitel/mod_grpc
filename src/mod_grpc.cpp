@@ -1311,6 +1311,18 @@ namespace mod_grpc {
                                 switch_vad_set_param(ud->vad, "debug", tmp);
                             };
                         }
+                        var = switch_channel_get_variable(ud->channel, "wbt_vad_max_silence_sec");
+                        if (var) {
+                            tmp = atoi(var);
+                            if (tmp) {
+                                ud->max_silence_sec = tmp;
+                                switch_log_printf(
+                                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                        SWITCH_LOG_DEBUG,
+                                        "amd use vad maximum silence seconds %d \n", tmp);
+                            }
+                        }
+
                     }
 
                     if (ud->read_impl.actual_samples_per_second != MODEL_RATE) {
@@ -1421,7 +1433,7 @@ namespace mod_grpc {
                 try {
                     status = switch_core_media_bug_read(bug, &read_frame, SWITCH_FALSE);
                     if (status != SWITCH_STATUS_SUCCESS && status != SWITCH_STATUS_BREAK) {
-                        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "switch_core_media_bug_read SWITCH_TRUE \n");
+                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "switch_core_media_bug_read SWITCH_TRUE \n");
                         return SWITCH_TRUE;
                     };
 
@@ -1436,9 +1448,21 @@ namespace mod_grpc {
                             vad_state = switch_vad_process(ud->vad, (int16_t *) read_frame.data,
                                                            read_frame.datalen / 2);
                             if (vad_state == SWITCH_VAD_STATE_STOP_TALKING) {
-                                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "amd vad reset: %s\n",
+                                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "amd vad reset: %s\n",
                                                   switch_vad_state2str(vad_state));
                                 switch_vad_reset(ud->vad);
+                            }
+
+                            if (ud->max_silence_sec) {
+                                ud->frame_ms = 1000 / (ud->read_impl.actual_samples_per_second / read_frame.samples);
+                                if (vad_state == SWITCH_VAD_STATE_NONE) {
+                                    ud->silence_ms += ud->frame_ms;
+                                } else {
+                                    ud->silence_ms = 0;
+                                }
+
+                                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "amd vad state: %s [silence = %d]\n",
+                                                  switch_vad_state2str(vad_state), ud->silence_ms / 1000);
                             }
                         }
                     }
@@ -1456,6 +1480,11 @@ namespace mod_grpc {
 
                     if (ud->client_->Finished()) {
                         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Finished\n");
+                        return SWITCH_FALSE;
+                    }
+
+                    if (ud->max_silence_sec && ud->max_silence_sec <= (ud->silence_ms / 1000)) {
+                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "Maximum silence seconds\n");
                         return SWITCH_FALSE;
                     }
 
@@ -1514,6 +1543,8 @@ namespace mod_grpc {
         ud->positive = std::move(positive_labels);
         ud->client_ = server_->AsyncStreamPCMA(domain_id, switch_channel_get_uuid(channel), switch_channel_get_uuid(channel), MODEL_RATE);
         ud->vad = nullptr;
+        ud->max_silence_sec = 0;
+        ud->silence_ms = 0;
 
         if (!ud->client_) {
             err = "ai_create_client";

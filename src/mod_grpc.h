@@ -41,6 +41,9 @@ namespace mod_grpc {
         AsyncClientCall* client_;
         switch_vad_t *vad;
         bool stop_vad_on_answer;
+        int max_silence_sec;
+        int silence_ms;
+        int frame_ms;
     };
 
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);
