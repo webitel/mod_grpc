@@ -754,6 +754,10 @@ public:
         auto wbt_talk_sec = get_str(switch_event_get_header(e, "variable_wbt_talk_sec"));
         auto wbt_amd = get_str(switch_event_get_header(e, "variable_"  WBT_AMD_AI));
         auto skip_cdr = switch_false(switch_event_get_header(e, "variable_" SKIP_EVENT_VARIABLE));
+        auto sip_hangup_phrase = get_str(switch_event_get_header(e, "variable_sip_hangup_phrase"));
+        if (sip_hangup_phrase.empty()) {
+            sip_hangup_phrase = get_str(switch_event_get_header(e, "variable_sip_invite_failure_phrase"));
+        }
 
         auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
         if (!eavesdrop.empty()) {
@@ -864,6 +868,10 @@ public:
             if (hp) {
                 addArrayValue(hp, "amd_ai_logs", false);
             }
+        }
+
+        if (!sip_hangup_phrase.empty()) {
+            addAttribute("hangup_phrase", sip_hangup_phrase);
         }
     };
 };
