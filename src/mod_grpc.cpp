@@ -85,12 +85,12 @@ namespace mod_grpc {
             aleg << request->endpoints()[i];
         }
 
+        if (switch_event_create_plain(&var_event, SWITCH_EVENT_CHANNEL_DATA) != SWITCH_STATUS_SUCCESS) {
+            std::string msg("Can't create variable event");
+            return Status(StatusCode::INTERNAL, msg);
+        }
+        switch_event_add_header_string(var_event, SWITCH_STACK_BOTTOM, "wbt_originate", "true");
         if (request->variables_size() > 0) {
-            if (switch_event_create_plain(&var_event, SWITCH_EVENT_CHANNEL_DATA) != SWITCH_STATUS_SUCCESS) {
-                std::string msg("Can't create variable event");
-                return Status(StatusCode::INTERNAL, msg);
-            }
-
             for (const auto &kv: request->variables()) {
                 switch_event_add_header_string(var_event, SWITCH_STACK_BOTTOM, kv.first.c_str(), kv.second.c_str());
             }
@@ -1440,7 +1440,10 @@ namespace mod_grpc {
                     switch_vad_state_t vad_state = SWITCH_VAD_STATE_ERROR;
 
                     if (ud->vad) {
-                        if (ud->stop_vad_on_answer && switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
+                        if (!ud->answered) {
+                            ud->answered = switch_channel_test_flag(ud->channel, CF_ANSWERED) ;
+                        }
+                        if (ud->stop_vad_on_answer && ud->answered) {
                             switch_vad_destroy(&ud->vad);
                             ud->vad = nullptr;
                         } else {

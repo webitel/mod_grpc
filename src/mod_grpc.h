@@ -44,6 +44,7 @@ namespace mod_grpc {
         int max_silence_sec;
         int silence_ms;
         int frame_ms;
+        bool answered;
     };
 
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);

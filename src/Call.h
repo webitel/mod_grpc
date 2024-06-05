@@ -603,6 +603,9 @@ public:
         if (event_->getVar("variable_wbt_hide_number") == "true") {
             addAttribute("hideNumber", true);
         }
+        if (event_->getVar("variable_wbt_originate") == "true") {
+            addAttribute("originate", true);
+        }
 
         auto wbt_heartbeat = event_->getVar("variable_wbt_heartbeat");
         if (!wbt_heartbeat.empty()) {
@@ -767,6 +770,10 @@ public:
 //        DUMP_EVENT(e);
         if (skip_cdr) {
             addAttribute("cdr", false);
+        }
+
+        if (event_->getVar("variable_wbt_notification_hangup") == "true") {
+            addAttribute("notification_hangup", true);
         }
 
         addIfExists(body_, "amd_result", "variable_amd_result");
