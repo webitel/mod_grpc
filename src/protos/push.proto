@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package engine;
+
+option go_package = "github.com/webitel/protos/engine";
+
+service PushService {
+  rpc SendPush(SendPushRequest) returns (SendPushResponse) {}
+}
+
+message SendPushRequest {
+  repeated string android = 1;
+  repeated string apple = 2;
+  int64 expiration = 3;
+  int32 priority = 4;
+  map<string,string> data = 5;
+}
+
+message SendPushResponse {
+  int32 send = 1;
+}

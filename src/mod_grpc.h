@@ -14,6 +14,7 @@ extern "C" {
 #include "generated/stream.grpc.pb.h"
 #include "Cluster.h"
 #include "amd_client.h"
+#include "push_client.h"
 
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
 
@@ -127,15 +128,6 @@ namespace mod_grpc {
 
     };
 
-    struct PushData {
-        std::string call_id;
-        std::string from_number;
-        std::string from_name;
-        std::string direction;
-        int auto_answer;
-        int delay;
-    };
-
     struct Config {
         char const *consul_address;
         int consul_tts_sec;
@@ -147,17 +139,10 @@ namespace mod_grpc {
 
         int auto_answer_delay;
 
+        const char *push_service;
         int push_wait_callback;
         int push_fcm_enabled;
-        char const *push_fcm_auth;
-        char const *push_fcm_uri;
-
         int push_apn_enabled;
-        char const *push_apn_uri;
-        char const *push_apn_cert_file;
-        char const *push_apn_key_file;
-        char const *push_apn_key_pass;
-        char const *push_apn_topic;
     };
 
     Config loadConfig();
@@ -173,11 +158,10 @@ namespace mod_grpc {
 
         int PushWaitCallback() const;
         int AutoAnswerDelayTime() const;
-        long SendPushFCM(const char *devices, const PushData *data);
-        long SendPushAPN(const char *devices, const PushData *data);
         bool UseFCM() const;
         bool UseAPN() const;
         AsyncClientCall* AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
+        PushClient* GetPushClient();
     private:
         void initServer();
         std::unique_ptr<Server> server_;
@@ -188,17 +172,12 @@ namespace mod_grpc {
         std::shared_ptr<grpc::Channel> amdAiChannel_;
         bool allowAMDAi;
         grpc::CompletionQueue cq_;
+
+        PushClient *pushClient;
         int push_wait_callback;
         bool push_fcm_enabled;
-        std::string push_fcm_auth;
-        std::string push_fcm_uri;
-
         bool push_apn_enabled;
-        std::string push_apn_topic;
-        std::string push_apn_uri;
-        std::string push_apn_cert_file;
-        std::string push_apn_key_file;
-        std::string push_apn_key_pass;
+
         int auto_answer_delay;
         std::unique_ptr<AMDClient> amdClient_;
     };

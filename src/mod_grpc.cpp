@@ -775,28 +775,12 @@ namespace mod_grpc {
                                    config_.consul_tts_sec, config_.consul_deregister_critical_tts_sec);
         }
 
+        if (config_.push_service) {
+            this->pushClient = new PushClient(std::string(config_.push_service));
+        }
         this->push_wait_callback = config_.push_wait_callback;
-        this->push_fcm_uri = config_.push_fcm_uri ? std::string(config_.push_fcm_uri) : "https://fcm.googleapis.com/fcm/send";
-        if (config_.push_fcm_auth != nullptr) {
-            this->push_fcm_auth = "Authorization: " + std::string(config_.push_fcm_auth);
-        }
-        this->push_fcm_enabled = config_.push_fcm_enabled && !this->push_fcm_auth.empty() && !this->push_fcm_uri.empty();
-
-        this->push_apn_uri = config_.push_apn_uri ? std::string(config_.push_apn_uri) : "https://api.sandbox.push.apple.com:443/3/device";
-        if (config_.push_apn_cert_file) {
-            this->push_apn_cert_file = std::string(config_.push_apn_cert_file);
-        }
-        if (config_.push_apn_key_file) {
-            this->push_apn_key_file = std::string(config_.push_apn_key_file);
-        }
-        if (config_.push_apn_key_pass) {
-            this->push_apn_key_pass = std::string(config_.push_apn_key_pass);
-        }
-        if (config_.push_apn_topic) {
-            this->push_apn_topic = std::string(config_.push_apn_topic);
-        }
-        this->push_apn_enabled = config_.push_apn_enabled && !this->push_apn_cert_file.empty() && !this->push_apn_key_pass.empty()
-                && !this->push_apn_key_file.empty() && !this->push_apn_topic.empty();
+        this->push_fcm_enabled = config_.push_fcm_enabled && this->pushClient;
+        this->push_apn_enabled = config_.push_apn_enabled && this->pushClient;
 
         this->auto_answer_delay = config_.auto_answer_delay;
         this->allowAMDAi = false;
@@ -844,6 +828,10 @@ namespace mod_grpc {
             amdAiChannel_.reset();
         }
         amdClient_.reset();
+
+        if (pushClient) {
+            delete pushClient;
+        }
 
         delete cluster_;
         server_.reset();
@@ -926,6 +914,13 @@ namespace mod_grpc {
                         2000,
                         nullptr, "push_wait_callback", "Push wait callback time"),
                 SWITCH_CONFIG_ITEM(
+                        "push_service",
+                        SWITCH_CONFIG_STRING,
+                        CONFIG_RELOADABLE,
+                        &config.push_service,
+                        nullptr,
+                        nullptr, "push_service", "Push service endpoint"),
+                SWITCH_CONFIG_ITEM(
                         "heartbeat",
                         SWITCH_CONFIG_INT,
                         CONFIG_RELOADABLE,
@@ -940,61 +935,12 @@ namespace mod_grpc {
                         0,
                         nullptr, "push_fcm_enabled", "Enable FCM"),
                 SWITCH_CONFIG_ITEM(
-                        "push_fcm_auth",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.push_fcm_auth,
-                        nullptr,
-                        nullptr, "key=AAAAfEvtHJI:....", "FCM Authorization"),
-                SWITCH_CONFIG_ITEM(
-                        "push_fcm_uri",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.push_fcm_uri,
-                        "https://fcm.googleapis.com/fcm/send",
-                        nullptr, "https://fcm.googleapis.com/fcm/send", "FCM endpoint uri"),
-                SWITCH_CONFIG_ITEM(
                         "push_apn_enabled",
                         SWITCH_CONFIG_BOOL,
                         CONFIG_RELOADABLE,
                         &config.push_apn_enabled,
                         0,
                         nullptr, "push_apn_enabled", "Enable APN"),
-                SWITCH_CONFIG_ITEM(
-                        "push_apn_uri",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.push_apn_uri,
-                        "https://api.sandbox.push.apple.com:443/3/device",
-                        nullptr, "https://api.sandbox.push.apple.com:443/3/device", "APN endpoint uri"),
-                SWITCH_CONFIG_ITEM(
-                        "push_apn_cert_file",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.push_apn_cert_file,
-                        nullptr,
-                        nullptr, "/tmp/webitel.webitel-ios.cer", "APN certificate file"),
-                SWITCH_CONFIG_ITEM(
-                        "push_apn_key_file",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.push_apn_key_file,
-                        nullptr,
-                        nullptr, "/tmp/webitel.key.pem", "APN key file"),
-                SWITCH_CONFIG_ITEM(
-                        "push_apn_key_pass",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.push_apn_key_pass,
-                        nullptr,
-                        nullptr, "PASSWORD", "APN key password"),
-                SWITCH_CONFIG_ITEM(
-                        "push_apn_topic",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.push_apn_topic,
-                        "apns-topic: com.webitel.webitel-ios.voip",
-                        nullptr, "apns-topic: com.webitel.webitel-ios.voip", "APN topic header"),
                 SWITCH_CONFIG_ITEM_END()
         };
 
@@ -1016,76 +962,6 @@ namespace mod_grpc {
         return size * nmemb;
     }
 
-    long ServerImpl::SendPushAPN(const char *devices, const PushData *data) {
-        switch_CURL  *cli = switch_curl_easy_init();
-        long response_code = -1;
-
-        if (cli) {
-            switch_CURLcode res;
-            switch_curl_slist_t *headers = nullptr;
-
-            switch_curl_easy_setopt(cli, CURLOPT_URL,  (this->push_apn_uri + "/" + std::string(devices)).c_str());
-            headers = switch_curl_slist_append(headers, "Content-Type: application/json");
-            headers = switch_curl_slist_append(headers, this->push_apn_topic.c_str());
-            headers = switch_curl_slist_append(headers, (std::string("apns-expiration: ") +
-                std::to_string((long)((unixTimestamp() + this->push_wait_callback + 2000) / 1000))
-            ).c_str());
-
-            switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
-
-            std::string body = "{"
-                               "\"aps\":" + toJson(data) + ","
-                               "\"priority\":10}";
-
-            /* HTTP/2 please */
-            curl_easy_setopt(cli, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
-
-            /* cert is stored PEM coded in file... */
-            curl_easy_setopt(cli, CURLOPT_SSLCERTTYPE, "DER");
-
-            /* set the cert for client authentication */
-            curl_easy_setopt(cli, CURLOPT_SSLCERT, this->push_apn_cert_file.c_str());
-
-            curl_easy_setopt(cli, CURLOPT_SSLKEYTYPE, "PEM");
-            curl_easy_setopt(cli, CURLOPT_KEYPASSWD, this->push_apn_key_pass.c_str());
-            /* set the file with the certs vaildating the server */
-            curl_easy_setopt(cli, CURLOPT_SSLKEY, this->push_apn_key_file.c_str());
-
-            /* disconnect if we cannot validate server's cert */
-            curl_easy_setopt(cli, CURLOPT_SSL_VERIFYPEER, 1L);
-
-            #ifdef DEBUG_CURL
-            switch_curl_easy_setopt(cli, CURLOPT_VERBOSE, 1L);
-            #endif
-            switch_curl_easy_setopt(cli, CURLOPT_CUSTOMREQUEST, "POST");
-
-            switch_curl_easy_setopt(cli, CURLOPT_POSTFIELDS, body.c_str());
-
-#ifdef DEBUG_CURL
-            std::string readBuffer;
-            switch_curl_easy_setopt(cli, CURLOPT_WRITEFUNCTION, writeCallback);
-            switch_curl_easy_setopt(cli, CURLOPT_WRITEDATA, &readBuffer);
-
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
-                              "body\n%s\n", body.c_str());
-#endif
-
-            res = switch_curl_easy_perform(cli);
-            if(res == CURLE_OK) {
-                curl_easy_getinfo(cli, CURLINFO_RESPONSE_CODE, &response_code);
-            }
-
-//            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
-//                              "response (%s)\n%s\n",(this->push_apn_uri + "/" + std::string(devices)).c_str(), readBuffer.c_str());
-
-            switch_curl_easy_cleanup(cli);
-            switch_curl_slist_free_all(headers);
-        };
-
-
-        return response_code;
-    }
-
     std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
         size_t start_pos = 0;
         while((start_pos = str.find(from, start_pos)) != std::string::npos) {
@@ -1093,46 +969,6 @@ namespace mod_grpc {
             start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
         }
         return str;
-    }
-
-    long ServerImpl::SendPushFCM(const char *devices, const PushData *data) {
-        switch_CURL  *cli = switch_curl_easy_init();
-        long response_code = -1;
-
-        if (cli) {
-            switch_CURLcode res;
-            switch_curl_slist_t *headers = nullptr;
-            switch_curl_easy_setopt(cli, CURLOPT_URL,  this->push_fcm_uri.c_str());
-            headers = switch_curl_slist_append(headers, "Content-Type: application/json");
-            headers = switch_curl_slist_append(headers, this->push_fcm_auth.c_str());
-            switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
-
-            std::string body = "{"
-                               "\"time_to_live\":" + std::to_string(int(this->push_wait_callback / 1000) + 2) + ","
-                               "\"data\":" + toJson(data) + ","
-                               "\"registration_ids\":[\"" + ReplaceAll(devices, "::", "\",\"") + "\"],"
-                                                                                   "\"priority\":10}";
-
-//#ifdef DEBUG_CURL
-            switch_curl_easy_setopt(cli, CURLOPT_VERBOSE, 1L);
-//#endif
-            switch_curl_easy_setopt(cli, CURLOPT_CUSTOMREQUEST, "POST");
-
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
-                              "body\n%s\n", body.c_str());
-
-            switch_curl_easy_setopt(cli, CURLOPT_POSTFIELDS, body.c_str());
-
-            res = switch_curl_easy_perform(cli);
-            if(res == CURLE_OK) {
-                curl_easy_getinfo(cli, CURLINFO_RESPONSE_CODE, &response_code);
-            }
-
-            switch_curl_easy_cleanup(cli);
-            switch_curl_slist_free_all(headers);
-        };
-
-        return response_code;
     }
 
     bool ServerImpl::UseFCM() const {
@@ -1153,6 +989,10 @@ namespace mod_grpc {
 
     AsyncClientCall* ServerImpl::AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate) {
         return amdClient_->Stream(domain_id, uuid, name, rate);
+    }
+
+    PushClient *ServerImpl::GetPushClient() {
+        return pushClient;
     }
 
     static void split_str(const std::string& str, const std::string& delimiter, std::vector<std::string> &out) {
@@ -1587,7 +1427,7 @@ namespace mod_grpc {
             return;
         }
         auto uuid = switch_channel_get_uuid(channel);
-        if (!uuid) {
+        if (!uuid || !server_->GetPushClient()) {
             //todo
             return;
         }
@@ -1597,28 +1437,19 @@ namespace mod_grpc {
         const char *wbt_push_apn = switch_channel_get_variable(channel, "wbt_push_apn");
         int send = 0;
         auto pData = get_push_body(uuid, channel, server_->AutoAnswerDelayTime());
+        std::vector <std::string> android;
+        std::vector <std::string> apple;
 
         if (wbt_push_fcm && server_->UseFCM()) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start request FCM %s\n", uuid);
-            auto res = server_->SendPushFCM(wbt_push_fcm, pData);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop request FCM %s [%ld]\n", uuid, res);
-            if (res == 200) {
-                send++;
-            }
+            split_str(wbt_push_fcm, "::", android);
         }
         if (wbt_push_apn && server_->UseAPN()) {
-            std::vector <std::string> out;
-            split_str(wbt_push_apn, "::", out);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start APN request %s tokens[%s]\n", uuid, wbt_push_apn);
-            for (const auto &token: out) {
-                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start APN request %s\n", uuid);
-                auto res = server_->SendPushAPN(token.c_str(), pData);
-                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop APN request %s [%ld]\n", uuid, res);
-                if (res == 200) {
-                    send++;
-                }
-            }
+            split_str(wbt_push_apn, "::", apple);
         }
+
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start push request %s\n", uuid);
+        send = server_->GetPushClient()->Send(android, apple, session, server_->PushWaitCallback() + 2000, pData);
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop push request %s [send count %d]\n", uuid, send);
 
         if (send && server_->PushWaitCallback() > 0) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start wait callback %s [%d]\n", uuid, server_->PushWaitCallback());

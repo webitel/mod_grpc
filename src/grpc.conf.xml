@@ -11,17 +11,9 @@
         <param name="consul_deregister_critical_ttl_sec" value="120"/>
 
         <param name="push_wait_callback" value="2000"/>
+        <param name="push_service" value="10.10.10.227:4058"/>
 
         <param name="push_fcm_enabled" value="false"/>
-        <param name="push_fcm_uri" value="https://fcm.googleapis.com/fcm/send"/>
-        <param name="push_fcm_auth" value="key=AAAAfEvtHJI:"/>
-
         <param name="push_apn_enabled" value="false"/>
-        <param name="push_apn_uri" value="https://api.sandbox.push.apple.com:443/3/device"/>
-        <param name="push_apn_cert_file" value="/tmp/webitel.webitel-ios.cer"/>
-        <!-- openssl pkcs12 -clcerts -out  webitel.key.pem -in certKey.p12 - gen private kay -->
-        <param name="push_apn_key_file" value="/tmp/webitel.key.pem"/>
-        <param name="push_apn_key_pass" value="blabla"/>
-        <param name="push_apn_topic" value="apns-topic: com.webitel.webitel-ios.voip"/>
     </settings>
 </configuration>
