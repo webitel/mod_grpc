@@ -249,7 +249,7 @@ namespace mod_grpc {
             session = switch_core_session_locate(request->leg_b_id().c_str());
             if (session) {
                 switch_channel_t *channel = switch_core_session_get_channel(session);
-                if (switch_channel_wait_for_flag(channel, CF_BRIDGED, SWITCH_TRUE, 3000, nullptr) !=
+                if (switch_channel_wait_for_flag(channel, CF_BRIDGED, SWITCH_TRUE, 1000, nullptr) !=
                     SWITCH_STATUS_SUCCESS) {
                     bridged = 0;
                 }
