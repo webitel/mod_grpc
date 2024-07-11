@@ -940,7 +940,8 @@ public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Transcript, e) {
         const char* tjson = switch_event_get_body(e);
         if (tjson) {
-            body_ = cJSON_Parse(tjson);
+            cJSON  *json = cJSON_Parse(tjson);
+            addAttribute("transcript", json);
         }
     };
 };
