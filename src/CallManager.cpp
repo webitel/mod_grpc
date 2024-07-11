@@ -22,7 +22,11 @@ mod_grpc::CallManager::CallManager() {
 
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, AMD_EVENT_NAME, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, EAVESDROP_EVENT_NAME, CallManager::handle_call_event, nullptr);
-//    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, VALET_PARK_NAME, CallManager::handle_call_event, nullptr);
+    auto status = switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, TRANSCRIBE_EVENT_END_OF_TRANSCRIPT, CallManager::handle_call_event, nullptr);
+    if (status != SWITCH_STATUS_SUCCESS) {
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Unhandled bind event: %s\n", TRANSCRIBE_EVENT_END_OF_TRANSCRIPT);
+    }
+    //    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, VALET_PARK_NAME, CallManager::handle_call_event, nullptr);
 }
 
 mod_grpc::CallManager::~CallManager() {
@@ -136,6 +140,8 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                     CallEvent<AMD>(event).fire();
                 } else if (strcmp(EAVESDROP_EVENT_NAME, event->subclass_name) == 0) {
                     CallEvent<Eavesdrop>(event).fire();
+                } else if (strcmp(TRANSCRIBE_EVENT_END_OF_TRANSCRIPT, event->subclass_name) == 0) {
+                    CallEvent<Transcript>(event).fire();
                 } else if (strcmp(VALET_PARK_NAME, event->subclass_name) == 0) {
                     auto action = switch_event_get_header(event, "Action");
                     if (strcmp(action, "hold") == 0) {

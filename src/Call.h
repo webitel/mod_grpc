@@ -34,6 +34,7 @@ extern "C" {
 #define VALET_PARK_NAME "valet_parking::info"
 #define AMD_EVENT_NAME "amd::info"
 #define EAVESDROP_EVENT_NAME "eavesdrop::info"
+#define TRANSCRIBE_EVENT_END_OF_TRANSCRIPT "google_transcribe::is_final"
 #define SKIP_EVENT_VARIABLE "process_cdr"
 #define RECORD_SESSION_START_NAME  "wbt_start_record"
 #define RECORD_SESSION_STOP_NAME  "wbt_stop_record"
@@ -46,7 +47,7 @@ extern "C" {
 
 #define get_str(c) c ? std::string(c) : std::string()
 
-enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup, Eavesdrop, Heartbeat };
+enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup, Eavesdrop, Heartbeat, Transcript };
 
 //TODO
 static const char* callEventStr(CallActions e) {
@@ -81,6 +82,8 @@ static const char* callEventStr(CallActions e) {
             return "eavesdrop";
         case Heartbeat:
             return "heartbeat";
+        case Transcript:
+            return "transcript";
         default:
             return "unknown";
     }
@@ -929,6 +932,16 @@ template <> class CallEvent<Heartbeat> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Heartbeat, e) {
 
+    };
+};
+
+template <> class CallEvent<Transcript> : public BaseCallEvent {
+public:
+    explicit CallEvent(switch_event_t *e) : BaseCallEvent(Transcript, e) {
+        const char* tjson = switch_event_get_body(e);
+        if (tjson) {
+            body_ = cJSON_Parse(tjson);
+        }
     };
 };
 
