@@ -149,8 +149,8 @@ namespace mod_grpc {
             switch_core_session_t *check_session = switch_core_session_locate(request->check_id().c_str());
             bool hangup = !check_session;
             if (check_session) {
-                switch_channel_t *check_channel = switch_core_session_get_channel(caller_session);
-                hangup = !switch_channel_ready(caller_channel);
+                switch_channel_t *check_channel = switch_core_session_get_channel(check_session);
+                hangup = !switch_channel_ready(check_channel);
                 switch_core_session_rwunlock(check_session);
             }
 
@@ -239,6 +239,23 @@ namespace mod_grpc {
     Status ApiServiceImpl::Bridge(ServerContext *context, const fs::BridgeRequest *request,
                                   fs::BridgeResponse *reply) {
         int bridged = 1;
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive bridge %s to %s\n",
+                          request->leg_a_id().c_str(), request->leg_b_id().c_str());
+
+        switch_core_session_t *session;
+        session = switch_core_session_locate(request->leg_b_id().c_str());
+        if (session) {
+            switch_channel_t *channel = switch_core_session_get_channel(session);
+            int cnt = 0;
+            while (cnt < 20 && (switch_channel_test_flag(channel, CF_ORIGINATING)) && switch_channel_up(channel) ) {
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "waiting for done originate\n");
+                switch_ivr_sleep(session, 50, SWITCH_TRUE, NULL);
+                cnt++;
+            }
+
+            switch_core_session_rwunlock(session);
+        }
 
         if (switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str()) != SWITCH_STATUS_SUCCESS) {
             bridged = 0;
@@ -637,7 +654,7 @@ namespace mod_grpc {
             if (request->wait_for_answer()) {
                 while (!switch_channel_test_flag(channel, CF_PARK) && switch_channel_ready(channel)) {
                     switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "wait for answer\n");
-                    switch_ivr_sleep(session, 100, SWITCH_TRUE, NULL);
+                    switch_ivr_sleep(session, 50, SWITCH_TRUE, NULL);
                 }
             }
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "broadcast: %s\n", request->args().c_str());
