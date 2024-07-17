@@ -248,8 +248,8 @@ namespace mod_grpc {
         if (session) {
             switch_channel_t *channel = switch_core_session_get_channel(session);
             int cnt = 0;
-            while (cnt < 20 && (switch_channel_test_flag(channel, CF_ORIGINATING)) && switch_channel_up(channel) ) {
-                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "waiting for done originate\n");
+            while (cnt < 10 && (switch_channel_test_flag(channel, CF_ORIGINATING)) && switch_channel_up(channel) ) {
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "waiting for done originate\n");
                 switch_ivr_sleep(session, 50, SWITCH_TRUE, NULL);
                 cnt++;
             }
@@ -266,7 +266,8 @@ namespace mod_grpc {
             session = switch_core_session_locate(request->leg_b_id().c_str());
             if (session) {
                 switch_channel_t *channel = switch_core_session_get_channel(session);
-                if (switch_channel_wait_for_flag(channel, CF_BRIDGED, SWITCH_TRUE, 1000, nullptr) !=
+                // TODO config ?
+                if (switch_channel_wait_for_flag(channel, CF_BRIDGED, SWITCH_TRUE, 3000, nullptr) !=
                     SWITCH_STATUS_SUCCESS) {
                     bridged = 0;
                 }
@@ -794,6 +795,8 @@ namespace mod_grpc {
 
         if (config_.push_service) {
             this->pushClient = new PushClient(std::string(config_.push_service));
+        } else {
+            this->pushClient = nullptr;
         }
         this->push_wait_callback = config_.push_wait_callback;
         this->push_fcm_enabled = config_.push_fcm_enabled && this->pushClient;
@@ -844,7 +847,10 @@ namespace mod_grpc {
         if (amdAiChannel_ && amdAiChannel_->GetState(false) != GRPC_CHANNEL_SHUTDOWN) {
             amdAiChannel_.reset();
         }
-        amdClient_.reset();
+
+        if (amdClient_) {
+            amdClient_.reset();
+        }
 
         if (pushClient) {
             delete pushClient;
