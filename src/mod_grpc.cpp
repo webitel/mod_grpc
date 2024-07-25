@@ -248,7 +248,7 @@ namespace mod_grpc {
         if (session) {
             switch_channel_t *channel = switch_core_session_get_channel(session);
             int cnt = 0;
-            while (switch_channel_ready(channel) && cnt < 10 && (switch_channel_test_flag(channel, CF_ORIGINATING)) && switch_channel_up(channel) ) {
+            while (switch_channel_ready(channel) && cnt < 10 && (switch_channel_test_flag(channel, CF_ORIGINATING)) ) {
                 switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "waiting for done originate\n");
                 switch_ivr_sleep(session, 30, SWITCH_TRUE, NULL);
                 cnt++;
@@ -263,7 +263,7 @@ namespace mod_grpc {
 
         if (bridged) {
             switch_core_session_t *session;
-            session = switch_core_session_locate(request->leg_b_id().c_str());
+            session = switch_core_session_locate(request->leg_a_id().c_str());
             if (session) {
                 switch_channel_t *channel = switch_core_session_get_channel(session);
                 if (switch_channel_ready(channel)) {
