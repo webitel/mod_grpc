@@ -1219,7 +1219,10 @@ namespace mod_grpc {
 
                     bool skip_hangup = false;
 
-                    if (ud->client_->reply.result().empty()) {
+                    // TODO DEV-4626
+                    if (!switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
+                        amd_result = "no_answer";
+                    } else if (ud->client_->reply.result().empty()) {
                         amd_result = "undefined";
                         if (ud->vad && switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
                             amd_result = "silence";
