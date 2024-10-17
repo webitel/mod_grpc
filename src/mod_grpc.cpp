@@ -1151,6 +1151,10 @@ namespace mod_grpc {
             case SWITCH_ABC_TYPE_INIT: {
                 // connect
                 try {
+                    if (switch_core_media_bug_test_flag(bug, SMBF_ANSWER_REQ)) {
+                        switch_core_media_bug_clear_flag(bug, SMBF_ANSWER_REQ);
+                    }
+
                     switch_core_session_get_read_impl(ud->session, &ud->read_impl);
 
                     auto var = switch_channel_get_variable(ud->channel, "wbt_ai_vad_threshold");
