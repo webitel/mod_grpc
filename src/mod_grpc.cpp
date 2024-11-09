@@ -1223,10 +1223,7 @@ namespace mod_grpc {
 
                     bool skip_hangup = false;
 
-                    // TODO DEV-4626
-                    if (!switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
-                        amd_result = "no_answer";
-                    } else if (ud->client_->reply.result().empty()) {
+                    if (ud->client_->reply.result().empty()) {
                         amd_result = "undefined";
                         if (ud->vad && switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
                             amd_result = "silence";
@@ -1238,8 +1235,13 @@ namespace mod_grpc {
 
                     for (auto &l : ud->positive) {
                         if (l == amd_result) {
-                            skip_hangup = true;
-                            do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
+                            // TODO DEV-4626
+                            if (!switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
+                                amd_result = "no_answer";
+                            } else {
+                                skip_hangup = true;
+                                do_execute(ud->session, ud->channel, AMD_EXECUTE_VARIABLE);
+                            }
                             break;
                         }
                     }
