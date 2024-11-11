@@ -48,6 +48,11 @@ namespace mod_grpc {
         bool answered;
     };
 
+    struct background_pvt {
+        int volume_reduction;
+        switch_file_handle_t *fh;
+    };
+
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);
     static switch_status_t wbt_tweaks_on_init(switch_core_session_t *session);
     int heartbeat_interval = 0;

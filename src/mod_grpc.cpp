@@ -1508,6 +1508,103 @@ namespace mod_grpc {
         }
     }
 
+    static switch_bool_t background_noise_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type) {
+        switch_core_session_t *session = switch_core_media_bug_get_session(bug);
+        switch_channel_t *channel = switch_core_session_get_channel(session);
+        background_pvt *bg = (background_pvt *) user_data;
+
+        switch (type) {
+            case SWITCH_ABC_TYPE_CLOSE:
+                switch_core_file_close(bg->fh);
+
+                break;
+            case SWITCH_ABC_TYPE_WRITE_REPLACE: {
+                int16_t noise_buffer[SWITCH_RECOMMENDED_BUFFER_SIZE / 2];
+                switch_size_t samples = sizeof(noise_buffer) / sizeof(noise_buffer[0]);
+                switch_frame_t *frame;
+
+                frame = switch_core_media_bug_get_write_replace_frame(bug);
+
+                switch_size_t frame_samples = frame->datalen / sizeof(int16_t);
+                if (samples > frame_samples) {
+                    samples = frame_samples;
+                }
+
+                if (switch_core_file_read(bg->fh, noise_buffer, &samples) == SWITCH_STATUS_SUCCESS) {
+//                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "frame_samples %ld ; samples %ld\n", frame_samples, samples);
+
+                    for (switch_size_t i = 0; i < frame_samples && i < samples; i++) {
+                        int16_t *audio_data = (int16_t *) frame->data;
+                        int32_t mixed_sample = audio_data[i] + (noise_buffer[i] / bg->volume_reduction);
+
+                        if (mixed_sample > INT16_MAX) {
+                            mixed_sample = INT16_MAX;
+                        } else if (mixed_sample < INT16_MIN) {
+                            mixed_sample = INT16_MIN;
+                        }
+
+                        audio_data[i] = (int16_t) mixed_sample;
+                    }
+                    switch_core_media_bug_set_write_replace_frame(bug, frame);
+                } else {
+                    uint32_t pos = 0;
+                    switch_core_file_seek(bg->fh, &pos, 0, SEEK_SET);
+                }
+
+                break;
+            }
+            default:
+                break;
+        }
+
+        return SWITCH_TRUE;
+    }
+
+    // file volume_reduction (1-5)
+    SWITCH_STANDARD_APP(wbt_background) {
+        char *mydata;
+        struct background_pvt *b = NULL;
+        char *argv[2] = { 0 };
+        int argc;
+
+        if (!zstr(data) && (mydata = switch_core_session_strdup(session, data))) {
+            argc = switch_separate_string(mydata, ' ', argv, (sizeof(argv) / sizeof(argv[0])));
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "no arguments specified.\n");
+            return;
+        }
+
+        switch_channel_t *channel = switch_core_session_get_channel(session);
+        switch_file_handle_t *fh = (switch_file_handle_t *) switch_core_session_alloc(session,
+                                                                                      sizeof(switch_file_handle_t));
+        switch_codec_implementation_t write_impl;
+        switch_core_session_get_write_impl(session, &write_impl);
+
+        if (switch_core_file_open(fh, argv[0], write_impl.number_of_channels, write_impl.samples_per_second,
+                                  SWITCH_FILE_FLAG_READ | SWITCH_FILE_DATA_SHORT, NULL) == SWITCH_STATUS_SUCCESS) {
+            switch_media_bug_t *bug;
+            b = (background_pvt *)switch_core_session_alloc(session, sizeof(*b));
+            b->fh = fh;
+            if (argc > 1) {
+                b->volume_reduction = atoi(argv[1]);
+            }
+            if (b->volume_reduction <= 0) {
+                b->volume_reduction = 1;
+            }
+            switch_channel_set_variable(channel, SWITCH_SEND_SILENCE_WHEN_IDLE_VARIABLE , "-1");
+            if (switch_core_media_bug_add(session, "wbt_background", NULL, background_noise_callback, b, 0,
+                                          SMBF_WRITE_REPLACE | SMBF_NO_PAUSE, &bug) ==
+                SWITCH_STATUS_SUCCESS) {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "play background file [%s].\n", argv[0]);
+            } else {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "can't add media bug.\n");
+                switch_core_file_close(fh);
+            }
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "can't open file [%s].\n", argv[0]);
+        }
+    }
+
     SWITCH_STANDARD_APP(wbt_queue_playback_function) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
         switch_status_t status = SWITCH_STATUS_SUCCESS;
@@ -1561,6 +1658,7 @@ namespace mod_grpc {
             switch_core_add_state_handler(&wbt_state_handlers);
             SWITCH_ADD_API(api_interface, "wbt_version", "Show build version", version_api_function, "");
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
+            SWITCH_ADD_APP(app_interface, "wbt_background", "wbt_background", "wbt_background", wbt_background, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "", SAF_NONE | SAF_SUPPORT_NOMEDIA);
             SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer",
                            wbt_blind_transfer_function, "", SAF_NONE);
