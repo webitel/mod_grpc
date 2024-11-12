@@ -1513,6 +1513,10 @@ namespace mod_grpc {
         switch_channel_t *channel = switch_core_session_get_channel(session);
         background_pvt *bg = (background_pvt *) user_data;
 
+        if (bg->debug) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "abc type %d\n", type);
+        }
+
         switch (type) {
             case SWITCH_ABC_TYPE_CLOSE:
                 switch_core_file_close(bg->fh);
@@ -1531,7 +1535,9 @@ namespace mod_grpc {
                 }
 
                 if (switch_core_file_read(bg->fh, noise_buffer, &samples) == SWITCH_STATUS_SUCCESS) {
-//                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "frame_samples %ld ; samples %ld\n", frame_samples, samples);
+                    if (bg->debug) {
+                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "frame_samples %ld ; samples %ld\\n", frame_samples, samples);
+                    }
 
                     for (switch_size_t i = 0; i < frame_samples && i < samples; i++) {
                         int16_t *audio_data = (int16_t *) frame->data;
@@ -1591,6 +1597,8 @@ namespace mod_grpc {
             if (b->volume_reduction <= 0) {
                 b->volume_reduction = 1;
             }
+            b->debug = switch_true(switch_channel_get_variable(channel, "wbt_background_debug"));
+
             switch_channel_set_variable(channel, SWITCH_SEND_SILENCE_WHEN_IDLE_VARIABLE , "-1");
             if (switch_core_media_bug_add(session, "wbt_background", NULL, background_noise_callback, b, 0,
                                           SMBF_FIRST | SMBF_WRITE_REPLACE | SMBF_NO_PAUSE, &bug) ==

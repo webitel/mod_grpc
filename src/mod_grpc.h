@@ -50,6 +50,7 @@ namespace mod_grpc {
 
     struct background_pvt {
         int volume_reduction;
+        int debug;
         switch_file_handle_t *fh;
     };
 
