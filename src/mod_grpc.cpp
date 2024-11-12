@@ -1593,7 +1593,7 @@ namespace mod_grpc {
             }
             switch_channel_set_variable(channel, SWITCH_SEND_SILENCE_WHEN_IDLE_VARIABLE , "-1");
             if (switch_core_media_bug_add(session, "wbt_background", NULL, background_noise_callback, b, 0,
-                                          SMBF_WRITE_REPLACE | SMBF_NO_PAUSE, &bug) ==
+                                          SMBF_FIRST | SMBF_WRITE_REPLACE | SMBF_NO_PAUSE, &bug) ==
                 SWITCH_STATUS_SUCCESS) {
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "play background file [%s].\n", argv[0]);
             } else {
