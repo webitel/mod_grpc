@@ -1674,13 +1674,35 @@ namespace mod_grpc {
         }
     }
 
+    static int in_http_cache(const char *path) {
+        char *result = NULL;
+        int found = 0;
+        switch_stream_handle_t stream = { 0 };
+        SWITCH_STANDARD_STREAM(stream);
+        if (switch_api_execute("http_tryget", path, NULL, &stream) == SWITCH_STATUS_SUCCESS) {
+            result = (char *)stream.data;
+            found = strncmp(result, "-ERR", 4) != 0;
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "execute http_tryget error\n");
+        }
+        switch_safe_free(stream.data);
+        return found;
+    }
+
     static switch_status_t silence_stream_file_open(switch_file_handle_t *handle, const char *path) {
         struct silence_handle *sh;
         char *p;
+
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "prepare TTS http %s\n", path);
         sh = (silence_handle *) switch_core_alloc(handle->memory_pool, sizeof(*sh));
+        handle->private_info = sh;
+        sh->path = switch_core_strdup(handle->memory_pool, path);
         sh->samples = 0;
         sh->forever = 1;
+        sh->in_cache = in_http_cache(path);
+        if (sh->in_cache) {
+            return SWITCH_STATUS_SUCCESS;
+        }
 
         switch_CURL *curl_handle = NULL;
         switch_CURLcode cc;
@@ -1741,7 +1763,6 @@ namespace mod_grpc {
         }
 
         handle->channels = 1;
-        handle->private_info = sh;
 
         return SWITCH_STATUS_SUCCESS;
     }
@@ -1757,6 +1778,12 @@ namespace mod_grpc {
 
     static switch_status_t silence_stream_file_read(switch_file_handle_t *handle, void *data, size_t *len) {
         struct silence_handle *sh = static_cast<silence_handle *>(handle->private_info);
+
+        if (sh->in_cache) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "no need to execute, it's in the cache %s\n", sh->path);
+            return SWITCH_STATUS_FALSE;
+        }
+
         int maxfd = -1;
         struct timeval timeout;
         sh->samples += *len;

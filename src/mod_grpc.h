@@ -53,6 +53,8 @@ namespace mod_grpc {
     static char *wbt_cache_supported_formats[] = { "wbt_prepare", NULL };
 
     struct silence_handle {
+        int in_cache;
+        char *path;
         switch_CURL *curl_handle;
         char curl_error_buff[CURL_ERROR_SIZE];
         long sockfd;
