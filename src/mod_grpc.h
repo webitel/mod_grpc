@@ -3,6 +3,8 @@
 
 extern "C" {
 #include <switch.h>
+#include <switch_curl.h>
+#include <sys/select.h>
 }
 
 #include <thread>
@@ -46,6 +48,18 @@ namespace mod_grpc {
         int silence_ms;
         int frame_ms;
         bool answered;
+    };
+
+    static char *wbt_cache_supported_formats[] = { "wbt_prepare", NULL };
+
+    struct silence_handle {
+        switch_CURL *curl_handle;
+        char curl_error_buff[CURL_ERROR_SIZE];
+        long sockfd;
+        fd_set fdread;
+        size_t samples;
+        int silence;
+        int forever;
     };
 
     struct background_pvt {

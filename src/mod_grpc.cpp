@@ -1651,12 +1651,169 @@ namespace mod_grpc {
         return SWITCH_STATUS_SUCCESS;
     }
 
+    static size_t stream_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+        size_t realsize = size * nmemb;
+        char response[1024] = "";
+        strncat(response, (const char*)contents, realsize);
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "stream response: %s\n", response);
+        return realsize;
+    }
+
+    void parse_url(const std::string &url, std::string &host, std::string &path) {
+        size_t pos = url.find("://");
+        if (pos != std::string::npos) {
+            pos += 3;  // Перескакуємо через "://"
+            size_t path_pos = url.find('/', pos);
+            if (path_pos != std::string::npos) {
+                host = url.substr(pos, path_pos - pos);
+                path = url.substr(path_pos);
+            } else {
+                host = url.substr(pos);
+                path = "/";
+            }
+        }
+    }
+
+    static switch_status_t silence_stream_file_open(switch_file_handle_t *handle, const char *path) {
+        struct silence_handle *sh;
+        char *p;
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "prepare TTS http %s\n", path);
+        sh = (silence_handle *) switch_core_alloc(handle->memory_pool, sizeof(*sh));
+        sh->samples = 0;
+        sh->forever = 1;
+
+        switch_CURL *curl_handle = NULL;
+        switch_CURLcode cc;
+
+        curl_handle = switch_curl_easy_init();
+
+        switch_curl_easy_setopt(curl_handle, CURLOPT_URL, path);
+        switch_curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, sh->curl_error_buff);
+        switch_curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 10);
+        switch_curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "FreeSWITCH(mod_grpc)/"  MOD_BUILD_VERSION);
+        switch_curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
+        switch_curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, 30);	/* eventually timeout connect */
+        switch_curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_LIMIT, 100);	/* handle trickle connections */
+        switch_curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_TIME, 30);
+        switch_curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+        switch_curl_easy_setopt(curl_handle, CURLOPT_CONNECT_ONLY, 1L);
+
+        auto res = curl_easy_perform(curl_handle);
+        if (res != CURLE_OK) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare error: %s\n", curl_easy_strerror(res));
+            curl_easy_cleanup(curl_handle);
+            return SWITCH_STATUS_FALSE;
+        }
+
+        // Отримання сокета
+        res = curl_easy_getinfo(curl_handle, CURLINFO_ACTIVESOCKET, &sh->sockfd);
+        if (res != CURLE_OK) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS get socket error: %s\n", curl_easy_strerror(res));
+            curl_easy_cleanup(curl_handle);
+            return SWITCH_STATUS_FALSE;
+        }
+
+        sh->curl_handle = curl_handle;
+
+        std::string host;
+        std::string path_parsed;
+
+        parse_url(std::string(path), host, path_parsed);
+
+        std::ostringstream http_request_stream;
+        http_request_stream << "GET " << path_parsed << " HTTP/1.1\r\n"
+                            << "Host: " << host << "\r\n"
+                            << "Connection: keep-alive\r\n"
+                            << "User-Agent: mod_grpc/" MOD_BUILD_VERSION "\r\n"  // Додавання заголовку User-Agent
+                            << "X-TTS-Prepare: true\r\n"  // Додавання заголовку User-Agent
+                            << "\r\n";
+        std::string http_request = http_request_stream.str();
+
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "send http: %s\n", http_request.c_str());
+        // Відправлення HTTP-запиту через сокет
+        size_t sent = 0;
+        res = curl_easy_send(curl_handle, http_request.c_str(), http_request.size(), &sent);
+        if (res != CURLE_OK) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "send http error: %s\n", curl_easy_strerror(res));
+            curl_easy_cleanup(curl_handle);
+            return SWITCH_STATUS_FALSE;
+        }
+
+        handle->channels = 1;
+        handle->private_info = sh;
+
+        return SWITCH_STATUS_SUCCESS;
+    }
+
+    static switch_status_t silence_stream_file_close(switch_file_handle_t *handle) {
+        struct silence_handle *sh = static_cast<silence_handle *>(handle->private_info);
+        if (sh->curl_handle) {
+            switch_curl_easy_cleanup(sh->curl_handle);
+        }
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "TTS prepare close\n");
+        return SWITCH_STATUS_SUCCESS;
+    }
+
+    static switch_status_t silence_stream_file_read(switch_file_handle_t *handle, void *data, size_t *len) {
+        struct silence_handle *sh = static_cast<silence_handle *>(handle->private_info);
+        int maxfd = -1;
+        struct timeval timeout;
+        sh->samples += *len;
+
+        fd_set fdread;
+        char buffer[2048];
+        size_t nread;
+        CURLcode res;
+
+        // Ініціалізуємо select
+        FD_ZERO(&fdread);
+        FD_SET(sh->sockfd, &fdread);
+
+        timeout.tv_sec = 0;        // 0 секунд
+        timeout.tv_usec = 100000;  // 100 000 мікросекунд (100 мс)
+
+        // Перевіряємо готовність сокета
+        int rc = select(sh->sockfd + 1, &fdread, NULL, NULL, &timeout);
+        if (rc < 0) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare select: %s\n", strerror(errno));
+            return SWITCH_STATUS_FALSE;
+        } else if (rc == 0) {
+            // Тайм-аут: даних поки немає
+            goto silence;
+        }
+
+        // Якщо сокет готовий до читання
+        if (FD_ISSET(sh->sockfd, &fdread)) {
+            res = curl_easy_recv(sh->curl_handle, buffer, sizeof(buffer) - 1, &nread);
+            if (res == CURLE_OK) {
+                buffer[nread] = '\0'; // Завершуємо строку
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "TTS prepare receive: %s\n", buffer);
+                return SWITCH_STATUS_BREAK;
+            } else if (res == CURLE_AGAIN) {
+                // Даних поки немає, повторіть спробу пізніше
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "the data is not yet available, we are waiting...\n");
+            } else {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "read error: %s\n", curl_easy_strerror(res));
+                return SWITCH_STATUS_FALSE;
+            }
+        }
+silence:
+
+        switch_generate_sln_silence((int16_t *) data, (uint32_t)*len, handle->channels,
+                                    sh->silence ? sh->silence : (uint32_t)-1);
+
+        return SWITCH_STATUS_SUCCESS;
+    }
+
+
     SWITCH_MODULE_LOAD_FUNCTION(mod_grpc_load) {
         try {
             *module_interface = switch_loadable_module_create_module_interface(pool, modname);
             auto config = loadConfig();
             switch_application_interface_t *app_interface;
             switch_api_interface_t *api_interface;
+            switch_file_interface_t *file_interface;
             heartbeat_interval = 0;
             if (config.heartbeat) {
                 heartbeat_interval = config.heartbeat;
@@ -1682,6 +1839,14 @@ namespace mod_grpc {
                     SAF_NONE);
 
             switch_event_reserve_subclass("SWITCH_EVENT_CUSTOM::" EVENT_NAME);
+
+            file_interface = static_cast<switch_file_interface_t *>(switch_loadable_module_create_interface(
+                    *module_interface, SWITCH_FILE_INTERFACE));
+            file_interface->interface_name = modname;
+            file_interface->extens = wbt_cache_supported_formats;
+            file_interface->file_open = silence_stream_file_open;
+            file_interface->file_close = silence_stream_file_close;
+            file_interface->file_read = silence_stream_file_read;
 
             server_ = new ServerImpl(config);
 
