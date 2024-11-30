@@ -1600,6 +1600,7 @@ namespace mod_grpc {
             b->debug = switch_true(switch_channel_get_variable(channel, "wbt_background_debug"));
 
             switch_channel_set_variable(channel, SWITCH_SEND_SILENCE_WHEN_IDLE_VARIABLE , "-1");
+            switch_channel_set_variable(channel, "wbt_background_play" , "true");
             if (switch_core_media_bug_add(session, "wbt_background", NULL, background_noise_callback, b, 0,
                                           SMBF_FIRST | SMBF_WRITE_REPLACE | SMBF_NO_PAUSE, &bug) ==
                 SWITCH_STATUS_SUCCESS) {
@@ -1699,7 +1700,13 @@ namespace mod_grpc {
         sh->path = switch_core_strdup(handle->memory_pool, path);
         sh->samples = 0;
         sh->forever = 1;
-        sh->in_cache = in_http_cache(path);
+        sh->in_cache = 0;
+        auto skip_cache = handle->params ? switch_true(switch_event_get_header(handle->params, "skip_cache")) : 0;
+        if (!skip_cache) {
+            sh->in_cache = in_http_cache(path);
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "prepare TTS in cache %d\n", sh->in_cache);
+        }
+
         if (sh->in_cache) {
             return SWITCH_STATUS_SUCCESS;
         }
