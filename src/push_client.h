@@ -29,6 +29,7 @@ namespace mod_grpc {
         std::string direction;
         int auto_answer;
         int delay;
+        bool hide_number;
     };
 
     class PushClient {
@@ -81,6 +82,9 @@ namespace mod_grpc {
                 data->insert({"direction", d->direction});
             }
             data->insert({"auto_answer", std::to_string(d->auto_answer)});
+            if (d->hide_number) {
+                data->insert({"hide_number", "true"});
+            }
 
             auto status = this->client->SendPush(&context, req, &res);
             if (!status.ok()) {

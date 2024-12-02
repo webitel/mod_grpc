@@ -1065,6 +1065,7 @@ namespace mod_grpc {
         const char *number = nullptr;
         const char *wbt_parent_id = switch_channel_get_variable(channel, "wbt_parent_id");
         const char *wbt_auto_answer = switch_channel_get_variable(channel, "wbt_auto_answer");
+        pData->hide_number = switch_true(switch_channel_get_variable(channel, "wbt_hide_number"));
 
         if (wbt_parent_id) {
             pData->direction = "inbound";
