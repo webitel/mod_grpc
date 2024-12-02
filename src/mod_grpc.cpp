@@ -1835,6 +1835,17 @@ namespace mod_grpc {
         }
 silence:
 
+        if (handle->samplerate > 0) {
+            size_t frame_size = (handle->samplerate * 3) / 20; //  150 мс
+            if (*len > frame_size) {
+                *len = frame_size;
+            }
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "Invalid samplerate: %d\n", handle->samplerate);
+            return SWITCH_STATUS_FALSE; // Повертаємо помилку при некоректному samplerate
+        }
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "prepare TTS send silence %ld channels %d\n", *len, handle->channels);
         switch_generate_sln_silence((int16_t *) data, (uint32_t)*len, handle->channels,
                                     sh->silence ? sh->silence : (uint32_t)-1);
 
