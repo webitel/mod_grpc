@@ -1031,6 +1031,7 @@ namespace mod_grpc {
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session) {
         double talk = 0;
         switch_caller_profile_t *cp = nullptr;
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start wbt reporting\n");
 
         auto channel = switch_core_session_get_channel(session);
         auto profile = switch_channel_get_caller_profile(channel);
@@ -1046,6 +1047,7 @@ namespace mod_grpc {
             }
         }
         switch_channel_set_variable(channel, WBT_TALK_SEC, std::to_string(static_cast<int>(talk / 1000000)).c_str());
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop wbt reporting\n");
         return SWITCH_STATUS_SUCCESS;
     }
 
