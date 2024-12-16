@@ -1075,10 +1075,13 @@ namespace mod_grpc {
             name = switch_channel_get_variable(channel, "wbt_from_name");
         } else {
             pData->direction = "outbound";
-            number = switch_channel_get_variable(channel, "Caller-Orig-Caller-ID-Number");
-            name = switch_channel_get_variable(channel, "Caller-Orig-Caller-ID-Name");
+            number = switch_channel_get_variable(channel, "wbt_to_number");
+            name = switch_channel_get_variable(channel, "wbt_to_name");
             if (!number) {
-                number = name = switch_channel_get_variable(channel, "wbt_destination");
+                number = switch_channel_get_variable(channel, "wbt_destination");
+            }
+            if (!name) {
+                name = number;
             }
         }
         if (autoDelayTime > 0 && !switch_false(wbt_auto_answer)) {
