@@ -68,6 +68,7 @@ namespace mod_grpc {
         int volume_reduction;
         int debug;
         switch_file_handle_t *fh;
+        const char *name;
     };
 
     static switch_status_t wbt_tweaks_on_reporting(switch_core_session_t *session);

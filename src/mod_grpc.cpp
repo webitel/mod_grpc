@@ -1576,8 +1576,11 @@ namespace mod_grpc {
     SWITCH_STANDARD_APP(wbt_background) {
         char *mydata;
         struct background_pvt *b = NULL;
-        char *argv[2] = { 0 };
+        char *argv[4] = { 0 };
         int argc;
+        int volume_reduction = 1;
+        std::string name = "wbt-bg";
+        switch_channel_t *channel = switch_core_session_get_channel(session);
 
         if (!zstr(data) && (mydata = switch_core_session_strdup(session, data))) {
             argc = switch_separate_string(mydata, ' ', argv, (sizeof(argv) / sizeof(argv[0])));
@@ -1586,20 +1589,46 @@ namespace mod_grpc {
             return;
         }
 
-        switch_channel_t *channel = switch_core_session_get_channel(session);
+        if (!strcasecmp(argv[0], "stop") ) {
+            if (argc > 1) {
+                name = ("wbt-" + std::string(argv[1]));
+            }
+            switch_media_bug_t *bug = (switch_media_bug_t *) switch_channel_get_private(channel, name.c_str());
+            if (bug) {
+                switch_channel_set_private(channel, name.c_str(), NULL);
+                switch_core_media_bug_remove(session, &bug);
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "stoped\n");
+            }
+            return;
+        } else if (!strcasecmp(argv[0], "start") && argc > 1 ) {
+            if (argc > 2) {
+                volume_reduction = atoi(argv[2]);
+            }
+            if (argc > 3) {
+                name = ("wbt-" + std::string(argv[3]));
+            }
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "start/stop\n");
+            return;
+        }
+
+        if (switch_channel_get_private(channel, name.c_str())) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "can't start \"%s\" already exists\n", name.c_str());
+            return;
+        }
+
         switch_file_handle_t *fh = (switch_file_handle_t *) switch_core_session_alloc(session,
                                                                                       sizeof(switch_file_handle_t));
         switch_codec_implementation_t write_impl;
         switch_core_session_get_write_impl(session, &write_impl);
 
-        if (switch_core_file_open(fh, argv[0], write_impl.number_of_channels, write_impl.samples_per_second,
+        if (switch_core_file_open(fh, argv[1], write_impl.number_of_channels, write_impl.samples_per_second,
                                   SWITCH_FILE_FLAG_READ | SWITCH_FILE_DATA_SHORT, NULL) == SWITCH_STATUS_SUCCESS) {
             switch_media_bug_t *bug;
             b = (background_pvt *)switch_core_session_alloc(session, sizeof(*b));
+            b->name = name.c_str();
             b->fh = fh;
-            if (argc > 1) {
-                b->volume_reduction = atoi(argv[1]);
-            }
+            b->volume_reduction = volume_reduction;
             if (b->volume_reduction <= 0) {
                 b->volume_reduction = 1;
             }
@@ -1607,16 +1636,17 @@ namespace mod_grpc {
 
             switch_channel_set_variable(channel, SWITCH_SEND_SILENCE_WHEN_IDLE_VARIABLE , "-1");
             switch_channel_set_variable(channel, "wbt_background_play" , "true");
-            if (switch_core_media_bug_add(session, "wbt_background", NULL, background_noise_callback, b, 0,
+            if (switch_core_media_bug_add(session, name.c_str(), NULL, background_noise_callback, b, 0,
                                           SMBF_FIRST | SMBF_WRITE_REPLACE | SMBF_NO_PAUSE, &bug) ==
                 SWITCH_STATUS_SUCCESS) {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "play background file [%s].\n", argv[0]);
+                switch_channel_set_private(channel, name.c_str(), bug);
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "play background file [%s].\n", argv[1]);
             } else {
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "can't add media bug.\n");
                 switch_core_file_close(fh);
             }
         } else {
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "can't open file [%s].\n", argv[0]);
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "can't open file [%s].\n", argv[1]);
         }
     }
 
