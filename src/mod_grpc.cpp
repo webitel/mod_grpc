@@ -1751,6 +1751,7 @@ namespace mod_grpc {
                 auto channel = switch_core_session_get_channel(session);
                // switch_channel_add_variable_var_check(channel, "wbt_tts_codes", std::to_string(sh->response_code).c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
                 switch_channel_set_variable(channel, "wbt_tts_response", std::to_string(sh->response_code).c_str());
+                switch_channel_set_variable(channel, "wbt_tts_error", sh->response_code != 200 ? "prepare error" : NULL);
                 switch_core_session_rwunlock(session);
             }
         }
