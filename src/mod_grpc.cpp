@@ -1840,8 +1840,8 @@ namespace mod_grpc {
         FD_ZERO(&fdread);
         FD_SET(sh->sockfd, &fdread);
 
-        timeout.tv_sec = 0;        // 0 секунд
-        timeout.tv_usec = 100000;  // 100 000 мікросекунд (100 мс)
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 10000;  // 10 мс
 
         // Перевіряємо готовність сокета
         int rc = select(sh->sockfd + 1, &fdread, NULL, NULL, &timeout);
