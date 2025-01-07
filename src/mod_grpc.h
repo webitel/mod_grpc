@@ -55,6 +55,8 @@ namespace mod_grpc {
     struct silence_handle {
         int in_cache;
         char *path;
+        char *call_id;
+        char *id;
         switch_CURL *curl_handle;
         char curl_error_buff[CURL_ERROR_SIZE];
         long sockfd;
@@ -62,6 +64,7 @@ namespace mod_grpc {
         size_t samples;
         int silence;
         int forever;
+        long response_code;
     };
 
     struct background_pvt {
