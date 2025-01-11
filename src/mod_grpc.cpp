@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <thread>
-#include <sstream>
 #include <memory>
 #include <string>
 
@@ -803,6 +802,7 @@ namespace mod_grpc {
 
         this->auto_answer_delay = config_.auto_answer_delay;
         this->allowAMDAi = false;
+        this->aiClient_.reset(new AiClient(grpc::CreateChannel("10.10.10.222:50051", grpc::InsecureChannelCredentials())));
         if (config_.amd_ai_address) {
             auto amd_ai_address = std::string(config_.amd_ai_address);
             if (!amd_ai_address.empty() && amd_ai_address.size() > 5) {
@@ -849,6 +849,10 @@ namespace mod_grpc {
 
         if (amdClient_) {
             amdClient_.reset();
+        }
+
+        if (aiClient_) {
+            aiClient_.reset();
         }
 
         if (pushClient) {
@@ -1011,6 +1015,10 @@ namespace mod_grpc {
 
     AsyncClientCall* ServerImpl::AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate) {
         return amdClient_->Stream(domain_id, uuid, name, rate);
+    }
+
+    AiClientCall* ServerImpl::AsyncVoiceBotStream(int64_t  domain_id, const char *uuid, const char *name, int32_t rate) {
+        return aiClient_->Stream(domain_id, uuid, name, rate);
     }
 
     PushClient *ServerImpl::GetPushClient() {
@@ -1381,6 +1389,158 @@ namespace mod_grpc {
         return SWITCH_TRUE;
     }
 
+    static switch_bool_t ai_voice_bot_audio_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type) {
+        auto *ud = static_cast<VoiceBotStream *>(user_data);
+
+        switch (type) {
+            case SWITCH_ABC_TYPE_INIT: {
+                // connect
+                try {
+                    if (switch_core_media_bug_test_flag(bug, SMBF_ANSWER_REQ)) {
+                        switch_core_media_bug_clear_flag(bug, SMBF_ANSWER_REQ);
+                    }
+
+                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
+                    ud->in_rate = ud->read_impl.actual_samples_per_second;
+
+                    if (ud->in_rate != 16000) {
+                        switch_resample_create(&ud->rresampler,
+                                               ud->read_impl.actual_samples_per_second,
+                                               16000,
+                                               320, SWITCH_RESAMPLE_QUALITY, 1);
+
+
+                        switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                SWITCH_LOG_CRIT,
+                                "GRPC stream: RESAMPLE \n");
+
+                    } else {
+                        ud->rresampler = nullptr;
+                    }
+                } catch (...) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: SWITCH_ABC_TYPE_INIT \n");
+                }
+
+                break;
+            }
+
+            case SWITCH_ABC_TYPE_CLOSE: {
+                // cleanup
+                try {
+                    if (ud->rresampler) {
+                        switch_resample_destroy(&ud->rresampler);
+                    }
+
+                    ud->client_->Finish();
+                    delete ud->client_;
+                    delete ud;
+                } catch (...) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: SWITCH_ABC_TYPE_CLOSE \n");
+                }
+                break;
+            }
+
+            case SWITCH_ABC_TYPE_WRITE_REPLACE: {
+                switch_frame_t *frame;
+                frame = switch_core_media_bug_get_write_replace_frame(bug);
+                int bytes = 0;
+                uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
+
+                switch_buffer_lock(ud->client_->buffer);
+                if (switch_buffer_inuse(ud->client_->buffer) >= frame->datalen) {
+                    bytes = switch_buffer_read(ud->client_->buffer, data, frame->datalen);
+                    memcpy(frame->data, data, frame->datalen);
+                }
+                switch_buffer_unlock(ud->client_->buffer);
+
+                switch_core_media_bug_set_write_replace_frame(bug, frame);
+
+                switch_log_printf(
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: Buffer size %d \n", bytes);
+
+                break;
+            }
+
+            case SWITCH_ABC_TYPE_READ_REPLACE:  {
+                uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
+                switch_frame_t *read_frame ;
+                switch_status_t status;
+
+                try {
+                    read_frame = switch_core_media_bug_get_read_replace_frame(bug);
+
+                    if (ud->rresampler) {
+                        uint8_t resample_data[SWITCH_RECOMMENDED_BUFFER_SIZE];
+                        auto data = (int16_t *) read_frame->data;
+                        switch_resample_process(ud->rresampler, data, (int) read_frame->datalen / 2);
+                        uint32_t linear_len = ud->rresampler->to_len * 2;
+                        memcpy(resample_data, ud->rresampler->to, linear_len);
+
+                        ud->client_->Write(resample_data, linear_len);
+                    } else {
+                        ud->client_->Write(read_frame->data, read_frame->datalen);
+                    }
+
+                } catch (...) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: SWITCH_ABC_TYPE_WRITEs \n");
+                }
+                break;
+            }
+        }
+
+        return SWITCH_TRUE;
+    }
+
+    SWITCH_STANDARD_APP(wbt_voice_bot_function2) {
+        switch_channel_t *channel = switch_core_session_get_channel(session);
+        switch_media_bug_t *bug = nullptr;
+        switch_media_bug_flag_t flags = SMBF_READ_REPLACE | SMBF_WRITE_REPLACE;
+        mod_grpc::VoiceBotStream *ud = nullptr;
+
+        ud = new mod_grpc::VoiceBotStream;
+        ud->session = session;
+        ud->channel = channel;
+        auto cli = server_->AsyncVoiceBotStream(1, switch_channel_get_uuid(channel), switch_channel_get_uuid(channel), 16000);
+        ud->client_ = cli;
+
+        switch_mutex_init(&cli->mutex, SWITCH_MUTEX_NESTED, switch_core_session_get_pool(session));
+        switch_buffer_create_dynamic(&cli->buffer, 1024, 2048, 0);
+        switch_buffer_add_mutex(cli->buffer, cli->mutex);
+
+        cli->Listen();
+
+        if (switch_core_media_bug_add(
+                session,
+                BUG_STREAM_NAME,
+                nullptr,
+                ai_voice_bot_audio_callback,
+                ud, //user_data
+                0, //TODO
+                flags,
+                &bug) != SWITCH_STATUS_SUCCESS ) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
+            goto error_;
+        }
+        return;
+
+        error_:
+        // todo add positive application ?
+        // todo buffer
+        delete ud;
+    }
+
     #define WBT_AMD_SYNTAX "<positive labels>"
     SWITCH_STANDARD_APP(wbt_amd_function) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
@@ -1682,6 +1842,108 @@ namespace mod_grpc {
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "BLIND TRANSFER\n");
     }
 
+
+    static switch_bool_t wbt_ai_cast_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type)
+    {
+        switch_buffer_t *buffer = (switch_buffer_t *) user_data;
+        uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
+        switch_frame_t frame = { 0 };
+
+        frame.data = data;
+        frame.buflen = SWITCH_RECOMMENDED_BUFFER_SIZE;
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "type %d", type);
+
+        switch (type) {
+            case SWITCH_ABC_TYPE_INIT:
+                break;
+            case SWITCH_ABC_TYPE_CLOSE:
+                break;
+            case SWITCH_ABC_TYPE_READ_PING:
+                if (buffer) {
+                    if (switch_core_media_bug_read(bug, &frame, SWITCH_TRUE) == SWITCH_STATUS_SUCCESS) {
+                        switch_buffer_lock(buffer);
+                        switch_buffer_write(buffer, frame.data, frame.datalen);
+                        switch_buffer_unlock(buffer);
+                    }
+                } else {
+                    return SWITCH_FALSE;
+                }
+                break;
+
+            case SWITCH_ABC_TYPE_READ:
+                break;
+            case SWITCH_ABC_TYPE_WRITE:
+                break;
+            default:
+                break;
+        }
+
+        return SWITCH_TRUE;
+    }
+
+    SWITCH_STANDARD_APP(wbt_voice_bot_function) {
+        switch_frame_t *frame = NULL;
+        switch_media_bug_t *bug = NULL;
+        switch_buffer_t *buffer = NULL;
+        switch_mutex_t *mutex;
+        switch_channel_t *channel = switch_core_session_get_channel(session);
+
+        switch_codec_implementation_t read_impl = {  };
+        switch_core_session_get_read_impl(session, &read_impl);
+
+        if (switch_channel_test_flag(channel, CF_PROXY_MODE)) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Stepping into media path so this will work!\n");
+            switch_ivr_media(switch_core_session_get_uuid(session), SMF_REBRIDGE);
+        }
+
+        switch_mutex_init(&mutex, SWITCH_MUTEX_NESTED, switch_core_session_get_pool(session));
+        switch_buffer_create_dynamic(&buffer, 1024, 2048, 0);
+        switch_buffer_add_mutex(buffer, mutex);
+
+        if (switch_core_media_bug_add(session, "wbt_ai_cast", NULL,
+                                      wbt_ai_cast_callback, buffer, 0,
+                                      SMBF_READ_STREAM | SMBF_WRITE_STREAM | SMBF_READ_PING | SMBF_NO_PAUSE | SMBF_FIRST, &bug) != SWITCH_STATUS_SUCCESS) {
+            goto end;
+        }
+
+        while (switch_channel_ready(channel)) {
+            uint8_t buf[1024];
+            switch_size_t bytes = 0;
+
+            if (switch_buffer_inuse(buffer) >= 1024) {
+                switch_buffer_lock(buffer);
+                bytes = switch_buffer_read(buffer, buf, sizeof(buf));
+                switch_buffer_unlock(buffer);
+            }
+
+
+            if (switch_core_session_read_frame(session, &frame, SWITCH_IO_FLAG_NONE, 0) != SWITCH_STATUS_SUCCESS) {
+                break;
+            }
+
+            if (!bytes) {
+                switch_generate_sln_silence((int16_t *) frame->data, (uint32_t)frame->datalen, 1,1);
+            }
+
+            switch_core_session_write_frame(session, frame, SWITCH_IO_FLAG_NONE, 0);
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "callback bytes %ld\n", bytes);
+        }
+
+        end:
+        if (bug) {
+            switch_core_media_bug_remove(session, &bug);
+        }
+
+        if (buffer) {
+            switch_buffer_destroy(&buffer);
+        }
+//
+//        while (switch_channel_ready(switch_core_session_get_channel(session))) {
+
+//        }
+    }
+
     SWITCH_STANDARD_API(version_api_function) {
         stream->write_function(stream, "%s\n", MOD_BUILD_VERSION);
         stream->write_function(stream, "grpc: %s", grpc::Version().c_str());
@@ -1952,6 +2214,7 @@ silence:
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_background", "wbt_background", "wbt_background", wbt_background, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "", SAF_NONE | SAF_SUPPORT_NOMEDIA);
+            SWITCH_ADD_APP(app_interface, "wbt_voice_bot", "wbt_voice_bot", "wbt_voice_bot", wbt_voice_bot_function2, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer",
                            wbt_blind_transfer_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback",

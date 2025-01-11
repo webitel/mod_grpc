@@ -14,8 +14,22 @@ if (MOD_BUILD_VERSION)
 endif()
 
 include(FetchContent)
+set(BUILD_TESTING OFF)
+# Вимкнути зайві компоненти
+set(gRPC_BUILD_CODEGEN OFF CACHE BOOL "Disable gRPC code generation")
+set(gRPC_BUILD_CSHARP_PLUGIN OFF CACHE BOOL "Disable C# plugin")
+set(gRPC_BUILD_PYTHON_PLUGIN OFF CACHE BOOL "Disable Python plugin")
+set(gRPC_BUILD_GRPC_CSHARP_PLUGIN OFF CACHE BOOL "Disable C# gRPC plugin")
+set(gRPC_BUILD_GRPC_NODE_PLUGIN OFF CACHE BOOL "Disable Node.js plugin")
+set(gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF CACHE BOOL "Disable Objective-C plugin")
+set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "Disable Ruby plugin")
 
-set(USE_GRPC_VERSION "v1.54.1" CACHE STRING "GRPC version")
+set(gRPC_BUILD_TESTS OFF CACHE BOOL "Disable gRPC tests")
+set(gRPC_BUILD_PERF_TESTS OFF CACHE BOOL "Disable gRPC performance tests")
+set(gRPC_ABSL_PROVIDER "package" CACHE STRING "Use system-provided abseil-cpp")
+set(gRPC_INSTALL OFF CACHE BOOL "Don't install gRPC")
+
+set(USE_GRPC_VERSION "v1.69.0" CACHE STRING "GRPC version")
 set(FREESWITCH_INCLUDE_DIR "/usr/local/freeswitch/include/freeswitch" CACHE PATH "Location of FreeSWITCH headers")
 set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
 #add_compile_definitions(DEBUG_CURL)
@@ -43,7 +57,7 @@ if (NOT EXISTS "${FREESWITCH_INCLUDE_DIR}")
 endif()
 
 add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h
-        src/amd_client.cpp src/amd_client.h ${wbt_proto_src}
+        src/ai_client.cpp src/ai_client.h src/amd_client.cpp src/amd_client.h ${wbt_proto_src}
         src/utils.h src/push_client.cpp src/push_client.h)
 target_include_directories(mod_grpc PRIVATE ${WBT_GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE})

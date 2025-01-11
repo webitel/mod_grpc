@@ -14,9 +14,11 @@ extern "C" {
 
 #include "generated/fs.grpc.pb.h"
 #include "generated/stream.grpc.pb.h"
+#include "generated/voicebot.grpc.pb.h"
 #include "Cluster.h"
 #include "amd_client.h"
 #include "push_client.h"
+#include "ai_client.h"
 
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
 
@@ -48,6 +50,16 @@ namespace mod_grpc {
         int silence_ms;
         int frame_ms;
         bool answered;
+    };
+
+    struct VoiceBotStream {
+        switch_core_session_t *session;
+        switch_channel_t *channel;
+        AiClientCall* client_;
+        int in_rate;
+        int out_rate;
+        switch_audio_resampler_t *rresampler;
+        switch_codec_implementation_t read_impl;
     };
 
     static char *wbt_cache_supported_formats[] = { "wbt_prepare", NULL };
@@ -187,6 +199,7 @@ namespace mod_grpc {
         bool UseFCM() const;
         bool UseAPN() const;
         AsyncClientCall* AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
+        AiClientCall* AsyncVoiceBotStream(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
         PushClient* GetPushClient();
     private:
         void initServer();
@@ -206,6 +219,7 @@ namespace mod_grpc {
 
         int auto_answer_delay;
         std::unique_ptr<AMDClient> amdClient_;
+        std::unique_ptr<AiClient> aiClient_;
     };
 
     ServerImpl *server_;
