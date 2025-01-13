@@ -199,7 +199,7 @@ namespace mod_grpc {
         bool UseFCM() const;
         bool UseAPN() const;
         AsyncClientCall* AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
-        AiClientCall* AsyncVoiceBotStream(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
+        AiClientCall* AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t from_rate, int32_t to_rate);
         PushClient* GetPushClient();
     private:
         void initServer();
@@ -219,9 +219,10 @@ namespace mod_grpc {
 
         int auto_answer_delay;
         std::unique_ptr<AMDClient> amdClient_;
-        std::unique_ptr<AiClient> aiClient_;
     };
 
+    std::unordered_map<std::string, std::shared_ptr<AiClient>> voiceBotCache;
+    std::mutex cacheMutex;
     ServerImpl *server_;
 
     extern "C" {

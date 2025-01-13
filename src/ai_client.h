@@ -16,8 +16,6 @@ extern "C" {
 #include <grpcpp/grpcpp.h>
 #include <grpc/support/log.h>
 
-#include <mutex>
-#include <shared_mutex>
 #include <fstream>
 
 #include "generated/fs.grpc.pb.h"
@@ -25,37 +23,47 @@ extern "C" {
 
 class AiClientCall {
 public:
+    explicit AiClientCall(std::string callId, int32_t from_rate_, int32_t to_rate_) {
+        from_rate = from_rate_;
+        to_rate = to_rate_;
+        id = callId;
+        request.set_conversation_id(callId);
+    }
     void Listen() {
         rt = std::thread([this] {
             ::voicebot::AudioResponse reply;
             switch_audio_resampler_t *resampler;
             switch_resample_create(&resampler,
-                                   16000,
-                                   8000,
+                                   from_rate,
+                                   to_rate,
                                    320, SWITCH_RESAMPLE_QUALITY, 1);
 
             while (rw->Read(&reply)) {
-                const auto& chunk = reply.audio_data();
-                size_t input_samples = chunk.size();
-                int16_t input_buffer[input_samples];
-                memcpy(input_buffer, chunk.data(), chunk.size());
-                switch_resample_process(resampler, input_buffer, input_samples / 2);
-                memcpy(input_buffer, resampler->to, resampler->to_len * 2 );
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "rec %ld\n", chunk.size());
-
-//                fout.write(chunk.data(), chunk.size());
-
-
-                if (resampler->to_len > 0) {
+                if (reply.stop_talk()) {
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::receive stop\n");
                     switch_buffer_lock(buffer);
-                    switch_buffer_write(buffer, input_buffer, resampler->to_len * 2);
+                    if (switch_buffer_inuse(buffer)) {
+                        switch_buffer_zero(buffer);
+                    }
                     switch_buffer_unlock(buffer);
-
-                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::READ - Resampled and written to buffer\n");
                 } else {
-                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Resample process failed\n");
-                }
+                    const auto& chunk = reply.audio_data();
+                    size_t input_samples = chunk.size();
+                    int16_t input_buffer[input_samples];
+                    memcpy(input_buffer, chunk.data(), chunk.size());
+                    switch_resample_process(resampler, input_buffer, input_samples / 2);
+                    memcpy(input_buffer, resampler->to, resampler->to_len * 2 );
 
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::receive chunk %ld\n", input_samples);
+
+                    if (resampler->to_len > 0) {
+                        switch_buffer_lock(buffer);
+                        switch_buffer_write(buffer, input_buffer, resampler->to_len * 2);
+                        switch_buffer_unlock(buffer);
+                    } else {
+                        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Resample process failed\n");
+                    }
+                }
             }
 
             switch_resample_destroy(&resampler);
@@ -89,7 +97,7 @@ public:
         return ok;
     }
 
-    bool Write(void *data, uint32_t len) {
+    inline bool Write(void *data, uint32_t len) {
         return this->write(data, len);
     }
 
@@ -110,6 +118,8 @@ public:
     std::vector<uint8_t> audio_buffer;
     voicebot::AudioRequest request;
     std::string id;
+    int32_t from_rate;
+    int32_t to_rate;
 
     std::unique_ptr<::grpc::ClientReaderWriter<::voicebot::AudioRequest, voicebot::AudioResponse>> rw;
 };
@@ -126,20 +136,10 @@ public:
     }
 
 
-    AiClientCall *Stream(int64_t domain_id, const char *uuid, const char *name, int32_t rate) {
+    AiClientCall *Stream(const char *uuid, int32_t from_rate, int32_t to_rate) {
         //todo
-        auto *call = new AiClientCall();
+        auto *call = new AiClientCall(std::string(uuid), from_rate, to_rate);
         call->rw = stub_->Converse(&call->context);
-        call->id = std::string(name);
-
-        ::voicebot::AudioRequest msg;
-        msg.set_conversation_id(uuid);
-
-        if (!call->rw->Write(msg)) {
-            delete call;
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Exit\n");
-            return nullptr;
-        };
 
         return call;
     }

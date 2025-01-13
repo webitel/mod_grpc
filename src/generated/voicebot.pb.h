@@ -58,9 +58,6 @@ extern AudioRequestDefaultTypeInternal _AudioRequest_default_instance_;
 class AudioResponse;
 struct AudioResponseDefaultTypeInternal;
 extern AudioResponseDefaultTypeInternal _AudioResponse_default_instance_;
-class TextResponse;
-struct TextResponseDefaultTypeInternal;
-extern TextResponseDefaultTypeInternal _TextResponse_default_instance_;
 }  // namespace voicebot
 namespace google {
 namespace protobuf {
@@ -72,221 +69,6 @@ namespace voicebot {
 // ===================================================================
 
 
-// -------------------------------------------------------------------
-
-class TextResponse final
-    : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:voicebot.TextResponse) */ {
- public:
-  inline TextResponse() : TextResponse(nullptr) {}
-  ~TextResponse() PROTOBUF_FINAL;
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(TextResponse* msg, std::destroying_delete_t) {
-    SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(TextResponse));
-  }
-#endif
-
-  template <typename = void>
-  explicit PROTOBUF_CONSTEXPR TextResponse(
-      ::google::protobuf::internal::ConstantInitialized);
-
-  inline TextResponse(const TextResponse& from) : TextResponse(nullptr, from) {}
-  inline TextResponse(TextResponse&& from) noexcept
-      : TextResponse(nullptr, std::move(from)) {}
-  inline TextResponse& operator=(const TextResponse& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline TextResponse& operator=(TextResponse&& from) noexcept {
-    if (this == &from) return *this;
-    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
-  }
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::google::protobuf::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::google::protobuf::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const TextResponse& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const TextResponse* internal_default_instance() {
-    return reinterpret_cast<const TextResponse*>(
-        &_TextResponse_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 2;
-  friend void swap(TextResponse& a, TextResponse& b) { a.Swap(&b); }
-  inline void Swap(TextResponse* other) {
-    if (other == this) return;
-    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
-      InternalSwap(other);
-    } else {
-      ::google::protobuf::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(TextResponse* other) {
-    if (other == this) return;
-    ABSL_DCHECK(GetArena() == other->GetArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  TextResponse* New(::google::protobuf::Arena* arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<TextResponse>(arena);
-  }
-  using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const TextResponse& from);
-  using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const TextResponse& from) { TextResponse::MergeImpl(*this, from); }
-
-  private:
-  static void MergeImpl(
-      ::google::protobuf::MessageLite& to_msg,
-      const ::google::protobuf::MessageLite& from_msg);
-
-  public:
-  bool IsInitialized() const {
-    return true;
-  }
-  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
-  #if defined(PROTOBUF_CUSTOM_VTABLE)
-  private:
-  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
-  static ::uint8_t* _InternalSerialize(
-      const MessageLite& msg, ::uint8_t* target,
-      ::google::protobuf::io::EpsCopyOutputStream* stream);
-
-  public:
-  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
-  ::uint8_t* _InternalSerialize(
-      ::uint8_t* target,
-      ::google::protobuf::io::EpsCopyOutputStream* stream) const {
-    return _InternalSerialize(*this, target, stream);
-  }
-  #else   // PROTOBUF_CUSTOM_VTABLE
-  ::size_t ByteSizeLong() const final;
-  ::uint8_t* _InternalSerialize(
-      ::uint8_t* target,
-      ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
-  #endif  // PROTOBUF_CUSTOM_VTABLE
-  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::google::protobuf::Arena* arena);
-  static void SharedDtor(MessageLite& self);
-  void InternalSwap(TextResponse* other);
- private:
-  template <typename T>
-  friend ::absl::string_view(
-      ::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "voicebot.TextResponse"; }
-
- protected:
-  explicit TextResponse(::google::protobuf::Arena* arena);
-  TextResponse(::google::protobuf::Arena* arena, const TextResponse& from);
-  TextResponse(::google::protobuf::Arena* arena, TextResponse&& from) noexcept
-      : TextResponse(arena) {
-    *this = ::std::move(from);
-  }
-  const ::google::protobuf::internal::ClassData* GetClassData() const PROTOBUF_FINAL;
-  static void* PlacementNew_(const void*, void* mem,
-                             ::google::protobuf::Arena* arena);
-  static constexpr auto InternalNewImpl_();
-  static const ::google::protobuf::internal::ClassDataFull _class_data_;
-
- public:
-  ::google::protobuf::Metadata GetMetadata() const;
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-  enum : int {
-    kConversationIdFieldNumber = 1,
-    kTextFieldNumber = 2,
-  };
-  // string conversation_id = 1;
-  void clear_conversation_id() ;
-  const std::string& conversation_id() const;
-  template <typename Arg_ = const std::string&, typename... Args_>
-  void set_conversation_id(Arg_&& arg, Args_... args);
-  std::string* mutable_conversation_id();
-  PROTOBUF_NODISCARD std::string* release_conversation_id();
-  void set_allocated_conversation_id(std::string* value);
-
-  private:
-  const std::string& _internal_conversation_id() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_conversation_id(
-      const std::string& value);
-  std::string* _internal_mutable_conversation_id();
-
-  public:
-  // string text = 2;
-  void clear_text() ;
-  const std::string& text() const;
-  template <typename Arg_ = const std::string&, typename... Args_>
-  void set_text(Arg_&& arg, Args_... args);
-  std::string* mutable_text();
-  PROTOBUF_NODISCARD std::string* release_text();
-  void set_allocated_text(std::string* value);
-
-  private:
-  const std::string& _internal_text() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_text(
-      const std::string& value);
-  std::string* _internal_mutable_text();
-
-  public:
-  // @@protoc_insertion_point(class_scope:voicebot.TextResponse)
- private:
-  class _Internal;
-  friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<
-      1, 2, 0,
-      49, 2>
-      _table_;
-
-  friend class ::google::protobuf::MessageLite;
-  friend class ::google::protobuf::Arena;
-  template <typename T>
-  friend class ::google::protobuf::Arena::InternalHelper;
-  using InternalArenaConstructable_ = void;
-  using DestructorSkippable_ = void;
-  struct Impl_ {
-    inline explicit constexpr Impl_(
-        ::google::protobuf::internal::ConstantInitialized) noexcept;
-    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
-                          ::google::protobuf::Arena* arena);
-    inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
-                          ::google::protobuf::Arena* arena, const Impl_& from,
-                          const TextResponse& from_msg);
-    ::google::protobuf::internal::ArenaStringPtr conversation_id_;
-    ::google::protobuf::internal::ArenaStringPtr text_;
-    ::google::protobuf::internal::CachedSize _cached_size_;
-    PROTOBUF_TSAN_DECLARE_MEMBER
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_voicebot_2eproto;
-};
 // -------------------------------------------------------------------
 
 class AudioResponse final
@@ -438,6 +220,7 @@ class AudioResponse final
   enum : int {
     kConversationIdFieldNumber = 1,
     kAudioDataFieldNumber = 2,
+    kStopTalkFieldNumber = 3,
   };
   // string conversation_id = 1;
   void clear_conversation_id() ;
@@ -471,12 +254,22 @@ class AudioResponse final
   std::string* _internal_mutable_audio_data();
 
   public:
+  // bool stop_talk = 3;
+  void clear_stop_talk() ;
+  bool stop_talk() const;
+  void set_stop_talk(bool value);
+
+  private:
+  bool _internal_stop_talk() const;
+  void _internal_set_stop_talk(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:voicebot.AudioResponse)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      1, 2, 0,
+      2, 3, 0,
       46, 2>
       _table_;
 
@@ -496,6 +289,7 @@ class AudioResponse final
                           const AudioResponse& from_msg);
     ::google::protobuf::internal::ArenaStringPtr conversation_id_;
     ::google::protobuf::internal::ArenaStringPtr audio_data_;
+    bool stop_talk_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -930,104 +724,26 @@ inline void AudioResponse::set_allocated_audio_data(std::string* value) {
   // @@protoc_insertion_point(field_set_allocated:voicebot.AudioResponse.audio_data)
 }
 
-// -------------------------------------------------------------------
-
-// TextResponse
-
-// string conversation_id = 1;
-inline void TextResponse::clear_conversation_id() {
+// bool stop_talk = 3;
+inline void AudioResponse::clear_stop_talk() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.conversation_id_.ClearToEmpty();
+  _impl_.stop_talk_ = false;
 }
-inline const std::string& TextResponse::conversation_id() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:voicebot.TextResponse.conversation_id)
-  return _internal_conversation_id();
+inline bool AudioResponse::stop_talk() const {
+  // @@protoc_insertion_point(field_get:voicebot.AudioResponse.stop_talk)
+  return _internal_stop_talk();
 }
-template <typename Arg_, typename... Args_>
-inline PROTOBUF_ALWAYS_INLINE void TextResponse::set_conversation_id(Arg_&& arg,
-                                                     Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.conversation_id_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:voicebot.TextResponse.conversation_id)
+inline void AudioResponse::set_stop_talk(bool value) {
+  _internal_set_stop_talk(value);
+  // @@protoc_insertion_point(field_set:voicebot.AudioResponse.stop_talk)
 }
-inline std::string* TextResponse::mutable_conversation_id() ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  std::string* _s = _internal_mutable_conversation_id();
-  // @@protoc_insertion_point(field_mutable:voicebot.TextResponse.conversation_id)
-  return _s;
-}
-inline const std::string& TextResponse::_internal_conversation_id() const {
+inline bool AudioResponse::_internal_stop_talk() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.conversation_id_.Get();
+  return _impl_.stop_talk_;
 }
-inline void TextResponse::_internal_set_conversation_id(const std::string& value) {
+inline void AudioResponse::_internal_set_stop_talk(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.conversation_id_.Set(value, GetArena());
-}
-inline std::string* TextResponse::_internal_mutable_conversation_id() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.conversation_id_.Mutable( GetArena());
-}
-inline std::string* TextResponse::release_conversation_id() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:voicebot.TextResponse.conversation_id)
-  return _impl_.conversation_id_.Release();
-}
-inline void TextResponse::set_allocated_conversation_id(std::string* value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.conversation_id_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.conversation_id_.IsDefault()) {
-    _impl_.conversation_id_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:voicebot.TextResponse.conversation_id)
-}
-
-// string text = 2;
-inline void TextResponse::clear_text() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.text_.ClearToEmpty();
-}
-inline const std::string& TextResponse::text() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:voicebot.TextResponse.text)
-  return _internal_text();
-}
-template <typename Arg_, typename... Args_>
-inline PROTOBUF_ALWAYS_INLINE void TextResponse::set_text(Arg_&& arg,
-                                                     Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.text_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:voicebot.TextResponse.text)
-}
-inline std::string* TextResponse::mutable_text() ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  std::string* _s = _internal_mutable_text();
-  // @@protoc_insertion_point(field_mutable:voicebot.TextResponse.text)
-  return _s;
-}
-inline const std::string& TextResponse::_internal_text() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.text_.Get();
-}
-inline void TextResponse::_internal_set_text(const std::string& value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.text_.Set(value, GetArena());
-}
-inline std::string* TextResponse::_internal_mutable_text() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.text_.Mutable( GetArena());
-}
-inline std::string* TextResponse::release_text() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:voicebot.TextResponse.text)
-  return _impl_.text_.Release();
-}
-inline void TextResponse::set_allocated_text(std::string* value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.text_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.text_.IsDefault()) {
-    _impl_.text_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:voicebot.TextResponse.text)
+  _impl_.stop_talk_ = value;
 }
 
 #ifdef __GNUC__

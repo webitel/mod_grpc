@@ -36,6 +36,61 @@ using grpc::StatusCode;
 
 namespace mod_grpc {
 
+    void clearVoiceBotCache() {
+        std::lock_guard<std::mutex> lock(cacheMutex);
+
+        for (auto const& x : voiceBotCache) {
+            auto cli = x.second.get();
+            delete cli;
+        }
+
+        voiceBotCache.clear();
+    }
+
+    std::shared_ptr<AiClient> getVoiceBotClient(const std::string& conn) {
+        {
+            std::lock_guard<std::mutex> lock(cacheMutex);
+            auto it = voiceBotCache.find(conn);
+            if (it != voiceBotCache.end()) {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "voicebot %s use cached channel\n", conn.c_str());
+                return it->second;
+            }
+        }
+
+        if (conn.empty()) {
+            return nullptr;
+        }
+
+        try {
+            auto channel = grpc::CreateChannel(conn, grpc::InsecureChannelCredentials());
+            if (!channel->WaitForConnected(std::chrono::system_clock::now() +
+                                      std::chrono::milliseconds(5000))) {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "create voice bot connection %s, error: %s\n",
+                                  conn.c_str(), "conection refused");
+            }
+
+            auto client = std::shared_ptr<AiClient>(new AiClient(channel));
+
+            {
+                std::lock_guard<std::mutex> lock(cacheMutex);
+                voiceBotCache[conn] = client;
+            }
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "created voice bot connection %s\n",
+                              conn.c_str());
+
+            return client;
+
+        } catch (std::exception &ex) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "create voice bot connection error: %s\n",
+                              ex.what());
+        } catch (...) { // Exceptions must not propogate to C caller
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                              "create voice bot connection error: unknow\n");
+        }
+
+        return nullptr;
+    }
+
     Status ApiServiceImpl::Originate(ServerContext *ctx, const fs::OriginateRequest *request,
                                      fs::OriginateResponse *reply) {
         switch_channel_t *caller_channel;
@@ -802,7 +857,6 @@ namespace mod_grpc {
 
         this->auto_answer_delay = config_.auto_answer_delay;
         this->allowAMDAi = false;
-        this->aiClient_.reset(new AiClient(grpc::CreateChannel("10.10.10.222:50051", grpc::InsecureChannelCredentials())));
         if (config_.amd_ai_address) {
             auto amd_ai_address = std::string(config_.amd_ai_address);
             if (!amd_ai_address.empty() && amd_ai_address.size() > 5) {
@@ -851,9 +905,7 @@ namespace mod_grpc {
             amdClient_.reset();
         }
 
-        if (aiClient_) {
-            aiClient_.reset();
-        }
+        clearVoiceBotCache();
 
         if (pushClient) {
             delete pushClient;
@@ -1017,8 +1069,13 @@ namespace mod_grpc {
         return amdClient_->Stream(domain_id, uuid, name, rate);
     }
 
-    AiClientCall* ServerImpl::AsyncVoiceBotStream(int64_t  domain_id, const char *uuid, const char *name, int32_t rate) {
-        return aiClient_->Stream(domain_id, uuid, name, rate);
+    AiClientCall* ServerImpl::AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t from_rate, int32_t to_rate) {
+        auto bot = getVoiceBotClient(conn);
+        if (bot) {
+            return bot->Stream(uuid, from_rate, to_rate);
+        }
+
+        return nullptr;
     }
 
     PushClient *ServerImpl::GetPushClient() {
@@ -1462,11 +1519,11 @@ namespace mod_grpc {
 
                 switch_core_media_bug_set_write_replace_frame(bug, frame);
 
-                switch_log_printf(
-                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                        SWITCH_LOG_CRIT,
-                        "GRPC stream: Buffer size %d \n", bytes);
-
+//                switch_log_printf(
+//                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+//                        SWITCH_LOG_CRIT,
+//                        "GRPC stream: Buffer size %d \n", bytes);
+//
                 break;
             }
 
@@ -1477,6 +1534,7 @@ namespace mod_grpc {
 
                 try {
                     read_frame = switch_core_media_bug_get_read_replace_frame(bug);
+                    bool ok;
 
                     if (ud->rresampler) {
                         uint8_t resample_data[SWITCH_RECOMMENDED_BUFFER_SIZE];
@@ -1485,9 +1543,17 @@ namespace mod_grpc {
                         uint32_t linear_len = ud->rresampler->to_len * 2;
                         memcpy(resample_data, ud->rresampler->to, linear_len);
 
-                        ud->client_->Write(resample_data, linear_len);
+                        ok = ud->client_->Write(resample_data, linear_len);
                     } else {
-                        ud->client_->Write(read_frame->data, read_frame->datalen);
+                        ok = ud->client_->Write(read_frame->data, read_frame->datalen);
+                    }
+
+                    if (!ok) {
+                        switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                SWITCH_LOG_CRIT,
+                                "GRPC stream: error send \n");
+                        return SWITCH_FALSE;
                     }
 
                 } catch (...) {
@@ -1512,7 +1578,11 @@ namespace mod_grpc {
         ud = new mod_grpc::VoiceBotStream;
         ud->session = session;
         ud->channel = channel;
-        auto cli = server_->AsyncVoiceBotStream(1, switch_channel_get_uuid(channel), switch_channel_get_uuid(channel), 16000);
+        auto cli = server_->AsyncVoiceBotStream(data, switch_channel_get_uuid(channel), 16000, 8000);
+        if (!cli) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "not found bot connection %s\n", data);
+            return;
+        }
         ud->client_ = cli;
 
         switch_mutex_init(&cli->mutex, SWITCH_MUTEX_NESTED, switch_core_session_get_pool(session));
@@ -1527,12 +1597,48 @@ namespace mod_grpc {
                 nullptr,
                 ai_voice_bot_audio_callback,
                 ud, //user_data
-                0, //TODO
+                0,
                 flags,
                 &bug) != SWITCH_STATUS_SUCCESS ) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
             goto error_;
         }
+        /*
+        switch_frame_t write_frame = { 0 };
+
+        switch_codec_implementation_t imp = { 0 };
+        switch_codec_t codec = { 0 };
+        int sval = 0;
+        switch_core_session_get_read_impl(session, &imp);
+
+        if (switch_core_codec_init(&codec,
+                                   "L16",
+                                   NULL,
+                                   NULL,
+                                   imp.actual_samples_per_second,
+                                   imp.microseconds_per_packet / 1000,
+                                   imp.number_of_channels,
+                                   SWITCH_CODEC_FLAG_ENCODE | SWITCH_CODEC_FLAG_DECODE, NULL,
+                                   switch_core_session_get_pool(session)) != SWITCH_STATUS_SUCCESS) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Codec Error L16@%uhz %u channels %dms\n",
+                              imp.actual_samples_per_second, imp.number_of_channels, imp.microseconds_per_packet / 1000);
+
+            goto error_;
+        }
+          */
+        while(switch_channel_ready(channel)) {
+            switch_status_t status = switch_ivr_sleep(session, 1000, SWITCH_FALSE, NULL);
+            if (!SWITCH_READ_ACCEPTABLE(status)) {
+                break;
+            }
+
+//            switch_ivr_parse_all_events(session);
+
+//            switch_generate_sln_silence((int16_t *) write_frame.data, write_frame.samples, imp.number_of_channels, sval);
+//            switch_core_session_write_frame(session, &write_frame, SWITCH_IO_FLAG_NONE, 0);
+
+        }
+
         return;
 
         error_:

@@ -26,36 +26,6 @@ namespace _pbi = ::google::protobuf::internal;
 namespace _fl = ::google::protobuf::internal::field_layout;
 namespace voicebot {
 
-inline constexpr TextResponse::Impl_::Impl_(
-    ::_pbi::ConstantInitialized) noexcept
-      : conversation_id_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        text_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
-        _cached_size_{0} {}
-
-template <typename>
-PROTOBUF_CONSTEXPR TextResponse::TextResponse(::_pbi::ConstantInitialized)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(_class_data_.base()),
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(),
-#endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(::_pbi::ConstantInitialized()) {
-}
-struct TextResponseDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR TextResponseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~TextResponseDefaultTypeInternal() {}
-  union {
-    TextResponse _instance;
-  };
-};
-
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 TextResponseDefaultTypeInternal _TextResponse_default_instance_;
-
 inline constexpr AudioResponse::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : conversation_id_(
@@ -64,6 +34,7 @@ inline constexpr AudioResponse::Impl_::Impl_(
         audio_data_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
+        stop_talk_{false},
         _cached_size_{0} {}
 
 template <typename>
@@ -143,52 +114,40 @@ const ::uint32_t
         ~0u,  // no sizeof(Split)
         PROTOBUF_FIELD_OFFSET(::voicebot::AudioResponse, _impl_.conversation_id_),
         PROTOBUF_FIELD_OFFSET(::voicebot::AudioResponse, _impl_.audio_data_),
-        ~0u,  // no _has_bits_
-        PROTOBUF_FIELD_OFFSET(::voicebot::TextResponse, _internal_metadata_),
-        ~0u,  // no _extensions_
-        ~0u,  // no _oneof_case_
-        ~0u,  // no _weak_field_map_
-        ~0u,  // no _inlined_string_donated_
-        ~0u,  // no _split_
-        ~0u,  // no sizeof(Split)
-        PROTOBUF_FIELD_OFFSET(::voicebot::TextResponse, _impl_.conversation_id_),
-        PROTOBUF_FIELD_OFFSET(::voicebot::TextResponse, _impl_.text_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::AudioResponse, _impl_.stop_talk_),
 };
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, -1, -1, sizeof(::voicebot::AudioRequest)},
         {10, -1, -1, sizeof(::voicebot::AudioResponse)},
-        {20, -1, -1, sizeof(::voicebot::TextResponse)},
 };
 static const ::_pb::Message* const file_default_instances[] = {
     &::voicebot::_AudioRequest_default_instance_._instance,
     &::voicebot::_AudioResponse_default_instance_._instance,
-    &::voicebot::_TextResponse_default_instance_._instance,
 };
 const char descriptor_table_protodef_voicebot_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\016voicebot.proto\022\010voicebot\";\n\014AudioReque"
     "st\022\027\n\017conversation_id\030\001 \001(\t\022\022\n\naudio_dat"
-    "a\030\002 \001(\014\"<\n\rAudioResponse\022\027\n\017conversation"
-    "_id\030\001 \001(\t\022\022\n\naudio_data\030\002 \001(\014\"5\n\014TextRes"
-    "ponse\022\027\n\017conversation_id\030\001 \001(\t\022\014\n\004text\030\002"
-    " \001(\t2M\n\010VoiceBot\022A\n\010Converse\022\026.voicebot."
-    "AudioRequest\032\027.voicebot.AudioResponse\"\000("
-    "\0010\001B!Z\037github.com/webitel/voicebot;genb\006"
-    "proto3"
+    "a\030\002 \001(\014\"O\n\rAudioResponse\022\027\n\017conversation"
+    "_id\030\001 \001(\t\022\022\n\naudio_data\030\002 \001(\014\022\021\n\tstop_ta"
+    "lk\030\003 \001(\0102M\n\010VoiceBot\022A\n\010Converse\022\026.voice"
+    "bot.AudioRequest\032\027.voicebot.AudioRespons"
+    "e\"\000(\0010\001B!Z\037github.com/webitel/voicebot;g"
+    "enb\006proto3"
 };
 static ::absl::once_flag descriptor_table_voicebot_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_voicebot_2eproto = {
     false,
     false,
-    326,
+    290,
     descriptor_table_protodef_voicebot_2eproto,
     "voicebot.proto",
     &descriptor_table_voicebot_2eproto_once,
     nullptr,
     0,
-    3,
+    2,
     schemas,
     file_default_instances,
     TableStruct_voicebot_2eproto::offsets,
@@ -488,6 +447,7 @@ AudioResponse::AudioResponse(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.stop_talk_ = from._impl_.stop_talk_;
 
   // @@protoc_insertion_point(copy_constructor:voicebot.AudioResponse)
 }
@@ -500,6 +460,7 @@ inline PROTOBUF_NDEBUG_INLINE AudioResponse::Impl_::Impl_(
 
 inline void AudioResponse::SharedCtor(::_pb::Arena* arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.stop_talk_ = {};
 }
 AudioResponse::~AudioResponse() {
   // @@protoc_insertion_point(destructor:voicebot.AudioResponse)
@@ -550,15 +511,15 @@ const ::google::protobuf::internal::ClassData* AudioResponse::GetClassData() con
   return _class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 46, 2> AudioResponse::_table_ = {
+const ::_pbi::TcParseTable<2, 3, 0, 46, 2> AudioResponse::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    3, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
+    4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
+    3,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     _class_data_.base(),
@@ -568,12 +529,16 @@ const ::_pbi::TcParseTable<1, 2, 0, 46, 2> AudioResponse::_table_ = {
     ::_pbi::TcParser::GetTable<::voicebot::AudioResponse>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // bytes audio_data = 2;
-    {::_pbi::TcParser::FastBS1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.audio_data_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // string conversation_id = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 63, 0, PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.conversation_id_)}},
+    // bytes audio_data = 2;
+    {::_pbi::TcParser::FastBS1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.audio_data_)}},
+    // bool stop_talk = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(AudioResponse, _impl_.stop_talk_), 63>(),
+     {24, 63, 0, PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.stop_talk_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -583,6 +548,9 @@ const ::_pbi::TcParseTable<1, 2, 0, 46, 2> AudioResponse::_table_ = {
     // bytes audio_data = 2;
     {PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.audio_data_), 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kBytes | ::_fl::kRepAString)},
+    // bool stop_talk = 3;
+    {PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.stop_talk_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kBool)},
   }},
   // no aux_entries
   {{
@@ -601,6 +569,7 @@ PROTOBUF_NOINLINE void AudioResponse::Clear() {
 
   _impl_.conversation_id_.ClearToEmpty();
   _impl_.audio_data_.ClearToEmpty();
+  _impl_.stop_talk_ = false;
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
@@ -631,6 +600,13 @@ PROTOBUF_NOINLINE void AudioResponse::Clear() {
           if (!this_._internal_audio_data().empty()) {
             const std::string& _s = this_._internal_audio_data();
             target = stream->WriteBytesMaybeAliased(2, _s, target);
+          }
+
+          // bool stop_talk = 3;
+          if (this_._internal_stop_talk() != 0) {
+            target = stream->EnsureSpace(target);
+            target = ::_pbi::WireFormatLite::WriteBoolToArray(
+                3, this_._internal_stop_talk(), target);
           }
 
           if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -668,6 +644,10 @@ PROTOBUF_NOINLINE void AudioResponse::Clear() {
               total_size += 1 + ::google::protobuf::internal::WireFormatLite::BytesSize(
                                               this_._internal_audio_data());
             }
+            // bool stop_talk = 3;
+            if (this_._internal_stop_talk() != 0) {
+              total_size += 2;
+            }
           }
           return this_.MaybeComputeUnknownFieldsSize(total_size,
                                                      &this_._impl_._cached_size_);
@@ -687,6 +667,9 @@ void AudioResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::g
   if (!from._internal_audio_data().empty()) {
     _this->_internal_set_audio_data(from._internal_audio_data());
   }
+  if (from._internal_stop_talk() != 0) {
+    _this->_impl_.stop_talk_ = from._impl_.stop_talk_;
+  }
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -705,269 +688,10 @@ void AudioResponse::InternalSwap(AudioResponse* PROTOBUF_RESTRICT other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.conversation_id_, &other->_impl_.conversation_id_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.audio_data_, &other->_impl_.audio_data_, arena);
+        swap(_impl_.stop_talk_, other->_impl_.stop_talk_);
 }
 
 ::google::protobuf::Metadata AudioResponse::GetMetadata() const {
-  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
-}
-// ===================================================================
-
-class TextResponse::_Internal {
- public:
-};
-
-TextResponse::TextResponse(::google::protobuf::Arena* arena)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, _class_data_.base()) {
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(arena) {
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:voicebot.TextResponse)
-}
-inline PROTOBUF_NDEBUG_INLINE TextResponse::Impl_::Impl_(
-    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
-    const Impl_& from, const ::voicebot::TextResponse& from_msg)
-      : conversation_id_(arena, from.conversation_id_),
-        text_(arena, from.text_),
-        _cached_size_{0} {}
-
-TextResponse::TextResponse(
-    ::google::protobuf::Arena* arena,
-    const TextResponse& from)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, _class_data_.base()) {
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(arena) {
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  TextResponse* const _this = this;
-  (void)_this;
-  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
-      from._internal_metadata_);
-  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-
-  // @@protoc_insertion_point(copy_constructor:voicebot.TextResponse)
-}
-inline PROTOBUF_NDEBUG_INLINE TextResponse::Impl_::Impl_(
-    ::google::protobuf::internal::InternalVisibility visibility,
-    ::google::protobuf::Arena* arena)
-      : conversation_id_(arena),
-        text_(arena),
-        _cached_size_{0} {}
-
-inline void TextResponse::SharedCtor(::_pb::Arena* arena) {
-  new (&_impl_) Impl_(internal_visibility(), arena);
-}
-TextResponse::~TextResponse() {
-  // @@protoc_insertion_point(destructor:voicebot.TextResponse)
-  SharedDtor(*this);
-}
-inline void TextResponse::SharedDtor(MessageLite& self) {
-  TextResponse& this_ = static_cast<TextResponse&>(self);
-  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
-  ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.conversation_id_.Destroy();
-  this_._impl_.text_.Destroy();
-  this_._impl_.~Impl_();
-}
-
-inline void* TextResponse::PlacementNew_(const void*, void* mem,
-                                        ::google::protobuf::Arena* arena) {
-  return ::new (mem) TextResponse(arena);
-}
-constexpr auto TextResponse::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(TextResponse),
-                                            alignof(TextResponse));
-}
-PROTOBUF_CONSTINIT
-PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::google::protobuf::internal::ClassDataFull TextResponse::_class_data_ = {
-    ::google::protobuf::internal::ClassData{
-        &_TextResponse_default_instance_._instance,
-        &_table_.header,
-        nullptr,  // OnDemandRegisterArenaDtor
-        nullptr,  // IsInitialized
-        &TextResponse::MergeImpl,
-        ::google::protobuf::Message::GetNewImpl<TextResponse>(),
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-        &TextResponse::SharedDtor,
-        ::google::protobuf::Message::GetClearImpl<TextResponse>(), &TextResponse::ByteSizeLong,
-            &TextResponse::_InternalSerialize,
-#endif  // PROTOBUF_CUSTOM_VTABLE
-        PROTOBUF_FIELD_OFFSET(TextResponse, _impl_._cached_size_),
-        false,
-    },
-    &TextResponse::kDescriptorMethods,
-    &descriptor_table_voicebot_2eproto,
-    nullptr,  // tracker
-};
-const ::google::protobuf::internal::ClassData* TextResponse::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
-  return _class_data_.base();
-}
-PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 49, 2> TextResponse::_table_ = {
-  {
-    0,  // no _has_bits_
-    0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
-    offsetof(decltype(_table_), field_lookup_table),
-    4294967292,  // skipmap
-    offsetof(decltype(_table_), field_entries),
-    2,  // num_field_entries
-    0,  // num_aux_entries
-    offsetof(decltype(_table_), field_names),  // no aux_entries
-    _class_data_.base(),
-    nullptr,  // post_loop_handler
-    ::_pbi::TcParser::GenericFallback,  // fallback
-    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::voicebot::TextResponse>(),  // to_prefetch
-    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
-  }, {{
-    // string text = 2;
-    {::_pbi::TcParser::FastUS1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(TextResponse, _impl_.text_)}},
-    // string conversation_id = 1;
-    {::_pbi::TcParser::FastUS1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(TextResponse, _impl_.conversation_id_)}},
-  }}, {{
-    65535, 65535
-  }}, {{
-    // string conversation_id = 1;
-    {PROTOBUF_FIELD_OFFSET(TextResponse, _impl_.conversation_id_), 0, 0,
-    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    // string text = 2;
-    {PROTOBUF_FIELD_OFFSET(TextResponse, _impl_.text_), 0, 0,
-    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
-  }},
-  // no aux_entries
-  {{
-    "\25\17\4\0\0\0\0\0"
-    "voicebot.TextResponse"
-    "conversation_id"
-    "text"
-  }},
-};
-
-PROTOBUF_NOINLINE void TextResponse::Clear() {
-// @@protoc_insertion_point(message_clear_start:voicebot.TextResponse)
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.conversation_id_.ClearToEmpty();
-  _impl_.text_.ClearToEmpty();
-  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
-}
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-        ::uint8_t* TextResponse::_InternalSerialize(
-            const MessageLite& base, ::uint8_t* target,
-            ::google::protobuf::io::EpsCopyOutputStream* stream) {
-          const TextResponse& this_ = static_cast<const TextResponse&>(base);
-#else   // PROTOBUF_CUSTOM_VTABLE
-        ::uint8_t* TextResponse::_InternalSerialize(
-            ::uint8_t* target,
-            ::google::protobuf::io::EpsCopyOutputStream* stream) const {
-          const TextResponse& this_ = *this;
-#endif  // PROTOBUF_CUSTOM_VTABLE
-          // @@protoc_insertion_point(serialize_to_array_start:voicebot.TextResponse)
-          ::uint32_t cached_has_bits = 0;
-          (void)cached_has_bits;
-
-          // string conversation_id = 1;
-          if (!this_._internal_conversation_id().empty()) {
-            const std::string& _s = this_._internal_conversation_id();
-            ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.TextResponse.conversation_id");
-            target = stream->WriteStringMaybeAliased(1, _s, target);
-          }
-
-          // string text = 2;
-          if (!this_._internal_text().empty()) {
-            const std::string& _s = this_._internal_text();
-            ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.TextResponse.text");
-            target = stream->WriteStringMaybeAliased(2, _s, target);
-          }
-
-          if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
-            target =
-                ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-                    this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-          }
-          // @@protoc_insertion_point(serialize_to_array_end:voicebot.TextResponse)
-          return target;
-        }
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-        ::size_t TextResponse::ByteSizeLong(const MessageLite& base) {
-          const TextResponse& this_ = static_cast<const TextResponse&>(base);
-#else   // PROTOBUF_CUSTOM_VTABLE
-        ::size_t TextResponse::ByteSizeLong() const {
-          const TextResponse& this_ = *this;
-#endif  // PROTOBUF_CUSTOM_VTABLE
-          // @@protoc_insertion_point(message_byte_size_start:voicebot.TextResponse)
-          ::size_t total_size = 0;
-
-          ::uint32_t cached_has_bits = 0;
-          // Prevent compiler warnings about cached_has_bits being unused
-          (void)cached_has_bits;
-
-          ::_pbi::Prefetch5LinesFrom7Lines(&this_);
-           {
-            // string conversation_id = 1;
-            if (!this_._internal_conversation_id().empty()) {
-              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                              this_._internal_conversation_id());
-            }
-            // string text = 2;
-            if (!this_._internal_text().empty()) {
-              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                              this_._internal_text());
-            }
-          }
-          return this_.MaybeComputeUnknownFieldsSize(total_size,
-                                                     &this_._impl_._cached_size_);
-        }
-
-void TextResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
-  auto* const _this = static_cast<TextResponse*>(&to_msg);
-  auto& from = static_cast<const TextResponse&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:voicebot.TextResponse)
-  ABSL_DCHECK_NE(&from, _this);
-  ::uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (!from._internal_conversation_id().empty()) {
-    _this->_internal_set_conversation_id(from._internal_conversation_id());
-  }
-  if (!from._internal_text().empty()) {
-    _this->_internal_set_text(from._internal_text());
-  }
-  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void TextResponse::CopyFrom(const TextResponse& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:voicebot.TextResponse)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-
-void TextResponse::InternalSwap(TextResponse* PROTOBUF_RESTRICT other) {
-  using std::swap;
-  auto* arena = GetArena();
-  ABSL_DCHECK_EQ(arena, other->GetArena());
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.conversation_id_, &other->_impl_.conversation_id_, arena);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.text_, &other->_impl_.text_, arena);
-}
-
-::google::protobuf::Metadata TextResponse::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)
