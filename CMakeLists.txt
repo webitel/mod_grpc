@@ -6,6 +6,7 @@ set(CMAKE_CXX_COMPILER "g++")
 project(mod_grpc C CXX)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fno-gnu-unique -Wreturn-type")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG -s")
 
 option(MOD_BUILD_VERSION "Build version" "")
 
@@ -28,6 +29,8 @@ set(gRPC_BUILD_TESTS OFF CACHE BOOL "Disable gRPC tests")
 set(gRPC_BUILD_PERF_TESTS OFF CACHE BOOL "Disable gRPC performance tests")
 set(gRPC_ABSL_PROVIDER "package" CACHE STRING "Use system-provided abseil-cpp")
 set(gRPC_INSTALL OFF CACHE BOOL "Don't install gRPC")
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable protobuf tests")
+set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf as shared libraries")
 
 set(USE_GRPC_VERSION "v1.69.0" CACHE STRING "GRPC version")
 set(FREESWITCH_INCLUDE_DIR "/usr/local/freeswitch/include/freeswitch" CACHE PATH "Location of FreeSWITCH headers")
@@ -56,8 +59,8 @@ if (NOT EXISTS "${FREESWITCH_INCLUDE_DIR}")
     message( SEND_ERROR "Not exists FREESWITCH_INCLUDE_DIR = ${FREESWITCH_INCLUDE_DIR}" )
 endif()
 
-add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h
-        src/ai_client.cpp src/ai_client.h src/amd_client.cpp src/amd_client.h ${wbt_proto_src}
+add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.h src/CallManager.cpp src/CallManager.h src/Cluster.cpp src/Cluster.h
+        src/voice_bot_client.h src/amd_client.cpp src/amd_client.h ${wbt_proto_src}
         src/utils.h src/push_client.cpp src/push_client.h)
 target_include_directories(mod_grpc PRIVATE ${WBT_GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE})

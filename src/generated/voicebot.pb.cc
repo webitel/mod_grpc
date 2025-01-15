@@ -25,6 +25,24 @@ namespace _pb = ::google::protobuf;
 namespace _pbi = ::google::protobuf::internal;
 namespace _fl = ::google::protobuf::internal::field_layout;
 namespace voicebot {
+              template <typename>
+PROTOBUF_CONSTEXPR Metadata_UserDataEntry_DoNotUse::Metadata_UserDataEntry_DoNotUse(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : Metadata_UserDataEntry_DoNotUse::MapEntry(_class_data_.base()){}
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : Metadata_UserDataEntry_DoNotUse::MapEntry() {
+}
+#endif  // PROTOBUF_CUSTOM_VTABLE
+struct Metadata_UserDataEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR Metadata_UserDataEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~Metadata_UserDataEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    Metadata_UserDataEntry_DoNotUse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Metadata_UserDataEntry_DoNotUseDefaultTypeInternal _Metadata_UserDataEntry_DoNotUse_default_instance_;
 
 inline constexpr AudioResponse::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -35,6 +53,7 @@ inline constexpr AudioResponse::Impl_::Impl_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         stop_talk_{false},
+        end_conversation_{false},
         _cached_size_{0} {}
 
 template <typename>
@@ -57,15 +76,75 @@ struct AudioResponseDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AudioResponseDefaultTypeInternal _AudioResponse_default_instance_;
 
-inline constexpr AudioRequest::Impl_::Impl_(
+inline constexpr AudioData::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : conversation_id_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        audio_data_(
+        audio_bytes_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         _cached_size_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR AudioData::AudioData(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct AudioDataDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR AudioDataDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~AudioDataDefaultTypeInternal() {}
+  union {
+    AudioData _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AudioDataDefaultTypeInternal _AudioData_default_instance_;
+
+inline constexpr Metadata::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : user_data_{},
+        conversation_id_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        initial_ai_message_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        rate_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        _cached_size_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR Metadata::Metadata(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct MetadataDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR MetadataDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~MetadataDefaultTypeInternal() {}
+  union {
+    Metadata _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MetadataDefaultTypeInternal _Metadata_default_instance_;
+
+inline constexpr AudioRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : data_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR AudioRequest::AudioRequest(::_pbi::ConstantInitialized)
@@ -94,16 +173,51 @@ static constexpr const ::_pb::ServiceDescriptor**
 const ::uint32_t
     TableStruct_voicebot_2eproto::offsets[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
         protodesc_cold) = {
-        ~0u,  // no _has_bits_
-        PROTOBUF_FIELD_OFFSET(::voicebot::AudioRequest, _internal_metadata_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::Metadata_UserDataEntry_DoNotUse, _impl_._has_bits_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::Metadata_UserDataEntry_DoNotUse, _internal_metadata_),
         ~0u,  // no _extensions_
         ~0u,  // no _oneof_case_
         ~0u,  // no _weak_field_map_
         ~0u,  // no _inlined_string_donated_
         ~0u,  // no _split_
         ~0u,  // no sizeof(Split)
-        PROTOBUF_FIELD_OFFSET(::voicebot::AudioRequest, _impl_.conversation_id_),
-        PROTOBUF_FIELD_OFFSET(::voicebot::AudioRequest, _impl_.audio_data_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::Metadata_UserDataEntry_DoNotUse, _impl_.key_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::Metadata_UserDataEntry_DoNotUse, _impl_.value_),
+        0,
+        1,
+        ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::voicebot::Metadata, _internal_metadata_),
+        ~0u,  // no _extensions_
+        ~0u,  // no _oneof_case_
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        PROTOBUF_FIELD_OFFSET(::voicebot::Metadata, _impl_.conversation_id_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::Metadata, _impl_.initial_ai_message_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::Metadata, _impl_.user_data_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::Metadata, _impl_.rate_),
+        ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::voicebot::AudioData, _internal_metadata_),
+        ~0u,  // no _extensions_
+        ~0u,  // no _oneof_case_
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        PROTOBUF_FIELD_OFFSET(::voicebot::AudioData, _impl_.conversation_id_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::AudioData, _impl_.audio_bytes_),
+        ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::voicebot::AudioRequest, _internal_metadata_),
+        ~0u,  // no _extensions_
+        PROTOBUF_FIELD_OFFSET(::voicebot::AudioRequest, _impl_._oneof_case_[0]),
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
+        PROTOBUF_FIELD_OFFSET(::voicebot::AudioRequest, _impl_.data_),
         ~0u,  // no _has_bits_
         PROTOBUF_FIELD_OFFSET(::voicebot::AudioResponse, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -115,39 +229,54 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::voicebot::AudioResponse, _impl_.conversation_id_),
         PROTOBUF_FIELD_OFFSET(::voicebot::AudioResponse, _impl_.audio_data_),
         PROTOBUF_FIELD_OFFSET(::voicebot::AudioResponse, _impl_.stop_talk_),
+        PROTOBUF_FIELD_OFFSET(::voicebot::AudioResponse, _impl_.end_conversation_),
 };
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-        {0, -1, -1, sizeof(::voicebot::AudioRequest)},
-        {10, -1, -1, sizeof(::voicebot::AudioResponse)},
+        {0, 10, -1, sizeof(::voicebot::Metadata_UserDataEntry_DoNotUse)},
+        {12, -1, -1, sizeof(::voicebot::Metadata)},
+        {24, -1, -1, sizeof(::voicebot::AudioData)},
+        {34, -1, -1, sizeof(::voicebot::AudioRequest)},
+        {45, -1, -1, sizeof(::voicebot::AudioResponse)},
 };
 static const ::_pb::Message* const file_default_instances[] = {
+    &::voicebot::_Metadata_UserDataEntry_DoNotUse_default_instance_._instance,
+    &::voicebot::_Metadata_default_instance_._instance,
+    &::voicebot::_AudioData_default_instance_._instance,
     &::voicebot::_AudioRequest_default_instance_._instance,
     &::voicebot::_AudioResponse_default_instance_._instance,
 };
 const char descriptor_table_protodef_voicebot_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
-    "\n\016voicebot.proto\022\010voicebot\";\n\014AudioReque"
-    "st\022\027\n\017conversation_id\030\001 \001(\t\022\022\n\naudio_dat"
-    "a\030\002 \001(\014\"O\n\rAudioResponse\022\027\n\017conversation"
-    "_id\030\001 \001(\t\022\022\n\naudio_data\030\002 \001(\014\022\021\n\tstop_ta"
-    "lk\030\003 \001(\0102M\n\010VoiceBot\022A\n\010Converse\022\026.voice"
-    "bot.AudioRequest\032\027.voicebot.AudioRespons"
-    "e\"\000(\0010\001B!Z\037github.com/webitel/voicebot;g"
-    "enb\006proto3"
+    "\n\016voicebot.proto\022\010voicebot\"\263\001\n\010Metadata\022"
+    "\027\n\017conversation_id\030\001 \001(\t\022\032\n\022initial_ai_m"
+    "essage\030\002 \001(\t\0223\n\tuser_data\030\003 \003(\0132 .voiceb"
+    "ot.Metadata.UserDataEntry\022\014\n\004rate\030\004 \001(\t\032"
+    "/\n\rUserDataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002"
+    " \001(\t:\0028\001\"9\n\tAudioData\022\027\n\017conversation_id"
+    "\030\001 \001(\t\022\023\n\013audio_bytes\030\002 \001(\014\"h\n\014AudioRequ"
+    "est\022&\n\010metadata\030\001 \001(\0132\022.voicebot.Metadat"
+    "aH\000\022(\n\taudiodata\030\002 \001(\0132\023.voicebot.AudioD"
+    "ataH\000B\006\n\004data\"i\n\rAudioResponse\022\027\n\017conver"
+    "sation_id\030\001 \001(\t\022\022\n\naudio_data\030\002 \001(\014\022\021\n\ts"
+    "top_talk\030\003 \001(\010\022\030\n\020end_conversation\030\004 \001(\010"
+    "2M\n\010VoiceBot\022A\n\010Converse\022\026.voicebot.Audi"
+    "oRequest\032\027.voicebot.AudioResponse\"\000(\0010\001B"
+    "!Z\037github.com/webitel/voicebot;genb\006prot"
+    "o3"
 };
 static ::absl::once_flag descriptor_table_voicebot_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_voicebot_2eproto = {
     false,
     false,
-    290,
+    602,
     descriptor_table_protodef_voicebot_2eproto,
     "voicebot.proto",
     &descriptor_table_voicebot_2eproto_once,
     nullptr,
     0,
-    2,
+    5,
     schemas,
     file_default_instances,
     TableStruct_voicebot_2eproto::offsets,
@@ -157,10 +286,748 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_voicebot_2epro
 namespace voicebot {
 // ===================================================================
 
-class AudioRequest::_Internal {
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+              Metadata_UserDataEntry_DoNotUse::Metadata_UserDataEntry_DoNotUse() : SuperType(_class_data_.base()) {}
+              Metadata_UserDataEntry_DoNotUse::Metadata_UserDataEntry_DoNotUse(::google::protobuf::Arena* arena)
+                  : SuperType(arena, _class_data_.base()) {}
+#else   // PROTOBUF_CUSTOM_VTABLE
+              Metadata_UserDataEntry_DoNotUse::Metadata_UserDataEntry_DoNotUse() : SuperType() {}
+              Metadata_UserDataEntry_DoNotUse::Metadata_UserDataEntry_DoNotUse(::google::protobuf::Arena* arena) : SuperType(arena) {}
+#endif  // PROTOBUF_CUSTOM_VTABLE
+              inline void* Metadata_UserDataEntry_DoNotUse::PlacementNew_(const void*, void* mem,
+                                                      ::google::protobuf::Arena* arena) {
+                return ::new (mem) Metadata_UserDataEntry_DoNotUse(arena);
+              }
+              constexpr auto Metadata_UserDataEntry_DoNotUse::InternalNewImpl_() {
+                return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(Metadata_UserDataEntry_DoNotUse),
+                                                          alignof(Metadata_UserDataEntry_DoNotUse));
+              }
+              PROTOBUF_CONSTINIT
+              PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+              const ::google::protobuf::internal::ClassDataFull Metadata_UserDataEntry_DoNotUse::_class_data_ = {
+                  ::google::protobuf::internal::ClassData{
+                      &_Metadata_UserDataEntry_DoNotUse_default_instance_._instance,
+                      &_table_.header,
+                      nullptr,  // OnDemandRegisterArenaDtor
+                      nullptr,  // IsInitialized
+                      &Metadata_UserDataEntry_DoNotUse::MergeImpl,
+                      ::google::protobuf::Message::GetNewImpl<Metadata_UserDataEntry_DoNotUse>(),
+              #if defined(PROTOBUF_CUSTOM_VTABLE)
+                      &Metadata_UserDataEntry_DoNotUse::SharedDtor,
+                      static_cast<void (::google::protobuf::MessageLite::*)()>(
+                          &Metadata_UserDataEntry_DoNotUse::ClearImpl),
+                          ::google::protobuf::Message::ByteSizeLongImpl, ::google::protobuf::Message::_InternalSerializeImpl
+                          ,
+              #endif  // PROTOBUF_CUSTOM_VTABLE
+                      PROTOBUF_FIELD_OFFSET(Metadata_UserDataEntry_DoNotUse, _impl_._cached_size_),
+                      false,
+                  },
+                  &Metadata_UserDataEntry_DoNotUse::kDescriptorMethods,
+                  &descriptor_table_voicebot_2eproto,
+                  nullptr,  // tracker
+              };
+              const ::google::protobuf::internal::ClassData* Metadata_UserDataEntry_DoNotUse::GetClassData() const {
+                ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
+                ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
+                return _class_data_.base();
+              }
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 48, 2> Metadata_UserDataEntry_DoNotUse::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(Metadata_UserDataEntry_DoNotUse, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    _class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::DiscardEverythingFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::voicebot::Metadata_UserDataEntry_DoNotUse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // string value = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(Metadata_UserDataEntry_DoNotUse, _impl_.value_)}},
+    // string key = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 63, 0, PROTOBUF_FIELD_OFFSET(Metadata_UserDataEntry_DoNotUse, _impl_.key_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string key = 1;
+    {PROTOBUF_FIELD_OFFSET(Metadata_UserDataEntry_DoNotUse, _impl_.key_), -1, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // string value = 2;
+    {PROTOBUF_FIELD_OFFSET(Metadata_UserDataEntry_DoNotUse, _impl_.value_), -1, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\37\3\5\0\0\0\0\0"
+    "voicebot.Metadata.UserDataEntry"
+    "key"
+    "value"
+  }},
+};
+
+// ===================================================================
+
+class Metadata::_Internal {
  public:
 };
 
+Metadata::Metadata(::google::protobuf::Arena* arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:voicebot.Metadata)
+}
+inline PROTOBUF_NDEBUG_INLINE Metadata::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from, const ::voicebot::Metadata& from_msg)
+      : user_data_{visibility, arena, from.user_data_},
+        conversation_id_(arena, from.conversation_id_),
+        initial_ai_message_(arena, from.initial_ai_message_),
+        rate_(arena, from.rate_),
+        _cached_size_{0} {}
+
+Metadata::Metadata(
+    ::google::protobuf::Arena* arena,
+    const Metadata& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  Metadata* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:voicebot.Metadata)
+}
+inline PROTOBUF_NDEBUG_INLINE Metadata::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : user_data_{visibility, arena},
+        conversation_id_(arena),
+        initial_ai_message_(arena),
+        rate_(arena),
+        _cached_size_{0} {}
+
+inline void Metadata::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+Metadata::~Metadata() {
+  // @@protoc_insertion_point(destructor:voicebot.Metadata)
+  SharedDtor(*this);
+}
+inline void Metadata::SharedDtor(MessageLite& self) {
+  Metadata& this_ = static_cast<Metadata&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.conversation_id_.Destroy();
+  this_._impl_.initial_ai_message_.Destroy();
+  this_._impl_.rate_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* Metadata::PlacementNew_(const void*, void* mem,
+                                        ::google::protobuf::Arena* arena) {
+  return ::new (mem) Metadata(arena);
+}
+constexpr auto Metadata::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(Metadata, _impl_.user_data_) +
+          decltype(Metadata::_impl_.user_data_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(Metadata, _impl_.user_data_) +
+          decltype(Metadata::_impl_.user_data_)::
+              InternalGetArenaOffsetAlt(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::CopyInit(
+        sizeof(Metadata), alignof(Metadata), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&Metadata::PlacementNew_,
+                                 sizeof(Metadata),
+                                 alignof(Metadata));
+  }
+}
+PROTOBUF_CONSTINIT
+PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::google::protobuf::internal::ClassDataFull Metadata::_class_data_ = {
+    ::google::protobuf::internal::ClassData{
+        &_Metadata_default_instance_._instance,
+        &_table_.header,
+        nullptr,  // OnDemandRegisterArenaDtor
+        nullptr,  // IsInitialized
+        &Metadata::MergeImpl,
+        ::google::protobuf::Message::GetNewImpl<Metadata>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        &Metadata::SharedDtor,
+        ::google::protobuf::Message::GetClearImpl<Metadata>(), &Metadata::ByteSizeLong,
+            &Metadata::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+        PROTOBUF_FIELD_OFFSET(Metadata, _impl_._cached_size_),
+        false,
+    },
+    &Metadata::kDescriptorMethods,
+    &descriptor_table_voicebot_2eproto,
+    nullptr,  // tracker
+};
+const ::google::protobuf::internal::ClassData* Metadata::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
+  return _class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 4, 1, 72, 2> Metadata::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    4, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967280,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    4,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    _class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::voicebot::Metadata>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // string rate = 4;
+    {::_pbi::TcParser::FastUS1,
+     {34, 63, 0, PROTOBUF_FIELD_OFFSET(Metadata, _impl_.rate_)}},
+    // string conversation_id = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 63, 0, PROTOBUF_FIELD_OFFSET(Metadata, _impl_.conversation_id_)}},
+    // string initial_ai_message = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(Metadata, _impl_.initial_ai_message_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string conversation_id = 1;
+    {PROTOBUF_FIELD_OFFSET(Metadata, _impl_.conversation_id_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // string initial_ai_message = 2;
+    {PROTOBUF_FIELD_OFFSET(Metadata, _impl_.initial_ai_message_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // map<string, string> user_data = 3;
+    {PROTOBUF_FIELD_OFFSET(Metadata, _impl_.user_data_), 0, 0,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
+    // string rate = 4;
+    {PROTOBUF_FIELD_OFFSET(Metadata, _impl_.rate_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }}, {{
+    {::_pbi::TcParser::GetMapAuxInfo<
+        decltype(Metadata()._impl_.user_data_)>(
+        1, 0, 0, 9,
+        9)},
+  }}, {{
+    "\21\17\22\11\4\0\0\0"
+    "voicebot.Metadata"
+    "conversation_id"
+    "initial_ai_message"
+    "user_data"
+    "rate"
+  }},
+};
+
+PROTOBUF_NOINLINE void Metadata::Clear() {
+// @@protoc_insertion_point(message_clear_start:voicebot.Metadata)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.user_data_.Clear();
+  _impl_.conversation_id_.ClearToEmpty();
+  _impl_.initial_ai_message_.ClearToEmpty();
+  _impl_.rate_.ClearToEmpty();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::uint8_t* Metadata::_InternalSerialize(
+            const MessageLite& base, ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) {
+          const Metadata& this_ = static_cast<const Metadata&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::uint8_t* Metadata::_InternalSerialize(
+            ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+          const Metadata& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(serialize_to_array_start:voicebot.Metadata)
+          ::uint32_t cached_has_bits = 0;
+          (void)cached_has_bits;
+
+          // string conversation_id = 1;
+          if (!this_._internal_conversation_id().empty()) {
+            const std::string& _s = this_._internal_conversation_id();
+            ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.Metadata.conversation_id");
+            target = stream->WriteStringMaybeAliased(1, _s, target);
+          }
+
+          // string initial_ai_message = 2;
+          if (!this_._internal_initial_ai_message().empty()) {
+            const std::string& _s = this_._internal_initial_ai_message();
+            ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.Metadata.initial_ai_message");
+            target = stream->WriteStringMaybeAliased(2, _s, target);
+          }
+
+          // map<string, string> user_data = 3;
+          if (!this_._internal_user_data().empty()) {
+            using MapType = ::google::protobuf::Map<std::string, std::string>;
+            using WireHelper = _pbi::MapEntryFuncs<std::string, std::string,
+                                           _pbi::WireFormatLite::TYPE_STRING,
+                                           _pbi::WireFormatLite::TYPE_STRING>;
+            const auto& field = this_._internal_user_data();
+
+            if (stream->IsSerializationDeterministic() && field.size() > 1) {
+              for (const auto& entry : ::google::protobuf::internal::MapSorterPtr<MapType>(field)) {
+                target = WireHelper::InternalSerialize(
+                    3, entry.first, entry.second, target, stream);
+                ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                    entry.first.data(), static_cast<int>(entry.first.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.Metadata.user_data");
+                ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                    entry.second.data(), static_cast<int>(entry.second.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.Metadata.user_data");
+              }
+            } else {
+              for (const auto& entry : field) {
+                target = WireHelper::InternalSerialize(
+                    3, entry.first, entry.second, target, stream);
+                ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                    entry.first.data(), static_cast<int>(entry.first.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.Metadata.user_data");
+                ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                    entry.second.data(), static_cast<int>(entry.second.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.Metadata.user_data");
+              }
+            }
+          }
+
+          // string rate = 4;
+          if (!this_._internal_rate().empty()) {
+            const std::string& _s = this_._internal_rate();
+            ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.Metadata.rate");
+            target = stream->WriteStringMaybeAliased(4, _s, target);
+          }
+
+          if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+            target =
+                ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+                    this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+          }
+          // @@protoc_insertion_point(serialize_to_array_end:voicebot.Metadata)
+          return target;
+        }
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::size_t Metadata::ByteSizeLong(const MessageLite& base) {
+          const Metadata& this_ = static_cast<const Metadata&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::size_t Metadata::ByteSizeLong() const {
+          const Metadata& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(message_byte_size_start:voicebot.Metadata)
+          ::size_t total_size = 0;
+
+          ::uint32_t cached_has_bits = 0;
+          // Prevent compiler warnings about cached_has_bits being unused
+          (void)cached_has_bits;
+
+          ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+           {
+            // map<string, string> user_data = 3;
+            {
+              total_size +=
+                  1 * ::google::protobuf::internal::FromIntSize(this_._internal_user_data_size());
+              for (const auto& entry : this_._internal_user_data()) {
+                total_size += _pbi::MapEntryFuncs<std::string, std::string,
+                                               _pbi::WireFormatLite::TYPE_STRING,
+                                               _pbi::WireFormatLite::TYPE_STRING>::ByteSizeLong(entry.first, entry.second);
+              }
+            }
+          }
+           {
+            // string conversation_id = 1;
+            if (!this_._internal_conversation_id().empty()) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                              this_._internal_conversation_id());
+            }
+            // string initial_ai_message = 2;
+            if (!this_._internal_initial_ai_message().empty()) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                              this_._internal_initial_ai_message());
+            }
+            // string rate = 4;
+            if (!this_._internal_rate().empty()) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                              this_._internal_rate());
+            }
+          }
+          return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                                     &this_._impl_._cached_size_);
+        }
+
+void Metadata::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<Metadata*>(&to_msg);
+  auto& from = static_cast<const Metadata&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:voicebot.Metadata)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.user_data_.MergeFrom(from._impl_.user_data_);
+  if (!from._internal_conversation_id().empty()) {
+    _this->_internal_set_conversation_id(from._internal_conversation_id());
+  }
+  if (!from._internal_initial_ai_message().empty()) {
+    _this->_internal_set_initial_ai_message(from._internal_initial_ai_message());
+  }
+  if (!from._internal_rate().empty()) {
+    _this->_internal_set_rate(from._internal_rate());
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void Metadata::CopyFrom(const Metadata& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:voicebot.Metadata)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void Metadata::InternalSwap(Metadata* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.user_data_.InternalSwap(&other->_impl_.user_data_);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.conversation_id_, &other->_impl_.conversation_id_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.initial_ai_message_, &other->_impl_.initial_ai_message_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.rate_, &other->_impl_.rate_, arena);
+}
+
+::google::protobuf::Metadata Metadata::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class AudioData::_Internal {
+ public:
+};
+
+AudioData::AudioData(::google::protobuf::Arena* arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:voicebot.AudioData)
+}
+inline PROTOBUF_NDEBUG_INLINE AudioData::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from, const ::voicebot::AudioData& from_msg)
+      : conversation_id_(arena, from.conversation_id_),
+        audio_bytes_(arena, from.audio_bytes_),
+        _cached_size_{0} {}
+
+AudioData::AudioData(
+    ::google::protobuf::Arena* arena,
+    const AudioData& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  AudioData* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:voicebot.AudioData)
+}
+inline PROTOBUF_NDEBUG_INLINE AudioData::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : conversation_id_(arena),
+        audio_bytes_(arena),
+        _cached_size_{0} {}
+
+inline void AudioData::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+AudioData::~AudioData() {
+  // @@protoc_insertion_point(destructor:voicebot.AudioData)
+  SharedDtor(*this);
+}
+inline void AudioData::SharedDtor(MessageLite& self) {
+  AudioData& this_ = static_cast<AudioData&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.conversation_id_.Destroy();
+  this_._impl_.audio_bytes_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* AudioData::PlacementNew_(const void*, void* mem,
+                                        ::google::protobuf::Arena* arena) {
+  return ::new (mem) AudioData(arena);
+}
+constexpr auto AudioData::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(AudioData),
+                                            alignof(AudioData));
+}
+PROTOBUF_CONSTINIT
+PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::google::protobuf::internal::ClassDataFull AudioData::_class_data_ = {
+    ::google::protobuf::internal::ClassData{
+        &_AudioData_default_instance_._instance,
+        &_table_.header,
+        nullptr,  // OnDemandRegisterArenaDtor
+        nullptr,  // IsInitialized
+        &AudioData::MergeImpl,
+        ::google::protobuf::Message::GetNewImpl<AudioData>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        &AudioData::SharedDtor,
+        ::google::protobuf::Message::GetClearImpl<AudioData>(), &AudioData::ByteSizeLong,
+            &AudioData::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+        PROTOBUF_FIELD_OFFSET(AudioData, _impl_._cached_size_),
+        false,
+    },
+    &AudioData::kDescriptorMethods,
+    &descriptor_table_voicebot_2eproto,
+    nullptr,  // tracker
+};
+const ::google::protobuf::internal::ClassData* AudioData::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
+  return _class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 42, 2> AudioData::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    _class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::voicebot::AudioData>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // bytes audio_bytes = 2;
+    {::_pbi::TcParser::FastBS1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(AudioData, _impl_.audio_bytes_)}},
+    // string conversation_id = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 63, 0, PROTOBUF_FIELD_OFFSET(AudioData, _impl_.conversation_id_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string conversation_id = 1;
+    {PROTOBUF_FIELD_OFFSET(AudioData, _impl_.conversation_id_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // bytes audio_bytes = 2;
+    {PROTOBUF_FIELD_OFFSET(AudioData, _impl_.audio_bytes_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kBytes | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\22\17\0\0\0\0\0\0"
+    "voicebot.AudioData"
+    "conversation_id"
+  }},
+};
+
+PROTOBUF_NOINLINE void AudioData::Clear() {
+// @@protoc_insertion_point(message_clear_start:voicebot.AudioData)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.conversation_id_.ClearToEmpty();
+  _impl_.audio_bytes_.ClearToEmpty();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::uint8_t* AudioData::_InternalSerialize(
+            const MessageLite& base, ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) {
+          const AudioData& this_ = static_cast<const AudioData&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::uint8_t* AudioData::_InternalSerialize(
+            ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+          const AudioData& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(serialize_to_array_start:voicebot.AudioData)
+          ::uint32_t cached_has_bits = 0;
+          (void)cached_has_bits;
+
+          // string conversation_id = 1;
+          if (!this_._internal_conversation_id().empty()) {
+            const std::string& _s = this_._internal_conversation_id();
+            ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.AudioData.conversation_id");
+            target = stream->WriteStringMaybeAliased(1, _s, target);
+          }
+
+          // bytes audio_bytes = 2;
+          if (!this_._internal_audio_bytes().empty()) {
+            const std::string& _s = this_._internal_audio_bytes();
+            target = stream->WriteBytesMaybeAliased(2, _s, target);
+          }
+
+          if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+            target =
+                ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+                    this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+          }
+          // @@protoc_insertion_point(serialize_to_array_end:voicebot.AudioData)
+          return target;
+        }
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::size_t AudioData::ByteSizeLong(const MessageLite& base) {
+          const AudioData& this_ = static_cast<const AudioData&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::size_t AudioData::ByteSizeLong() const {
+          const AudioData& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(message_byte_size_start:voicebot.AudioData)
+          ::size_t total_size = 0;
+
+          ::uint32_t cached_has_bits = 0;
+          // Prevent compiler warnings about cached_has_bits being unused
+          (void)cached_has_bits;
+
+          ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+           {
+            // string conversation_id = 1;
+            if (!this_._internal_conversation_id().empty()) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                              this_._internal_conversation_id());
+            }
+            // bytes audio_bytes = 2;
+            if (!this_._internal_audio_bytes().empty()) {
+              total_size += 1 + ::google::protobuf::internal::WireFormatLite::BytesSize(
+                                              this_._internal_audio_bytes());
+            }
+          }
+          return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                                     &this_._impl_._cached_size_);
+        }
+
+void AudioData::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<AudioData*>(&to_msg);
+  auto& from = static_cast<const AudioData&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:voicebot.AudioData)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_conversation_id().empty()) {
+    _this->_internal_set_conversation_id(from._internal_conversation_id());
+  }
+  if (!from._internal_audio_bytes().empty()) {
+    _this->_internal_set_audio_bytes(from._internal_audio_bytes());
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void AudioData::CopyFrom(const AudioData& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:voicebot.AudioData)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void AudioData::InternalSwap(AudioData* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.conversation_id_, &other->_impl_.conversation_id_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.audio_bytes_, &other->_impl_.audio_bytes_, arena);
+}
+
+::google::protobuf::Metadata AudioData::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class AudioRequest::_Internal {
+ public:
+  static constexpr ::int32_t kOneofCaseOffset =
+      PROTOBUF_FIELD_OFFSET(::voicebot::AudioRequest, _impl_._oneof_case_);
+};
+
+void AudioRequest::set_allocated_metadata(::voicebot::Metadata* metadata) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_data();
+  if (metadata) {
+    ::google::protobuf::Arena* submessage_arena = metadata->GetArena();
+    if (message_arena != submessage_arena) {
+      metadata = ::google::protobuf::internal::GetOwnedMessage(message_arena, metadata, submessage_arena);
+    }
+    set_has_metadata();
+    _impl_.data_.metadata_ = metadata;
+  }
+  // @@protoc_insertion_point(field_set_allocated:voicebot.AudioRequest.metadata)
+}
+void AudioRequest::set_allocated_audiodata(::voicebot::AudioData* audiodata) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_data();
+  if (audiodata) {
+    ::google::protobuf::Arena* submessage_arena = audiodata->GetArena();
+    if (message_arena != submessage_arena) {
+      audiodata = ::google::protobuf::internal::GetOwnedMessage(message_arena, audiodata, submessage_arena);
+    }
+    set_has_audiodata();
+    _impl_.data_.audiodata_ = audiodata;
+  }
+  // @@protoc_insertion_point(field_set_allocated:voicebot.AudioRequest.audiodata)
+}
 AudioRequest::AudioRequest(::google::protobuf::Arena* arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
     : ::google::protobuf::Message(arena, _class_data_.base()) {
@@ -173,9 +1040,9 @@ AudioRequest::AudioRequest(::google::protobuf::Arena* arena)
 inline PROTOBUF_NDEBUG_INLINE AudioRequest::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
     const Impl_& from, const ::voicebot::AudioRequest& from_msg)
-      : conversation_id_(arena, from.conversation_id_),
-        audio_data_(arena, from.audio_data_),
-        _cached_size_{0} {}
+      : data_{},
+        _cached_size_{0},
+        _oneof_case_{from._oneof_case_[0]} {}
 
 AudioRequest::AudioRequest(
     ::google::protobuf::Arena* arena,
@@ -190,15 +1057,25 @@ AudioRequest::AudioRequest(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  switch (data_case()) {
+    case DATA_NOT_SET:
+      break;
+      case kMetadata:
+        _impl_.data_.metadata_ = ::google::protobuf::Message::CopyConstruct<::voicebot::Metadata>(arena, *from._impl_.data_.metadata_);
+        break;
+      case kAudiodata:
+        _impl_.data_.audiodata_ = ::google::protobuf::Message::CopyConstruct<::voicebot::AudioData>(arena, *from._impl_.data_.audiodata_);
+        break;
+  }
 
   // @@protoc_insertion_point(copy_constructor:voicebot.AudioRequest)
 }
 inline PROTOBUF_NDEBUG_INLINE AudioRequest::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
     ::google::protobuf::Arena* arena)
-      : conversation_id_(arena),
-        audio_data_(arena),
-        _cached_size_{0} {}
+      : data_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
 
 inline void AudioRequest::SharedCtor(::_pb::Arena* arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -211,17 +1088,46 @@ inline void AudioRequest::SharedDtor(MessageLite& self) {
   AudioRequest& this_ = static_cast<AudioRequest&>(self);
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.conversation_id_.Destroy();
-  this_._impl_.audio_data_.Destroy();
+  if (this_.has_data()) {
+    this_.clear_data();
+  }
   this_._impl_.~Impl_();
 }
+
+void AudioRequest::clear_data() {
+// @@protoc_insertion_point(one_of_clear_start:voicebot.AudioRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  switch (data_case()) {
+    case kMetadata: {
+      if (GetArena() == nullptr) {
+        delete _impl_.data_.metadata_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.data_.metadata_);
+      }
+      break;
+    }
+    case kAudiodata: {
+      if (GetArena() == nullptr) {
+        delete _impl_.data_.audiodata_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.data_.audiodata_);
+      }
+      break;
+    }
+    case DATA_NOT_SET: {
+      break;
+    }
+  }
+  _impl_._oneof_case_[0] = DATA_NOT_SET;
+}
+
 
 inline void* AudioRequest::PlacementNew_(const void*, void* mem,
                                         ::google::protobuf::Arena* arena) {
   return ::new (mem) AudioRequest(arena);
 }
 constexpr auto AudioRequest::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(AudioRequest),
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(AudioRequest),
                                             alignof(AudioRequest));
 }
 PROTOBUF_CONSTINIT
@@ -252,17 +1158,17 @@ const ::google::protobuf::internal::ClassData* AudioRequest::GetClassData() cons
   return _class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 45, 2> AudioRequest::_table_ = {
+const ::_pbi::TcParseTable<0, 2, 2, 0, 2> AudioRequest::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    2, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
     2,  // num_field_entries
-    0,  // num_aux_entries
-    offsetof(decltype(_table_), field_names),  // no aux_entries
+    2,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
     _class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
@@ -270,27 +1176,20 @@ const ::_pbi::TcParseTable<1, 2, 0, 45, 2> AudioRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::voicebot::AudioRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // bytes audio_data = 2;
-    {::_pbi::TcParser::FastBS1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(AudioRequest, _impl_.audio_data_)}},
-    // string conversation_id = 1;
-    {::_pbi::TcParser::FastUS1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(AudioRequest, _impl_.conversation_id_)}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
-    // string conversation_id = 1;
-    {PROTOBUF_FIELD_OFFSET(AudioRequest, _impl_.conversation_id_), 0, 0,
-    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    // bytes audio_data = 2;
-    {PROTOBUF_FIELD_OFFSET(AudioRequest, _impl_.audio_data_), 0, 0,
-    (0 | ::_fl::kFcSingular | ::_fl::kBytes | ::_fl::kRepAString)},
-  }},
-  // no aux_entries
-  {{
-    "\25\17\0\0\0\0\0\0"
-    "voicebot.AudioRequest"
-    "conversation_id"
+    // .voicebot.Metadata metadata = 1;
+    {PROTOBUF_FIELD_OFFSET(AudioRequest, _impl_.data_.metadata_), _Internal::kOneofCaseOffset + 0, 0,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .voicebot.AudioData audiodata = 2;
+    {PROTOBUF_FIELD_OFFSET(AudioRequest, _impl_.data_.audiodata_), _Internal::kOneofCaseOffset + 0, 1,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+  }}, {{
+    {::_pbi::TcParser::GetTable<::voicebot::Metadata>()},
+    {::_pbi::TcParser::GetTable<::voicebot::AudioData>()},
+  }}, {{
   }},
 };
 
@@ -301,8 +1200,7 @@ PROTOBUF_NOINLINE void AudioRequest::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.conversation_id_.ClearToEmpty();
-  _impl_.audio_data_.ClearToEmpty();
+  clear_data();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
@@ -321,20 +1219,22 @@ PROTOBUF_NOINLINE void AudioRequest::Clear() {
           ::uint32_t cached_has_bits = 0;
           (void)cached_has_bits;
 
-          // string conversation_id = 1;
-          if (!this_._internal_conversation_id().empty()) {
-            const std::string& _s = this_._internal_conversation_id();
-            ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.AudioRequest.conversation_id");
-            target = stream->WriteStringMaybeAliased(1, _s, target);
+          switch (this_.data_case()) {
+            case kMetadata: {
+              target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+                  1, *this_._impl_.data_.metadata_, this_._impl_.data_.metadata_->GetCachedSize(), target,
+                  stream);
+              break;
+            }
+            case kAudiodata: {
+              target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+                  2, *this_._impl_.data_.audiodata_, this_._impl_.data_.audiodata_->GetCachedSize(), target,
+                  stream);
+              break;
+            }
+            default:
+              break;
           }
-
-          // bytes audio_data = 2;
-          if (!this_._internal_audio_data().empty()) {
-            const std::string& _s = this_._internal_audio_data();
-            target = stream->WriteBytesMaybeAliased(2, _s, target);
-          }
-
           if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
             target =
                 ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -358,17 +1258,21 @@ PROTOBUF_NOINLINE void AudioRequest::Clear() {
           // Prevent compiler warnings about cached_has_bits being unused
           (void)cached_has_bits;
 
-          ::_pbi::Prefetch5LinesFrom7Lines(&this_);
-           {
-            // string conversation_id = 1;
-            if (!this_._internal_conversation_id().empty()) {
-              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                              this_._internal_conversation_id());
+          switch (this_.data_case()) {
+            // .voicebot.Metadata metadata = 1;
+            case kMetadata: {
+              total_size += 1 +
+                            ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.data_.metadata_);
+              break;
             }
-            // bytes audio_data = 2;
-            if (!this_._internal_audio_data().empty()) {
-              total_size += 1 + ::google::protobuf::internal::WireFormatLite::BytesSize(
-                                              this_._internal_audio_data());
+            // .voicebot.AudioData audiodata = 2;
+            case kAudiodata: {
+              total_size += 1 +
+                            ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.data_.audiodata_);
+              break;
+            }
+            case DATA_NOT_SET: {
+              break;
             }
           }
           return this_.MaybeComputeUnknownFieldsSize(total_size,
@@ -378,16 +1282,44 @@ PROTOBUF_NOINLINE void AudioRequest::Clear() {
 void AudioRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
   auto* const _this = static_cast<AudioRequest*>(&to_msg);
   auto& from = static_cast<const AudioRequest&>(from_msg);
+  ::google::protobuf::Arena* arena = _this->GetArena();
   // @@protoc_insertion_point(class_specific_merge_from_start:voicebot.AudioRequest)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (!from._internal_conversation_id().empty()) {
-    _this->_internal_set_conversation_id(from._internal_conversation_id());
-  }
-  if (!from._internal_audio_data().empty()) {
-    _this->_internal_set_audio_data(from._internal_audio_data());
+  if (const uint32_t oneof_from_case = from._impl_._oneof_case_[0]) {
+    const uint32_t oneof_to_case = _this->_impl_._oneof_case_[0];
+    const bool oneof_needs_init = oneof_to_case != oneof_from_case;
+    if (oneof_needs_init) {
+      if (oneof_to_case != 0) {
+        _this->clear_data();
+      }
+      _this->_impl_._oneof_case_[0] = oneof_from_case;
+    }
+
+    switch (oneof_from_case) {
+      case kMetadata: {
+        if (oneof_needs_init) {
+          _this->_impl_.data_.metadata_ =
+              ::google::protobuf::Message::CopyConstruct<::voicebot::Metadata>(arena, *from._impl_.data_.metadata_);
+        } else {
+          _this->_impl_.data_.metadata_->MergeFrom(from._internal_metadata());
+        }
+        break;
+      }
+      case kAudiodata: {
+        if (oneof_needs_init) {
+          _this->_impl_.data_.audiodata_ =
+              ::google::protobuf::Message::CopyConstruct<::voicebot::AudioData>(arena, *from._impl_.data_.audiodata_);
+        } else {
+          _this->_impl_.data_.audiodata_->MergeFrom(from._internal_audiodata());
+        }
+        break;
+      }
+      case DATA_NOT_SET:
+        break;
+    }
   }
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -402,11 +1334,9 @@ void AudioRequest::CopyFrom(const AudioRequest& from) {
 
 void AudioRequest::InternalSwap(AudioRequest* PROTOBUF_RESTRICT other) {
   using std::swap;
-  auto* arena = GetArena();
-  ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.conversation_id_, &other->_impl_.conversation_id_, arena);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.audio_data_, &other->_impl_.audio_data_, arena);
+  swap(_impl_.data_, other->_impl_.data_);
+  swap(_impl_._oneof_case_[0], other->_impl_._oneof_case_[0]);
 }
 
 ::google::protobuf::Metadata AudioRequest::GetMetadata() const {
@@ -447,7 +1377,13 @@ AudioResponse::AudioResponse(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  _impl_.stop_talk_ = from._impl_.stop_talk_;
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, stop_talk_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, stop_talk_),
+           offsetof(Impl_, end_conversation_) -
+               offsetof(Impl_, stop_talk_) +
+               sizeof(Impl_::end_conversation_));
 
   // @@protoc_insertion_point(copy_constructor:voicebot.AudioResponse)
 }
@@ -460,7 +1396,12 @@ inline PROTOBUF_NDEBUG_INLINE AudioResponse::Impl_::Impl_(
 
 inline void AudioResponse::SharedCtor(::_pb::Arena* arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.stop_talk_ = {};
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, stop_talk_),
+           0,
+           offsetof(Impl_, end_conversation_) -
+               offsetof(Impl_, stop_talk_) +
+               sizeof(Impl_::end_conversation_));
 }
 AudioResponse::~AudioResponse() {
   // @@protoc_insertion_point(destructor:voicebot.AudioResponse)
@@ -511,15 +1452,15 @@ const ::google::protobuf::internal::ClassData* AudioResponse::GetClassData() con
   return _class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 0, 46, 2> AudioResponse::_table_ = {
+const ::_pbi::TcParseTable<2, 4, 0, 46, 2> AudioResponse::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    4, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
+    4,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     _class_data_.base(),
@@ -529,7 +1470,9 @@ const ::_pbi::TcParseTable<2, 3, 0, 46, 2> AudioResponse::_table_ = {
     ::_pbi::TcParser::GetTable<::voicebot::AudioResponse>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // bool end_conversation = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(AudioResponse, _impl_.end_conversation_), 63>(),
+     {32, 63, 0, PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.end_conversation_)}},
     // string conversation_id = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 63, 0, PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.conversation_id_)}},
@@ -551,6 +1494,9 @@ const ::_pbi::TcParseTable<2, 3, 0, 46, 2> AudioResponse::_table_ = {
     // bool stop_talk = 3;
     {PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.stop_talk_), 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kBool)},
+    // bool end_conversation = 4;
+    {PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.end_conversation_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kBool)},
   }},
   // no aux_entries
   {{
@@ -569,7 +1515,9 @@ PROTOBUF_NOINLINE void AudioResponse::Clear() {
 
   _impl_.conversation_id_.ClearToEmpty();
   _impl_.audio_data_.ClearToEmpty();
-  _impl_.stop_talk_ = false;
+  ::memset(&_impl_.stop_talk_, 0, static_cast<::size_t>(
+      reinterpret_cast<char*>(&_impl_.end_conversation_) -
+      reinterpret_cast<char*>(&_impl_.stop_talk_)) + sizeof(_impl_.end_conversation_));
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
@@ -607,6 +1555,13 @@ PROTOBUF_NOINLINE void AudioResponse::Clear() {
             target = stream->EnsureSpace(target);
             target = ::_pbi::WireFormatLite::WriteBoolToArray(
                 3, this_._internal_stop_talk(), target);
+          }
+
+          // bool end_conversation = 4;
+          if (this_._internal_end_conversation() != 0) {
+            target = stream->EnsureSpace(target);
+            target = ::_pbi::WireFormatLite::WriteBoolToArray(
+                4, this_._internal_end_conversation(), target);
           }
 
           if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -648,6 +1603,10 @@ PROTOBUF_NOINLINE void AudioResponse::Clear() {
             if (this_._internal_stop_talk() != 0) {
               total_size += 2;
             }
+            // bool end_conversation = 4;
+            if (this_._internal_end_conversation() != 0) {
+              total_size += 2;
+            }
           }
           return this_.MaybeComputeUnknownFieldsSize(total_size,
                                                      &this_._impl_._cached_size_);
@@ -670,6 +1629,9 @@ void AudioResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::g
   if (from._internal_stop_talk() != 0) {
     _this->_impl_.stop_talk_ = from._impl_.stop_talk_;
   }
+  if (from._internal_end_conversation() != 0) {
+    _this->_impl_.end_conversation_ = from._impl_.end_conversation_;
+  }
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -688,7 +1650,12 @@ void AudioResponse::InternalSwap(AudioResponse* PROTOBUF_RESTRICT other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.conversation_id_, &other->_impl_.conversation_id_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.audio_data_, &other->_impl_.audio_data_, arena);
-        swap(_impl_.stop_talk_, other->_impl_.stop_talk_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.end_conversation_)
+      + sizeof(AudioResponse::_impl_.end_conversation_)
+      - PROTOBUF_FIELD_OFFSET(AudioResponse, _impl_.stop_talk_)>(
+          reinterpret_cast<char*>(&_impl_.stop_talk_),
+          reinterpret_cast<char*>(&other->_impl_.stop_talk_));
 }
 
 ::google::protobuf::Metadata AudioResponse::GetMetadata() const {

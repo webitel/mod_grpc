@@ -47,7 +47,7 @@ namespace mod_grpc {
         voiceBotCache.clear();
     }
 
-    std::shared_ptr<AiClient> getVoiceBotClient(const std::string& conn) {
+    std::shared_ptr<VoiceBotHub> getVoiceBotClient(const std::string& conn) {
         {
             std::lock_guard<std::mutex> lock(cacheMutex);
             auto it = voiceBotCache.find(conn);
@@ -64,12 +64,12 @@ namespace mod_grpc {
         try {
             auto channel = grpc::CreateChannel(conn, grpc::InsecureChannelCredentials());
             if (!channel->WaitForConnected(std::chrono::system_clock::now() +
-                                      std::chrono::milliseconds(5000))) {
+                                           std::chrono::milliseconds(5000))) {
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "create voice bot connection %s, error: %s\n",
                                   conn.c_str(), "conection refused");
             }
 
-            auto client = std::shared_ptr<AiClient>(new AiClient(channel));
+            auto client = std::shared_ptr<VoiceBotHub>(new VoiceBotHub(channel));
 
             {
                 std::lock_guard<std::mutex> lock(cacheMutex);
@@ -90,6 +90,7 @@ namespace mod_grpc {
 
         return nullptr;
     }
+
 
     Status ApiServiceImpl::Originate(ServerContext *ctx, const fs::OriginateRequest *request,
                                      fs::OriginateResponse *reply) {
@@ -1069,10 +1070,10 @@ namespace mod_grpc {
         return amdClient_->Stream(domain_id, uuid, name, rate);
     }
 
-    AiClientCall* ServerImpl::AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t from_rate, int32_t to_rate) {
+    VoiceBotCall* ServerImpl::AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t model_rate, int32_t channel_rate) {
         auto bot = getVoiceBotClient(conn);
         if (bot) {
-            return bot->Stream(uuid, from_rate, to_rate);
+            return bot->Stream(uuid, model_rate, channel_rate);
         }
 
         return nullptr;
@@ -1504,29 +1505,6 @@ namespace mod_grpc {
                 break;
             }
 
-            case SWITCH_ABC_TYPE_WRITE_REPLACE: {
-                switch_frame_t *frame;
-                frame = switch_core_media_bug_get_write_replace_frame(bug);
-                int bytes = 0;
-                uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
-
-                switch_buffer_lock(ud->client_->buffer);
-                if (switch_buffer_inuse(ud->client_->buffer) >= frame->datalen) {
-                    bytes = switch_buffer_read(ud->client_->buffer, data, frame->datalen);
-                    memcpy(frame->data, data, frame->datalen);
-                }
-                switch_buffer_unlock(ud->client_->buffer);
-
-                switch_core_media_bug_set_write_replace_frame(bug, frame);
-
-//                switch_log_printf(
-//                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
-//                        SWITCH_LOG_CRIT,
-//                        "GRPC stream: Buffer size %d \n", bytes);
-//
-                break;
-            }
-
             case SWITCH_ABC_TYPE_READ_REPLACE:  {
                 uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
                 switch_frame_t *read_frame ;
@@ -1572,24 +1550,61 @@ namespace mod_grpc {
     SWITCH_STANDARD_APP(wbt_voice_bot_function2) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
         switch_media_bug_t *bug = nullptr;
-        switch_media_bug_flag_t flags = SMBF_READ_REPLACE | SMBF_WRITE_REPLACE;
+        switch_media_bug_flag_t flags = SMBF_READ_REPLACE;
         mod_grpc::VoiceBotStream *ud = nullptr;
+        switch_frame_t write_frame = { 0 };
+        void *abuf = NULL;
+        switch_codec_implementation_t imp = {  };
+        switch_codec_t codec = { 0 };
+        switch_frame_t *read_frame = { 0 };
+        switch_status_t status = SWITCH_STATUS_SUCCESS;
+        write_frame.codec = NULL;
+        int model_rate = 16000;
+        std::string start_message;
+
+
+        switch_core_session_get_read_impl(session, &imp);
 
         ud = new mod_grpc::VoiceBotStream;
+        ud->client_ = server_->AsyncVoiceBotStream(data, switch_channel_get_uuid(channel), model_rate, imp.actual_samples_per_second);
+        if (!ud->client_) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "not found bot connection %s\n", data);
+            goto error_;
+        }
+
+        if (switch_core_codec_init(&codec,
+                                   "L16",
+                                   NULL,
+                                   NULL,
+                                   imp.actual_samples_per_second,
+                                   imp.microseconds_per_packet / 1000,
+                                   imp.number_of_channels,
+                                   SWITCH_CODEC_FLAG_ENCODE | SWITCH_CODEC_FLAG_DECODE, NULL,
+                                   switch_core_session_get_pool(session)) != SWITCH_STATUS_SUCCESS) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Codec Error L16@%uhz %u channels %dms\n",
+                              imp.actual_samples_per_second, imp.number_of_channels, imp.microseconds_per_packet / 1000);
+            goto error_;
+        }
+
+
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "Codec Activated L16@%uhz %u channels %dms\n",
+                          imp.actual_samples_per_second, imp.number_of_channels, imp.microseconds_per_packet / 1000);
+
+        write_frame.codec = &codec;
+        switch_zmalloc(abuf, SWITCH_RECOMMENDED_BUFFER_SIZE);
+        write_frame.data = abuf;
+        write_frame.buflen = SWITCH_RECOMMENDED_BUFFER_SIZE;
+        write_frame.datalen = imp.decoded_bytes_per_packet;
+        write_frame.samples = write_frame.datalen / sizeof(int16_t);
+
         ud->session = session;
         ud->channel = channel;
-        auto cli = server_->AsyncVoiceBotStream(data, switch_channel_get_uuid(channel), 16000, 8000);
-        if (!cli) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "not found bot connection %s\n", data);
-            return;
-        }
-        ud->client_ = cli;
 
-        switch_mutex_init(&cli->mutex, SWITCH_MUTEX_NESTED, switch_core_session_get_pool(session));
-        switch_buffer_create_dynamic(&cli->buffer, 1024, 2048, 0);
-        switch_buffer_add_mutex(cli->buffer, cli->mutex);
+        switch_mutex_init(&ud->client_->mutex, SWITCH_MUTEX_NESTED, switch_core_session_get_pool(session));
+        switch_buffer_create_dynamic(&ud->client_->buffer, 1024, 2048, 0);
+        switch_buffer_add_mutex(ud->client_->buffer, ud->client_->mutex);
 
-        cli->Listen();
+        ud->client_->Listen();
 
         if (switch_core_media_bug_add(
                 session,
@@ -1603,47 +1618,42 @@ namespace mod_grpc {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
             goto error_;
         }
-        /*
-        switch_frame_t write_frame = { 0 };
 
-        switch_codec_implementation_t imp = { 0 };
-        switch_codec_t codec = { 0 };
-        int sval = 0;
-        switch_core_session_get_read_impl(session, &imp);
-
-        if (switch_core_codec_init(&codec,
-                                   "L16",
-                                   NULL,
-                                   NULL,
-                                   imp.actual_samples_per_second,
-                                   imp.microseconds_per_packet / 1000,
-                                   imp.number_of_channels,
-                                   SWITCH_CODEC_FLAG_ENCODE | SWITCH_CODEC_FLAG_DECODE, NULL,
-                                   switch_core_session_get_pool(session)) != SWITCH_STATUS_SUCCESS) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Codec Error L16@%uhz %u channels %dms\n",
-                              imp.actual_samples_per_second, imp.number_of_channels, imp.microseconds_per_packet / 1000);
-
-            goto error_;
-        }
-          */
         while(switch_channel_ready(channel)) {
-            switch_status_t status = switch_ivr_sleep(session, 1000, SWITCH_FALSE, NULL);
+            status = switch_core_session_read_frame(session, &read_frame, SWITCH_IO_FLAG_NONE, 0);
+
             if (!SWITCH_READ_ACCEPTABLE(status)) {
                 break;
             }
 
-//            switch_ivr_parse_all_events(session);
+            if (ud->client_->breakStream()) {
+                switch_core_media_bug_remove(session, &bug);
+                break;
+            }
 
-//            switch_generate_sln_silence((int16_t *) write_frame.data, write_frame.samples, imp.number_of_channels, sval);
-//            switch_core_session_write_frame(session, &write_frame, SWITCH_IO_FLAG_NONE, 0);
+            switch_buffer_lock(ud->client_->buffer);
+            if (switch_buffer_inuse(ud->client_->buffer) >= write_frame.datalen) {
+                switch_buffer_read(ud->client_->buffer, write_frame.data, write_frame.datalen);
+            } else {
+                switch_generate_sln_silence((int16_t *) write_frame.data, write_frame.samples, imp.number_of_channels, -1);
+            }
+            switch_buffer_unlock(ud->client_->buffer);
 
+			switch_core_session_write_frame(session, &write_frame, SWITCH_IO_FLAG_NONE, 0);
         }
 
+        // TODO
+        if (write_frame.codec) {
+            switch_core_codec_destroy(write_frame.codec);
+            write_frame.codec = NULL;
+        }
         return;
 
-        error_:
-        // todo add positive application ?
-        // todo buffer
+    error_:
+        if (write_frame.codec) {
+            switch_core_codec_destroy(write_frame.codec);
+            write_frame.codec = NULL;
+        }
         delete ud;
     }
 

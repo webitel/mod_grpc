@@ -2,8 +2,8 @@
 // Created by root on 09.01.25.
 //
 
-#ifndef MOD_GRPC_AI_CLIENT_H
-#define MOD_GRPC_AI_CLIENT_H
+#ifndef MOD_GRPC_VOICE_BOT_CLIENT_H
+#define MOD_GRPC_VOICE_BOT_CLIENT_H
 
 
 extern "C" {
@@ -17,17 +17,17 @@ extern "C" {
 #include <grpc/support/log.h>
 
 #include <fstream>
+#include <utility>
 
 #include "generated/fs.grpc.pb.h"
 #include "generated/voicebot.grpc.pb.h"
 
-class AiClientCall {
+class VoiceBotCall {
 public:
-    explicit AiClientCall(std::string callId, int32_t from_rate_, int32_t to_rate_) {
+    explicit VoiceBotCall(std::string callId, int32_t from_rate_, int32_t to_rate_) {
         from_rate = from_rate_;
         to_rate = to_rate_;
-        id = callId;
-        request.set_conversation_id(callId);
+        id = std::move(callId);
     }
     void Listen() {
         rt = std::thread([this] {
@@ -39,7 +39,9 @@ public:
                                    320, SWITCH_RESAMPLE_QUALITY, 1);
 
             while (rw->Read(&reply)) {
-                if (reply.stop_talk()) {
+                if (reply.end_conversation()) {
+                    setBreak();
+                } else if (reply.stop_talk()) {
                     switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::receive stop\n");
                     switch_buffer_lock(buffer);
                     if (switch_buffer_inuse(buffer)) {
@@ -65,12 +67,14 @@ public:
                     }
                 }
             }
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "close reader\n");
 
             switch_resample_destroy(&resampler);
         });
     };
 
     bool Finish() {
+        context.TryCancel();
         rw->WritesDone();
         rw->Finish();
         if (rt.joinable()) {
@@ -86,12 +90,14 @@ public:
         bool ok(true);
         while (audio_buffer.size() >= target_frame_size) {
             std::vector<uint8_t> send_buffer(audio_buffer.begin(), audio_buffer.begin() + target_frame_size);
-            request.clear_audio_data();
-            request.set_audio_data(send_buffer.data(), send_buffer.size());
-            request.set_conversation_id(id);
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::Write\n");
-            ok = rw->Write(request);
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::WriteEnd\n");
+            ::voicebot::AudioRequest req;
+            ::voicebot::AudioData *audio = req.mutable_audiodata();
+
+            audio->set_audio_bytes(send_buffer.data(), send_buffer.size());
+            audio->set_conversation_id(id);
+//            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::Write\n");
+            ok = rw->Write(req);
+//            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::WriteEnd\n");
             audio_buffer.erase(audio_buffer.begin(), audio_buffer.begin() + target_frame_size);
         }
         return ok;
@@ -105,8 +111,18 @@ public:
         return this->write(data, (uint32_t)len);
     }
 
-    ~AiClientCall() {
+    ~VoiceBotCall() {
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Destroy AiClientCall\n");
+    }
+
+    void setBreak() {
+        std::lock_guard<std::mutex> lock(stopMutex);
+        isBreak = true;
+    }
+
+    bool breakStream() {
+        std::lock_guard<std::mutex> lock(stopMutex);
+        return isBreak;
     }
 
     // Context for the client. It could be used to convey extra information to
@@ -114,7 +130,10 @@ public:
     grpc::ClientContext context;
     std::thread rt;
     switch_buffer_t *buffer = nullptr;
-    switch_mutex_t *mutex;
+    switch_mutex_t *mutex{};
+    std::mutex stopMutex;
+    bool isBreak = false;
+
     std::vector<uint8_t> audio_buffer;
     voicebot::AudioRequest request;
     std::string id;
@@ -124,22 +143,25 @@ public:
     std::unique_ptr<::grpc::ClientReaderWriter<::voicebot::AudioRequest, voicebot::AudioResponse>> rw;
 };
 
-class AiClient {
+class VoiceBotHub {
 public:
-    explicit AiClient(const std::shared_ptr<grpc::Channel>& channel)
+    explicit VoiceBotHub(const std::shared_ptr<grpc::Channel>& channel)
             : stub_(::voicebot::VoiceBot::NewStub(channel)) {
     }
 
-    ~AiClient() {
+    ~VoiceBotHub() {
         stub_.reset();
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Destroy AiClient\n");
     }
 
 
-    AiClientCall *Stream(const char *uuid, int32_t from_rate, int32_t to_rate) {
+    VoiceBotCall *Stream(const char *uuid, int32_t from_rate, int32_t to_rate) {
         //todo
-        auto *call = new AiClientCall(std::string(uuid), from_rate, to_rate);
+        auto *call = new VoiceBotCall(std::string(uuid), from_rate, to_rate);
         call->rw = stub_->Converse(&call->context);
+        ::voicebot::AudioRequest req;
+        ::voicebot::Metadata *metadata = req.mutable_metadata();
+        call->rw->Write(req);
 
         return call;
     }
@@ -148,4 +170,4 @@ private:
     std::unique_ptr<::voicebot::VoiceBot::Stub> stub_;
 };
 
-#endif //MOD_GRPC_AI_CLIENT_H
+#endif //MOD_GRPC_VOICE_BOT_CLIENT_H

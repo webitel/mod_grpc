@@ -18,7 +18,7 @@ extern "C" {
 #include "Cluster.h"
 #include "amd_client.h"
 #include "push_client.h"
-#include "ai_client.h"
+#include "voice_bot_client.h"
 
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
 
@@ -55,7 +55,7 @@ namespace mod_grpc {
     struct VoiceBotStream {
         switch_core_session_t *session;
         switch_channel_t *channel;
-        AiClientCall* client_;
+        VoiceBotCall* client_;
         int in_rate;
         int out_rate;
         switch_audio_resampler_t *rresampler;
@@ -199,7 +199,7 @@ namespace mod_grpc {
         bool UseFCM() const;
         bool UseAPN() const;
         AsyncClientCall* AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
-        AiClientCall* AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t from_rate, int32_t to_rate);
+        VoiceBotCall* AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t from_rate, int32_t to_rate);
         PushClient* GetPushClient();
     private:
         void initServer();
@@ -221,7 +221,7 @@ namespace mod_grpc {
         std::unique_ptr<AMDClient> amdClient_;
     };
 
-    std::unordered_map<std::string, std::shared_ptr<AiClient>> voiceBotCache;
+    std::unordered_map<std::string, std::shared_ptr<VoiceBotHub>> voiceBotCache;
     std::mutex cacheMutex;
     ServerImpl *server_;
 
