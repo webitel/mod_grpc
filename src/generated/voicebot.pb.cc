@@ -115,9 +115,7 @@ inline constexpr Metadata::Impl_::Impl_(
         initial_ai_message_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        rate_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()),
+        rate_{0},
         _cached_size_{0} {}
 
 template <typename>
@@ -252,7 +250,7 @@ const char descriptor_table_protodef_voicebot_2eproto[] ABSL_ATTRIBUTE_SECTION_V
     "\n\016voicebot.proto\022\010voicebot\"\263\001\n\010Metadata\022"
     "\027\n\017conversation_id\030\001 \001(\t\022\032\n\022initial_ai_m"
     "essage\030\002 \001(\t\0223\n\tuser_data\030\003 \003(\0132 .voiceb"
-    "ot.Metadata.UserDataEntry\022\014\n\004rate\030\004 \001(\t\032"
+    "ot.Metadata.UserDataEntry\022\014\n\004rate\030\004 \001(\005\032"
     "/\n\rUserDataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002"
     " \001(\t:\0028\001\"9\n\tAudioData\022\027\n\017conversation_id"
     "\030\001 \001(\t\022\023\n\013audio_bytes\030\002 \001(\014\"h\n\014AudioRequ"
@@ -396,7 +394,6 @@ inline PROTOBUF_NDEBUG_INLINE Metadata::Impl_::Impl_(
       : user_data_{visibility, arena, from.user_data_},
         conversation_id_(arena, from.conversation_id_),
         initial_ai_message_(arena, from.initial_ai_message_),
-        rate_(arena, from.rate_),
         _cached_size_{0} {}
 
 Metadata::Metadata(
@@ -412,6 +409,7 @@ Metadata::Metadata(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.rate_ = from._impl_.rate_;
 
   // @@protoc_insertion_point(copy_constructor:voicebot.Metadata)
 }
@@ -421,11 +419,11 @@ inline PROTOBUF_NDEBUG_INLINE Metadata::Impl_::Impl_(
       : user_data_{visibility, arena},
         conversation_id_(arena),
         initial_ai_message_(arena),
-        rate_(arena),
         _cached_size_{0} {}
 
 inline void Metadata::SharedCtor(::_pb::Arena* arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.rate_ = {};
 }
 Metadata::~Metadata() {
   // @@protoc_insertion_point(destructor:voicebot.Metadata)
@@ -437,7 +435,6 @@ inline void Metadata::SharedDtor(MessageLite& self) {
   ABSL_DCHECK(this_.GetArena() == nullptr);
   this_._impl_.conversation_id_.Destroy();
   this_._impl_.initial_ai_message_.Destroy();
-  this_._impl_.rate_.Destroy();
   this_._impl_.~Impl_();
 }
 
@@ -493,7 +490,7 @@ const ::google::protobuf::internal::ClassData* Metadata::GetClassData() const {
   return _class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 4, 1, 72, 2> Metadata::_table_ = {
+const ::_pbi::TcParseTable<2, 4, 1, 68, 2> Metadata::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -511,9 +508,9 @@ const ::_pbi::TcParseTable<2, 4, 1, 72, 2> Metadata::_table_ = {
     ::_pbi::TcParser::GetTable<::voicebot::Metadata>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string rate = 4;
-    {::_pbi::TcParser::FastUS1,
-     {34, 63, 0, PROTOBUF_FIELD_OFFSET(Metadata, _impl_.rate_)}},
+    // int32 rate = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Metadata, _impl_.rate_), 63>(),
+     {32, 63, 0, PROTOBUF_FIELD_OFFSET(Metadata, _impl_.rate_)}},
     // string conversation_id = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 63, 0, PROTOBUF_FIELD_OFFSET(Metadata, _impl_.conversation_id_)}},
@@ -533,21 +530,20 @@ const ::_pbi::TcParseTable<2, 4, 1, 72, 2> Metadata::_table_ = {
     // map<string, string> user_data = 3;
     {PROTOBUF_FIELD_OFFSET(Metadata, _impl_.user_data_), 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
-    // string rate = 4;
+    // int32 rate = 4;
     {PROTOBUF_FIELD_OFFSET(Metadata, _impl_.rate_), 0, 0,
-    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    (0 | ::_fl::kFcSingular | ::_fl::kInt32)},
   }}, {{
     {::_pbi::TcParser::GetMapAuxInfo<
         decltype(Metadata()._impl_.user_data_)>(
         1, 0, 0, 9,
         9)},
   }}, {{
-    "\21\17\22\11\4\0\0\0"
+    "\21\17\22\11\0\0\0\0"
     "voicebot.Metadata"
     "conversation_id"
     "initial_ai_message"
     "user_data"
-    "rate"
   }},
 };
 
@@ -561,7 +557,7 @@ PROTOBUF_NOINLINE void Metadata::Clear() {
   _impl_.user_data_.Clear();
   _impl_.conversation_id_.ClearToEmpty();
   _impl_.initial_ai_message_.ClearToEmpty();
-  _impl_.rate_.ClearToEmpty();
+  _impl_.rate_ = 0;
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
@@ -629,12 +625,11 @@ PROTOBUF_NOINLINE void Metadata::Clear() {
             }
           }
 
-          // string rate = 4;
-          if (!this_._internal_rate().empty()) {
-            const std::string& _s = this_._internal_rate();
-            ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "voicebot.Metadata.rate");
-            target = stream->WriteStringMaybeAliased(4, _s, target);
+          // int32 rate = 4;
+          if (this_._internal_rate() != 0) {
+            target = ::google::protobuf::internal::WireFormatLite::
+                WriteInt32ToArrayWithField<4>(
+                    stream, this_._internal_rate(), target);
           }
 
           if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -684,10 +679,10 @@ PROTOBUF_NOINLINE void Metadata::Clear() {
               total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                               this_._internal_initial_ai_message());
             }
-            // string rate = 4;
-            if (!this_._internal_rate().empty()) {
-              total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                              this_._internal_rate());
+            // int32 rate = 4;
+            if (this_._internal_rate() != 0) {
+              total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+                  this_._internal_rate());
             }
           }
           return this_.MaybeComputeUnknownFieldsSize(total_size,
@@ -709,8 +704,8 @@ void Metadata::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google
   if (!from._internal_initial_ai_message().empty()) {
     _this->_internal_set_initial_ai_message(from._internal_initial_ai_message());
   }
-  if (!from._internal_rate().empty()) {
-    _this->_internal_set_rate(from._internal_rate());
+  if (from._internal_rate() != 0) {
+    _this->_impl_.rate_ = from._impl_.rate_;
   }
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -731,7 +726,7 @@ void Metadata::InternalSwap(Metadata* PROTOBUF_RESTRICT other) {
   _impl_.user_data_.InternalSwap(&other->_impl_.user_data_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.conversation_id_, &other->_impl_.conversation_id_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.initial_ai_message_, &other->_impl_.initial_ai_message_, arena);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.rate_, &other->_impl_.rate_, arena);
+        swap(_impl_.rate_, other->_impl_.rate_);
 }
 
 ::google::protobuf::Metadata Metadata::GetMetadata() const {

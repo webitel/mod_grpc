@@ -24,77 +24,110 @@ extern "C" {
 
 class VoiceBotCall {
 public:
-    explicit VoiceBotCall(std::string callId, int32_t from_rate_, int32_t to_rate_) {
-        from_rate = from_rate_;
-        to_rate = to_rate_;
+    explicit VoiceBotCall(std::string callId, int32_t model_rate_, int32_t channel_rate_,
+                          std::unique_ptr<::voicebot::VoiceBot::Stub> &stub_) {
+        model_rate = model_rate_;
+        channel_rate = channel_rate_;
         id = std::move(callId);
+        rw = stub_->Converse(&context);
     }
+
+    bool Start(std::string &start_message) {
+        ::voicebot::AudioRequest req;
+        auto metadata = req.mutable_metadata();
+        metadata->set_conversation_id(id);
+        metadata->set_rate(model_rate);
+        if (!start_message.empty()) {
+            metadata->set_initial_ai_message(start_message);
+        }
+
+        return rw->Write(req);
+    }
+
     void Listen() {
         rt = std::thread([this] {
             ::voicebot::AudioResponse reply;
-            switch_audio_resampler_t *resampler;
-            switch_resample_create(&resampler,
-                                   from_rate,
-                                   to_rate,
-                                   320, SWITCH_RESAMPLE_QUALITY, 1);
+            switch_audio_resampler_t *resampler = nullptr;
+            int out_rate = 16000;
+            if (out_rate != channel_rate) {
+                switch_resample_create(&resampler,
+                                       out_rate,
+                                       channel_rate,
+                                       320, SWITCH_RESAMPLE_QUALITY, 1);
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "resample reader from %d to %d\n", out_rate, channel_rate);
+            }
 
             while (rw->Read(&reply)) {
                 if (reply.end_conversation()) {
                     setBreak();
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive end conversation\n");
                 } else if (reply.stop_talk()) {
-                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::receive stop\n");
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive stop\n");
                     switch_buffer_lock(buffer);
                     if (switch_buffer_inuse(buffer)) {
                         switch_buffer_zero(buffer);
                     }
                     switch_buffer_unlock(buffer);
                 } else {
-                    const auto& chunk = reply.audio_data();
+                    const auto &chunk = reply.audio_data();
                     size_t input_samples = chunk.size();
                     int16_t input_buffer[input_samples];
                     memcpy(input_buffer, chunk.data(), chunk.size());
-                    switch_resample_process(resampler, input_buffer, input_samples / 2);
-                    memcpy(input_buffer, resampler->to, resampler->to_len * 2 );
 
-                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::receive chunk %ld\n", input_samples);
-
-                    if (resampler->to_len > 0) {
-                        switch_buffer_lock(buffer);
-                        switch_buffer_write(buffer, input_buffer, resampler->to_len * 2);
-                        switch_buffer_unlock(buffer);
-                    } else {
-                        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Resample process failed\n");
+                    if (resampler) {
+                        switch_resample_process(resampler, input_buffer, input_samples / 2);
+                        memcpy(input_buffer, resampler->to, resampler->to_len * 2);
+                        input_samples = resampler->to_len * 2;
                     }
+
+                    if (input_samples) {
+                        switch_buffer_lock(buffer);
+                        switch_buffer_write(buffer, input_buffer, input_samples);
+                        switch_buffer_unlock(buffer);
+                    }
+
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive chunk %ld\n",
+                                      chunk.size());
                 }
             }
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "close reader\n");
 
-            switch_resample_destroy(&resampler);
+            if (resampler) {
+                switch_resample_destroy(&resampler);
+            }
+            setBreak();
         });
     };
 
     bool Finish() {
+
         context.TryCancel();
         rw->WritesDone();
-        rw->Finish();
+        auto status = rw->Finish();
+        if (!status.ok()) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "error: %s [%s]\n",
+                              status.error_message().c_str(), status.error_details().c_str());
+        }
         if (rt.joinable()) {
             rt.join();
         }
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::Finish\n");
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "finish\n");
         return true;
     }
 
-    inline bool write(void *data, uint32_t datalen)  {
-        audio_buffer.insert(audio_buffer.end(), (uint8_t*)data, (uint8_t*)data + datalen);
+    inline bool write(void *data, uint32_t datalen) {
+        audio_buffer.insert(audio_buffer.end(), (uint8_t *) data, (uint8_t *) data + datalen);
         size_t target_frame_size = 1024;
+        if (model_rate == 8000) {
+            target_frame_size = 512;
+        }
         bool ok(true);
         while (audio_buffer.size() >= target_frame_size) {
             std::vector<uint8_t> send_buffer(audio_buffer.begin(), audio_buffer.begin() + target_frame_size);
             ::voicebot::AudioRequest req;
-            ::voicebot::AudioData *audio = req.mutable_audiodata();
-
-            audio->set_audio_bytes(send_buffer.data(), send_buffer.size());
+            auto audio = req.mutable_audiodata();
             audio->set_conversation_id(id);
+            audio->set_audio_bytes(send_buffer.data(), send_buffer.size());
 //            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::Write\n");
             ok = rw->Write(req);
 //            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::WriteEnd\n");
@@ -108,7 +141,7 @@ public:
     }
 
     inline bool Write(uint8_t *data, uint32_t len) {
-        return this->write(data, (uint32_t)len);
+        return this->write(data, (uint32_t) len);
     }
 
     ~VoiceBotCall() {
@@ -137,15 +170,15 @@ public:
     std::vector<uint8_t> audio_buffer;
     voicebot::AudioRequest request;
     std::string id;
-    int32_t from_rate;
-    int32_t to_rate;
+    int32_t model_rate;
+    int32_t channel_rate;
 
     std::unique_ptr<::grpc::ClientReaderWriter<::voicebot::AudioRequest, voicebot::AudioResponse>> rw;
 };
 
 class VoiceBotHub {
 public:
-    explicit VoiceBotHub(const std::shared_ptr<grpc::Channel>& channel)
+    explicit VoiceBotHub(const std::shared_ptr<grpc::Channel> &channel)
             : stub_(::voicebot::VoiceBot::NewStub(channel)) {
     }
 
@@ -155,14 +188,14 @@ public:
     }
 
 
-    VoiceBotCall *Stream(const char *uuid, int32_t from_rate, int32_t to_rate) {
+    VoiceBotCall *Stream(const char *uuid, int32_t model_rate, int32_t channel_rate, std::string &start_message) {
         //todo
-        auto *call = new VoiceBotCall(std::string(uuid), from_rate, to_rate);
-        call->rw = stub_->Converse(&call->context);
-        ::voicebot::AudioRequest req;
-        ::voicebot::Metadata *metadata = req.mutable_metadata();
-        call->rw->Write(req);
-
+        if (stub_.get())
+        auto *call = new VoiceBotCall(std::string(uuid), model_rate, channel_rate, stub_);
+        if (!call->Start(start_message)) {
+            delete call;
+            return nullptr;
+        }
         return call;
     }
 

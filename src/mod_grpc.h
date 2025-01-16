@@ -35,6 +35,7 @@ using grpc::Status;
 
 namespace mod_grpc {
 
+
     class Stream {
     public:
         ~Stream();
@@ -56,10 +57,7 @@ namespace mod_grpc {
         switch_core_session_t *session;
         switch_channel_t *channel;
         VoiceBotCall* client_;
-        int in_rate;
-        int out_rate;
         switch_audio_resampler_t *rresampler;
-        switch_codec_implementation_t read_impl;
     };
 
     static char *wbt_cache_supported_formats[] = { "wbt_prepare", NULL };
@@ -116,7 +114,7 @@ namespace mod_grpc {
                          fs::OriginateResponse* reply) override;
 
         Status Execute(ServerContext* context, const fs::ExecuteRequest* request,
-                        fs::ExecuteResponse* reply) override;
+                       fs::ExecuteResponse* reply) override;
 
         Status SetVariables(ServerContext* context, const fs::SetVariablesRequest* request,
                             fs::SetVariablesResponse* reply) override;
@@ -125,37 +123,37 @@ namespace mod_grpc {
                       fs::BridgeResponse* reply) override;
 
         Status BridgeCall(ServerContext* context, const fs::BridgeCallRequest* request,
-                      fs::BridgeCallResponse* reply) override;
+                          fs::BridgeCallResponse* reply) override;
 
         Status StopPlayback(ServerContext* context, const fs::StopPlaybackRequest* request,
-                      fs::StopPlaybackResponse* reply) override;
+                            fs::StopPlaybackResponse* reply) override;
 
         Status Hangup(ServerContext* context, const fs::HangupRequest* request,
-                        fs::HangupResponse* reply) override;
+                      fs::HangupResponse* reply) override;
 
         Status HangupMatchingVars(ServerContext* context, const fs::HangupMatchingVarsReqeust* request,
                                   fs::HangupMatchingVarsResponse* reply) override;
 
         Status Queue(ServerContext* context, const fs::QueueRequest* request,
-                                  fs::QueueResponse* reply) override;
+                     fs::QueueResponse* reply) override;
 
         Status HangupMany(ServerContext* context, const fs::HangupManyRequest* request,
-                      fs::HangupManyResponse* reply) override;
+                          fs::HangupManyResponse* reply) override;
 
         Status Hold(ServerContext* context, const fs::HoldRequest* request,
-                      fs::HoldResponse* reply) override;
+                    fs::HoldResponse* reply) override;
 
         Status UnHold(ServerContext* context, const fs::UnHoldRequest* request,
                       fs::UnHoldResponse* reply) override;
 
         Status SetProfileVar(ServerContext* context, const fs::SetProfileVarRequest* request,
-                      fs::SetProfileVarResponse* reply) override;
+                             fs::SetProfileVarResponse* reply) override;
 
         Status ConfirmPush(ServerContext* context, const fs::ConfirmPushRequest* request,
                            fs::ConfirmPushResponse* reply) override;
 
         Status Broadcast(ServerContext* context, const fs::BroadcastRequest* request,
-                           fs::BroadcastResponse* reply) override;
+                         fs::BroadcastResponse* reply) override;
 
         Status SetEavesdropState(::grpc::ServerContext* context, const ::fs::SetEavesdropStateRequest* request,
                                  ::fs::SetEavesdropStateResponse* reply) override;
@@ -199,7 +197,7 @@ namespace mod_grpc {
         bool UseFCM() const;
         bool UseAPN() const;
         AsyncClientCall* AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
-        VoiceBotCall* AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t from_rate, int32_t to_rate);
+        VoiceBotCall* AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t model_rate, int32_t channel_rate, std::string &start_message);
         PushClient* GetPushClient();
     private:
         void initServer();

@@ -775,20 +775,14 @@ class Metadata final
   std::string* _internal_mutable_initial_ai_message();
 
   public:
-  // string rate = 4;
+  // int32 rate = 4;
   void clear_rate() ;
-  const std::string& rate() const;
-  template <typename Arg_ = const std::string&, typename... Args_>
-  void set_rate(Arg_&& arg, Args_... args);
-  std::string* mutable_rate();
-  PROTOBUF_NODISCARD std::string* release_rate();
-  void set_allocated_rate(std::string* value);
+  ::int32_t rate() const;
+  void set_rate(::int32_t value);
 
   private:
-  const std::string& _internal_rate() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_rate(
-      const std::string& value);
-  std::string* _internal_mutable_rate();
+  ::int32_t _internal_rate() const;
+  void _internal_set_rate(::int32_t value);
 
   public:
   // @@protoc_insertion_point(class_scope:voicebot.Metadata)
@@ -797,7 +791,7 @@ class Metadata final
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
       2, 4, 1,
-      72, 2>
+      68, 2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -820,7 +814,7 @@ class Metadata final
         user_data_;
     ::google::protobuf::internal::ArenaStringPtr conversation_id_;
     ::google::protobuf::internal::ArenaStringPtr initial_ai_message_;
-    ::google::protobuf::internal::ArenaStringPtr rate_;
+    ::int32_t rate_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -1207,52 +1201,26 @@ inline ::google::protobuf::Map<std::string, std::string>* Metadata::mutable_user
   return _internal_mutable_user_data();
 }
 
-// string rate = 4;
+// int32 rate = 4;
 inline void Metadata::clear_rate() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.rate_.ClearToEmpty();
+  _impl_.rate_ = 0;
 }
-inline const std::string& Metadata::rate() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline ::int32_t Metadata::rate() const {
   // @@protoc_insertion_point(field_get:voicebot.Metadata.rate)
   return _internal_rate();
 }
-template <typename Arg_, typename... Args_>
-inline PROTOBUF_ALWAYS_INLINE void Metadata::set_rate(Arg_&& arg,
-                                                     Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.rate_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+inline void Metadata::set_rate(::int32_t value) {
+  _internal_set_rate(value);
   // @@protoc_insertion_point(field_set:voicebot.Metadata.rate)
 }
-inline std::string* Metadata::mutable_rate() ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  std::string* _s = _internal_mutable_rate();
-  // @@protoc_insertion_point(field_mutable:voicebot.Metadata.rate)
-  return _s;
-}
-inline const std::string& Metadata::_internal_rate() const {
+inline ::int32_t Metadata::_internal_rate() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.rate_.Get();
+  return _impl_.rate_;
 }
-inline void Metadata::_internal_set_rate(const std::string& value) {
+inline void Metadata::_internal_set_rate(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.rate_.Set(value, GetArena());
-}
-inline std::string* Metadata::_internal_mutable_rate() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.rate_.Mutable( GetArena());
-}
-inline std::string* Metadata::release_rate() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:voicebot.Metadata.rate)
-  return _impl_.rate_.Release();
-}
-inline void Metadata::set_allocated_rate(std::string* value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.rate_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.rate_.IsDefault()) {
-    _impl_.rate_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:voicebot.Metadata.rate)
+  _impl_.rate_ = value;
 }
 
 // -------------------------------------------------------------------

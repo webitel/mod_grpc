@@ -574,8 +574,8 @@ namespace mod_grpc {
             }
 
             if (!switch_channel_down(chan_a_s) && !switch_core_media_bug_count(leg_a_s, "session_record") &&
-                    switch_true(switch_channel_get_variable_partner(chan_a_s, "recording_follow_transfer")) &&
-                    !switch_core_media_bug_count(leg_b_s, "session_record")) {
+                switch_true(switch_channel_get_variable_partner(chan_a_s, "recording_follow_transfer")) &&
+                !switch_core_media_bug_count(leg_b_s, "session_record")) {
 
                 auto pas = switch_core_session_locate(pa);
                 if (pas) {
@@ -1033,7 +1033,7 @@ namespace mod_grpc {
 
     std::string toJson(const PushData *data) {
         return "{\"type\":\"call\", \"call_id\":\"" + data->call_id + "\",\"from_number\":\"" + data->from_number + "\",\"from_name\":\"" + data->from_name +
-         "\",\"direction\":\"" + data->direction + "\",\"auto_answer\":" + std::to_string(data->auto_answer) + "}";
+               "\",\"direction\":\"" + data->direction + "\",\"auto_answer\":" + std::to_string(data->auto_answer) + "}";
     }
 
     static size_t writeCallback(char *contents, size_t size, size_t nmemb, void *userp) {
@@ -1070,10 +1070,10 @@ namespace mod_grpc {
         return amdClient_->Stream(domain_id, uuid, name, rate);
     }
 
-    VoiceBotCall* ServerImpl::AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t model_rate, int32_t channel_rate) {
+    VoiceBotCall* ServerImpl::AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t model_rate, int32_t channel_rate, std::string &start_message) {
         auto bot = getVoiceBotClient(conn);
         if (bot) {
-            return bot->Stream(uuid, model_rate, channel_rate);
+            return bot->Stream(uuid, model_rate, channel_rate, start_message);
         }
 
         return nullptr;
@@ -1458,20 +1458,19 @@ namespace mod_grpc {
                         switch_core_media_bug_clear_flag(bug, SMBF_ANSWER_REQ);
                     }
 
-                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
-                    ud->in_rate = ud->read_impl.actual_samples_per_second;
+//                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
 
-                    if (ud->in_rate != 16000) {
+                    if (ud->client_->model_rate != ud->client_->channel_rate) { // Channel rate ?
                         switch_resample_create(&ud->rresampler,
-                                               ud->read_impl.actual_samples_per_second,
-                                               16000,
-                                               320, SWITCH_RESAMPLE_QUALITY, 1);
+                                               ud->client_->channel_rate,
+                                               ud->client_->model_rate,
+                                               320, 10, 1); // TODO
 
 
                         switch_log_printf(
                                 SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                                SWITCH_LOG_CRIT,
-                                "GRPC stream: RESAMPLE \n");
+                                SWITCH_LOG_DEBUG,
+                                "GRPC stream: writer resample from %d to %d \n", ud->client_->channel_rate, ud->client_->model_rate);
 
                     } else {
                         ud->rresampler = nullptr;
@@ -1494,8 +1493,6 @@ namespace mod_grpc {
                     }
 
                     ud->client_->Finish();
-                    delete ud->client_;
-                    delete ud;
                 } catch (...) {
                     switch_log_printf(
                             SWITCH_CHANNEL_SESSION_LOG(ud->session),
@@ -1549,6 +1546,8 @@ namespace mod_grpc {
 
     SWITCH_STANDARD_APP(wbt_voice_bot_function2) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
+        char *mycmd = NULL, *argv[3] = { 0 };
+        int argc = 0;
         switch_media_bug_t *bug = nullptr;
         switch_media_bug_flag_t flags = SMBF_READ_REPLACE;
         mod_grpc::VoiceBotStream *ud = nullptr;
@@ -1560,13 +1559,36 @@ namespace mod_grpc {
         switch_status_t status = SWITCH_STATUS_SUCCESS;
         write_frame.codec = NULL;
         int model_rate = 16000;
-        std::string start_message;
+        std::string start_message = "";
 
+        if (!zstr(data) && (mycmd = strdup(data))) {
+            argc = switch_separate_string(mycmd, ' ', argv, (sizeof(argv) / sizeof(argv[0])));
+        }
+
+        if (argc < 1 ) {
+            // TODO ERROR
+        }
+
+        if (argc > 1) {
+            model_rate = atoi(argv[1]);
+        }
+
+
+        if (argc > 2 ) {
+            start_message = std::string(argv[2]);
+        }
 
         switch_core_session_get_read_impl(session, &imp);
 
+        if (model_rate == 0) {
+            model_rate= imp.actual_samples_per_second;
+        }
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "connection %s\n", argv[0]);
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "send rate %d\n", model_rate);
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "channel rate %d\n", imp.actual_samples_per_second);
+
         ud = new mod_grpc::VoiceBotStream;
-        ud->client_ = server_->AsyncVoiceBotStream(data, switch_channel_get_uuid(channel), model_rate, imp.actual_samples_per_second);
+        ud->client_ = server_->AsyncVoiceBotStream(argv[0], switch_channel_get_uuid(channel), model_rate, imp.actual_samples_per_second, start_message);
         if (!ud->client_) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "not found bot connection %s\n", data);
             goto error_;
@@ -1627,7 +1649,6 @@ namespace mod_grpc {
             }
 
             if (ud->client_->breakStream()) {
-                switch_core_media_bug_remove(session, &bug);
                 break;
             }
 
@@ -1639,25 +1660,41 @@ namespace mod_grpc {
             }
             switch_buffer_unlock(ud->client_->buffer);
 
-			switch_core_session_write_frame(session, &write_frame, SWITCH_IO_FLAG_NONE, 0);
+            switch_core_session_write_frame(session, &write_frame, SWITCH_IO_FLAG_NONE, 0);
         }
 
-        // TODO
-        if (write_frame.codec) {
-            switch_core_codec_destroy(write_frame.codec);
-            write_frame.codec = NULL;
-        }
         return;
 
-    error_:
+        // TODO
+        if (bug) {
+            switch_core_media_bug_remove(session, &bug);
+        }
+
         if (write_frame.codec) {
             switch_core_codec_destroy(write_frame.codec);
             write_frame.codec = NULL;
         }
-        delete ud;
+        switch_safe_free(mycmd);
+
+        return;
+
+        error_:
+
+        if (bug) {
+            switch_core_media_bug_remove(session, &bug);
+        }
+
+        if (write_frame.codec) {
+            switch_core_codec_destroy(write_frame.codec);
+            write_frame.codec = NULL;
+        }
+        switch_safe_free(mycmd);
+        if (ud) {
+            delete ud;
+        }
     }
 
-    #define WBT_AMD_SYNTAX "<positive labels>"
+#define WBT_AMD_SYNTAX "<positive labels>"
     SWITCH_STANDARD_APP(wbt_amd_function) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
         switch_media_bug_t *bug = nullptr;
@@ -1723,14 +1760,14 @@ namespace mod_grpc {
         return;
 
         error_:
-            // todo add positive application ?
-            delete ud;
+        // todo add positive application ?
+        delete ud;
 
-            switch_channel_set_variable(channel, WBT_AMD_AI_ERROR, err);
-            switch_channel_set_variable(channel, "execute_on_answer", nullptr); // TODO
-            amd_fire_event(channel);
-            do_execute(session, channel, AMD_EXECUTE_VARIABLE);
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "AMD error code: %s\n", err);
+        switch_channel_set_variable(channel, WBT_AMD_AI_ERROR, err);
+        switch_channel_set_variable(channel, "execute_on_answer", nullptr); // TODO
+        amd_fire_event(channel);
+        do_execute(session, channel, AMD_EXECUTE_VARIABLE);
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "AMD error code: %s\n", err);
     }
 
     SWITCH_STANDARD_APP(wbr_send_hook_function) {
@@ -2127,7 +2164,7 @@ namespace mod_grpc {
             auto session = switch_core_session_locate(sh->call_id);
             if (session) {
                 auto channel = switch_core_session_get_channel(session);
-               // switch_channel_add_variable_var_check(channel, "wbt_tts_codes", std::to_string(sh->response_code).c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
+                // switch_channel_add_variable_var_check(channel, "wbt_tts_codes", std::to_string(sh->response_code).c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
                 switch_channel_set_variable(channel, "wbt_tts_response", std::to_string(sh->response_code).c_str());
                 switch_channel_set_variable(channel, "wbt_tts_error", sh->response_code != 200 ? "prepare error" : NULL);
                 switch_core_session_rwunlock(session);
@@ -2213,7 +2250,7 @@ namespace mod_grpc {
         return SWITCH_STATUS_SUCCESS;
 
 
-    error:
+        error:
         if (curl_handle) {
             curl_easy_cleanup(curl_handle);
         }
@@ -2292,7 +2329,7 @@ namespace mod_grpc {
                 return SWITCH_STATUS_FALSE;
             }
         }
-silence:
+        silence:
 
         if (handle->samplerate > 0) {
             size_t frame_size = (handle->samplerate * 3) / 20; //  150 мс
