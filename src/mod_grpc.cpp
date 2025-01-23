@@ -1548,6 +1548,7 @@ namespace mod_grpc {
         switch_channel_t *channel = switch_core_session_get_channel(session);
         char *mycmd = NULL, *argv[3] = { 0 };
         int argc = 0;
+        size_t voice_len = 0;
         switch_media_bug_t *bug = nullptr;
         switch_media_bug_flag_t flags = SMBF_READ_REPLACE;
         mod_grpc::VoiceBotStream *ud = nullptr;
@@ -1648,17 +1649,18 @@ namespace mod_grpc {
                 break;
             }
 
-            if (ud->client_->breakStream()) {
-                break;
-            }
-
             switch_buffer_lock(ud->client_->buffer);
-            if (switch_buffer_inuse(ud->client_->buffer) >= write_frame.datalen) {
+            voice_len = switch_buffer_inuse(ud->client_->buffer);
+            if (voice_len >= write_frame.datalen) {
                 switch_buffer_read(ud->client_->buffer, write_frame.data, write_frame.datalen);
             } else {
                 switch_generate_sln_silence((int16_t *) write_frame.data, write_frame.samples, imp.number_of_channels, -1);
             }
             switch_buffer_unlock(ud->client_->buffer);
+
+            if (ud->client_->breakStream() && voice_len < write_frame.datalen) {
+                break;
+            }
 
             switch_core_session_write_frame(session, &write_frame, SWITCH_IO_FLAG_NONE, 0);
         }
@@ -1873,7 +1875,11 @@ namespace mod_grpc {
                     switch_core_media_bug_set_write_replace_frame(bug, frame);
                 } else {
                     uint32_t pos = 0;
-                    switch_core_file_seek(bg->fh, &pos, 0, SEEK_SET);
+                    // TODO mod shout not working
+                    auto status = switch_core_file_seek(bg->fh, &pos, 0, SEEK_SET);
+//                    if (bg->debug) {
+//                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "seek status = %d, pos = %d\n", status, pos);
+//                    }
                 }
 
                 break;

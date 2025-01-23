@@ -58,18 +58,9 @@ public:
             }
 
             while (rw->Read(&reply)) {
-                if (reply.end_conversation()) {
-                    setBreak();
-                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive end conversation\n");
-                } else if (reply.stop_talk()) {
-                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive stop\n");
-                    switch_buffer_lock(buffer);
-                    if (switch_buffer_inuse(buffer)) {
-                        switch_buffer_zero(buffer);
-                    }
-                    switch_buffer_unlock(buffer);
-                } else {
-                    const auto &chunk = reply.audio_data();
+                const auto &chunk = reply.audio_data();
+
+                if (!chunk.empty()) {
                     size_t input_samples = chunk.size();
                     int16_t input_buffer[input_samples];
                     memcpy(input_buffer, chunk.data(), chunk.size());
@@ -88,6 +79,18 @@ public:
 
                     switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive chunk %ld\n",
                                       chunk.size());
+                }
+
+                if (reply.end_conversation()) {
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive end conversation\n");
+                    break;
+                } else if (reply.stop_talk()) {
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive stop\n");
+                    switch_buffer_lock(buffer);
+                    if (switch_buffer_inuse(buffer)) {
+                        switch_buffer_zero(buffer);
+                    }
+                    switch_buffer_unlock(buffer);
                 }
             }
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "close reader\n");
@@ -190,7 +193,6 @@ public:
 
     VoiceBotCall *Stream(const char *uuid, int32_t model_rate, int32_t channel_rate, std::string &start_message) {
         //todo
-        if (stub_.get())
         auto *call = new VoiceBotCall(std::string(uuid), model_rate, channel_rate, stub_);
         if (!call->Start(start_message)) {
             delete call;
