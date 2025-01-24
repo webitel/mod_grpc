@@ -64,9 +64,10 @@ namespace mod_grpc {
         try {
             auto channel = grpc::CreateChannel(conn, grpc::InsecureChannelCredentials());
             if (!channel->WaitForConnected(std::chrono::system_clock::now() +
-                                           std::chrono::milliseconds(5000))) {
+                                           std::chrono::milliseconds(1000))) {
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "create voice bot connection %s, error: %s\n",
                                   conn.c_str(), "conection refused");
+                return nullptr;
             }
 
             auto client = std::shared_ptr<VoiceBotHub>(new VoiceBotHub(channel));
@@ -1070,13 +1071,39 @@ namespace mod_grpc {
         return amdClient_->Stream(domain_id, uuid, name, rate);
     }
 
-    VoiceBotCall* ServerImpl::AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t model_rate, int32_t channel_rate, std::string &start_message) {
-        auto bot = getVoiceBotClient(conn);
-        if (bot) {
-            return bot->Stream(uuid, model_rate, channel_rate, start_message);
+    VoiceBotCall* ServerImpl::AsyncVoiceBotStream(std::string conn, switch_core_session_t *session, int32_t model_rate, int32_t channel_rate, std::string &start_message) {
+        auto client = getVoiceBotClient(conn);
+        if (!client) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                              "failed to get VoiceBot client for connection: %s\n", conn.c_str());
+            return nullptr;
         }
 
-        return nullptr;
+        auto call = client->Stream(switch_core_session_get_uuid(session), model_rate, channel_rate, start_message);
+        if (!call) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                              "failed to create VoiceBot call for session: %s\n",
+                              switch_core_session_get_uuid(session));
+            return nullptr;
+        }
+
+        if (switch_mutex_init(&call->mutex, SWITCH_MUTEX_NESTED, switch_core_session_get_pool(session)) != SWITCH_STATUS_SUCCESS) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                              "failed to initialize mutex for VoiceBot call: %s\n",
+                              switch_core_session_get_uuid(session));
+            return nullptr;
+        }
+
+        if (switch_buffer_create_dynamic(&call->buffer, 1024, 2048, 0) != SWITCH_STATUS_SUCCESS) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                              "failed to create buffer for VoiceBot call: %s\n",
+                              switch_core_session_get_uuid(session));
+            switch_mutex_destroy(call->mutex);
+            return nullptr;
+        }
+
+        switch_buffer_add_mutex(call->buffer, call->mutex);
+        return call;
     }
 
     PushClient *ServerImpl::GetPushClient() {
@@ -1589,10 +1616,10 @@ namespace mod_grpc {
         switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "channel rate %d\n", imp.actual_samples_per_second);
 
         ud = new mod_grpc::VoiceBotStream;
-        ud->client_ = server_->AsyncVoiceBotStream(argv[0], switch_channel_get_uuid(channel), model_rate, imp.actual_samples_per_second, start_message);
+        ud->client_ = server_->AsyncVoiceBotStream(argv[0], session, model_rate, imp.actual_samples_per_second, start_message);
         if (!ud->client_) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "not found bot connection %s\n", data);
-            goto error_;
+            goto cleanup_;
         }
 
         if (switch_core_codec_init(&codec,
@@ -1606,7 +1633,7 @@ namespace mod_grpc {
                                    switch_core_session_get_pool(session)) != SWITCH_STATUS_SUCCESS) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Codec Error L16@%uhz %u channels %dms\n",
                               imp.actual_samples_per_second, imp.number_of_channels, imp.microseconds_per_packet / 1000);
-            goto error_;
+            goto cleanup_;
         }
 
 
@@ -1623,10 +1650,6 @@ namespace mod_grpc {
         ud->session = session;
         ud->channel = channel;
 
-        switch_mutex_init(&ud->client_->mutex, SWITCH_MUTEX_NESTED, switch_core_session_get_pool(session));
-        switch_buffer_create_dynamic(&ud->client_->buffer, 1024, 2048, 0);
-        switch_buffer_add_mutex(ud->client_->buffer, ud->client_->mutex);
-
         ud->client_->Listen();
 
         if (switch_core_media_bug_add(
@@ -1639,7 +1662,7 @@ namespace mod_grpc {
                 flags,
                 &bug) != SWITCH_STATUS_SUCCESS ) {
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
-            goto error_;
+            goto cleanup_;
         }
 
         while(switch_channel_ready(channel)) {
@@ -1665,22 +1688,7 @@ namespace mod_grpc {
             switch_core_session_write_frame(session, &write_frame, SWITCH_IO_FLAG_NONE, 0);
         }
 
-        return;
-
-        // TODO
-        if (bug) {
-            switch_core_media_bug_remove(session, &bug);
-        }
-
-        if (write_frame.codec) {
-            switch_core_codec_destroy(write_frame.codec);
-            write_frame.codec = NULL;
-        }
-        switch_safe_free(mycmd);
-
-        return;
-
-        error_:
+    cleanup_:
 
         if (bug) {
             switch_core_media_bug_remove(session, &bug);
@@ -1694,6 +1702,7 @@ namespace mod_grpc {
         if (ud) {
             delete ud;
         }
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "done voice bot\n");
     }
 
 #define WBT_AMD_SYNTAX "<positive labels>"

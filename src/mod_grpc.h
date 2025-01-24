@@ -197,7 +197,7 @@ namespace mod_grpc {
         bool UseFCM() const;
         bool UseAPN() const;
         AsyncClientCall* AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
-        VoiceBotCall* AsyncVoiceBotStream(std::string conn, const char *uuid, int32_t model_rate, int32_t channel_rate, std::string &start_message);
+        VoiceBotCall* AsyncVoiceBotStream(std::string conn, switch_core_session_t *session, int32_t model_rate, int32_t channel_rate, std::string &start_message);
         PushClient* GetPushClient();
     private:
         void initServer();

@@ -59,6 +59,13 @@ public:
 
             while (rw->Read(&reply)) {
                 const auto &chunk = reply.audio_data();
+                static const int MAX_CHUNK_SIZE = 13*8024;
+
+                if (chunk.size() > MAX_CHUNK_SIZE) {
+                    switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "skip chunk %ld, size > %d\n",
+                                      chunk.size(), MAX_CHUNK_SIZE);
+                    continue;
+                }
 
                 if (!chunk.empty()) {
                     size_t input_samples = chunk.size();
@@ -148,6 +155,9 @@ public:
     }
 
     ~VoiceBotCall() {
+        if (buffer) {
+            switch_buffer_destroy(&buffer);
+        }
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Destroy AiClientCall\n");
     }
 
@@ -166,7 +176,7 @@ public:
     grpc::ClientContext context;
     std::thread rt;
     switch_buffer_t *buffer = nullptr;
-    switch_mutex_t *mutex{};
+    switch_mutex_t *mutex;
     std::mutex stopMutex;
     bool isBreak = false;
 
@@ -181,18 +191,26 @@ public:
 
 class VoiceBotHub {
 public:
-    explicit VoiceBotHub(const std::shared_ptr<grpc::Channel> &channel)
-            : stub_(::voicebot::VoiceBot::NewStub(channel)) {
+    explicit VoiceBotHub(const std::shared_ptr<grpc::Channel> &channel_) {
+        channel = channel_;
+        stub_ = ::voicebot::VoiceBot::NewStub(channel);
     }
 
     ~VoiceBotHub() {
         stub_.reset();
+        channel.reset();
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Destroy AiClient\n");
     }
 
+    bool connected() {
+        return channel->GetState(true) == GRPC_CHANNEL_READY;
+    }
 
     VoiceBotCall *Stream(const char *uuid, int32_t model_rate, int32_t channel_rate, std::string &start_message) {
         //todo
+        if (!connected()) {
+            return nullptr;
+        }
         auto *call = new VoiceBotCall(std::string(uuid), model_rate, channel_rate, stub_);
         if (!call->Start(start_message)) {
             delete call;
@@ -202,6 +220,7 @@ public:
     }
 
 private:
+    std::shared_ptr<grpc::Channel> channel;
     std::unique_ptr<::voicebot::VoiceBot::Stub> stub_;
 };
 
