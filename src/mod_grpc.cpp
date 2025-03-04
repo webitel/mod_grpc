@@ -551,15 +551,24 @@ namespace mod_grpc {
         if (leg_a_s && leg_b_s && chan_a_s && chan_b_s && pa && pb
             && switch_channel_test_flag(chan_a_s, CF_BRIDGED) && switch_channel_test_flag(chan_b_s, CF_BRIDGED)) {
 
+            const char *contact_id;
+
             if (switch_channel_get_partner_uuid(chan_a_s)) {
                 switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_from", request->leg_b_id().c_str());
 
                 cc_to_agent_id = switch_channel_get_variable_dup(chan_a_s, "cc_agent_id", SWITCH_FALSE, -1);
                 cc_from_attempt_id = switch_channel_get_variable_dup(chan_a_s, "cc_attempt_id", SWITCH_FALSE, -1);
+                contact_id = switch_channel_get_variable_partner(chan_b_s, "wbt_contact_id");
             }
 
             if (cc_to_agent_id) {
                 switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to_agent", cc_to_agent_id);
+            }
+            if (contact_id) {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "set con id %s [%s]\n",
+                                  contact_id, switch_core_session_get_uuid(leg_a_s)
+                                  );
+                switch_channel_set_variable(chan_a_s, "wbt_contact_id", contact_id);
             }
 
             if (cc_from_attempt_id) {
