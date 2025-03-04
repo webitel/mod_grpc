@@ -565,9 +565,6 @@ namespace mod_grpc {
                 switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to_agent", cc_to_agent_id);
             }
             if (contact_id) {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "set con id %s [%s]\n",
-                                  contact_id, switch_core_session_get_uuid(leg_a_s)
-                                  );
                 switch_channel_set_variable(chan_a_s, "wbt_contact_id", contact_id);
             }
 
