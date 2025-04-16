@@ -1879,11 +1879,13 @@ namespace mod_grpc {
                         int16_t *audio_data = (int16_t *) frame->data;
                         int32_t mixed_sample = audio_data[i] + (noise_buffer[i] / bg->volume_reduction);
 
+                        /*
                         if (mixed_sample > INT16_MAX) {
                             mixed_sample = INT16_MAX;
                         } else if (mixed_sample < INT16_MIN) {
                             mixed_sample = INT16_MIN;
                         }
+                         */
 
                         audio_data[i] = (int16_t) mixed_sample;
                     }
@@ -2187,7 +2189,12 @@ namespace mod_grpc {
                 auto channel = switch_core_session_get_channel(session);
                 // switch_channel_add_variable_var_check(channel, "wbt_tts_codes", std::to_string(sh->response_code).c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
                 switch_channel_set_variable(channel, "wbt_tts_response", std::to_string(sh->response_code).c_str());
-                switch_channel_set_variable(channel, "wbt_tts_error", sh->response_code != 200 ? "prepare error" : NULL);
+                if (sh->response_code == 200) {
+                    switch_channel_set_variable(channel, "wbt_tts_error", NULL);
+                } else {
+                    switch_channel_set_variable(channel, "wbt_tts_error", sh->err ? sh->err : "prepare error");
+                }
+
                 switch_core_session_rwunlock(session);
             }
         }
@@ -2207,6 +2214,7 @@ namespace mod_grpc {
         sh->forever = 1;
         sh->in_cache = 0;
         sh->response_code = 500;
+        sh->err = NULL;
         auto skip_cache = 0 ;
         size_t sent = 0;
         if (handle->params) {
@@ -2258,7 +2266,7 @@ namespace mod_grpc {
         http_request = get_prepare_header(std::string(path), sh->call_id, sh->id);
 
 
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "send http: %s\n", http_request.c_str());
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "send http [fd=%d]: %s\n", sh->sockfd, http_request.c_str());
         // Відправлення HTTP-запиту через сокет
         res = curl_easy_send(curl_handle, http_request.c_str(), http_request.size(), &sent);
         if (res != CURLE_OK) {
@@ -2286,17 +2294,42 @@ namespace mod_grpc {
         }
         tts_set_result(sh);
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "TTS prepare close, res code = %ld\n", sh->response_code);
+        if (sh->err) {
+            free(sh->err);
+        }
         return SWITCH_STATUS_SUCCESS;
     }
 
-    long get_http_code_from_buffer(const char *buffer) {
+    void inline extract_http_info_with_json(silence_handle *sh, const char *buffer) {
         const char *http_prefix = "HTTP/1.1 ";
         const char *code_start = strstr(buffer, http_prefix);
+
         if (code_start) {
-            code_start += strlen(http_prefix); // Переходимо до коду (401)
-            return strtol(code_start, NULL, 10); // Конвертуємо в число
+            code_start += strlen(http_prefix);
+            char *endptr;
+            long code = strtol(code_start, &endptr, 10);
+            if (endptr != code_start && isspace(*endptr)) {
+                sh->response_code = code;
+
+                const char *content_type_header = "Content-Type: application/json";
+                const char *double_newline = "\r\n\r\n";
+
+                const char *content_type_pos = strstr(buffer, content_type_header);
+                if (content_type_pos) {
+                    const char *body_start = strstr(buffer, double_newline);
+                    if (body_start) {
+                        body_start += strlen(double_newline);
+                        size_t json_len = strlen(body_start);
+                        if (json_len > 0) {
+                            sh->err = (char *)malloc(json_len + 1);
+                            if (sh->err) {
+                                strcpy(sh->err, body_start);
+                            }
+                        }
+                    }
+                }
+            }
         }
-        return -1; // Код не знайдено
     }
 
     static switch_status_t silence_stream_file_read(switch_file_handle_t *handle, void *data, size_t *len) {
@@ -2326,7 +2359,22 @@ namespace mod_grpc {
         // Перевіряємо готовність сокета
         int rc = select(sh->sockfd + 1, &fdread, NULL, NULL, &timeout);
         if (rc < 0) {
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare select: %s\n", strerror(errno));
+            // TODO for test DEV-5234
+            char buffer[2048];
+            res = curl_easy_recv(sh->curl_handle, buffer, sizeof(buffer) - 1, &nread);
+            if (res == CURLE_OK) {
+                buffer[nread] = '\0'; // Завершуємо строку
+                extract_http_info_with_json(sh, buffer);
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare receive: \n%s\n", buffer);
+                return SWITCH_STATUS_BREAK;
+            }
+            // TODO for test DEV-5234
+            if (errno == 9) {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "TTS prepare select, skip : %s\n", strerror(errno));
+                sh->response_code = 200;
+            } else {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare select: %s [%d]\n", strerror(errno), errno);
+            }
             return SWITCH_STATUS_FALSE;
         } else if (rc == 0) {
             // Тайм-аут: даних поки немає
@@ -2339,7 +2387,7 @@ namespace mod_grpc {
             res = curl_easy_recv(sh->curl_handle, buffer, sizeof(buffer) - 1, &nread);
             if (res == CURLE_OK) {
                 buffer[nread] = '\0'; // Завершуємо строку
-                sh->response_code = get_http_code_from_buffer(buffer);
+                extract_http_info_with_json(sh, buffer);
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "TTS prepare receive: \n%s\n", buffer);
                 return SWITCH_STATUS_BREAK;
             } else if (res == CURLE_AGAIN) {

@@ -69,12 +69,13 @@ namespace mod_grpc {
         char *id;
         switch_CURL *curl_handle;
         char curl_error_buff[CURL_ERROR_SIZE];
-        long sockfd;
+        curl_socket_t sockfd;
         fd_set fdread;
         size_t samples;
         int silence;
         int forever;
         long response_code;
+        char *err;
     };
 
     struct background_pvt {
