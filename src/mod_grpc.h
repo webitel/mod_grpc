@@ -75,6 +75,7 @@ namespace mod_grpc {
         int silence;
         int forever;
         long response_code;
+        int unavailable;
         char *err;
     };
 

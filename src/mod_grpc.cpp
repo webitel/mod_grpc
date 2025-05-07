@@ -2214,6 +2214,7 @@ namespace mod_grpc {
         sh->forever = 1;
         sh->in_cache = 0;
         sh->response_code = 500;
+        sh->unavailable = 0;
         sh->err = NULL;
         auto skip_cache = 0 ;
         size_t sent = 0;
@@ -2365,13 +2366,19 @@ namespace mod_grpc {
             if (res == CURLE_OK) {
                 buffer[nread] = '\0'; // Завершуємо строку
                 extract_http_info_with_json(sh, buffer);
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare receive: \n%s\n", buffer);
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "TTS prepare receive: \n%s\n", buffer);
                 return SWITCH_STATUS_BREAK;
+            } else {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare curl: %s\n", curl_easy_strerror(res));
             }
             // TODO for test DEV-5234
             if (errno == 9) {
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "TTS prepare select, skip : %s\n", strerror(errno));
                 sh->response_code = 200;
+            } else if (errno == 11 && sh->unavailable < 10) { // Resource temporarily unavailable
+                sh->unavailable++;
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare select: Resource temporarily unavailable, generate silence, count=%d\n", sh->unavailable);
+                goto silence;
             } else {
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare select: %s [%d]\n", strerror(errno), errno);
             }
