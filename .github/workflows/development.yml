@@ -16,12 +16,15 @@ jobs:
 
       - name: Configure build files
         uses: threeal/cmake-action@v2.1.0
+        env:
+          MOD_BUILD_VERSION: "${{ github.run_number }}, commit: ${{ github.sha }}/${{ github.ref_name }}"
+
         with:
           source-dir: src
           build-dir: build
           run-build: false
           options: |
-            MOD_BUILD_VERSION="'${{ github.run_number }}, commit: ${{ github.sha }}/${{ github.ref_name }}'"
+            MOD_BUILD_VERSION="$MOD_BUILD_VERSION"
             FREESWITCH_INCLUDE_DIR=/usr/include/freeswitch
             INSTALL_MOD_DIR=/usr/local/freeswitch/mod
             CMAKE_BUILD_TYPE=Release
