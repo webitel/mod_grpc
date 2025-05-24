@@ -1,8 +1,13 @@
 name: Development
+
 on:
   push:
     branches:
       - feat/WTEL-6646/actions
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   compile:
@@ -33,6 +38,8 @@ jobs:
         uses: threeal/cmake-action@v2.1.0
         with:
           build-dir: build
+          build-args: |
+            -- -j$(nproc)
 
       - name: Test
         run: ls -lsa ./*
