@@ -33,13 +33,16 @@ jobs:
             INSTALL_MOD_DIR=/usr/local/freeswitch/mod
             CMAKE_BUILD_TYPE=Release
 
+      - name: Get number of CPU cores
+        id: nproc
+        run: echo "cpu_cores=$(nproc)" >> $GITHUB_OUTPUT
 
       - name: Compile
         uses: threeal/cmake-action@v2.1.0
         with:
           build-dir: build
           build-args: |
-            -j $(nproc)
+            -j ${{ steps.nproc.outputs.cpu_cores }}
 
       - name: Test
         run: ls -lsa ./*
