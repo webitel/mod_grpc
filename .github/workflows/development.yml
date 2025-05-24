@@ -20,29 +20,19 @@ jobs:
           fetch-depth: 2
 
       - name: Configure build files
-        uses: threeal/cmake-action@v2.1.0
-        env:
-          MOD_BUILD_VERSION: "${{ github.run_number }}, commit: ${{ github.sha }}/${{ github.ref_name }}"
-
-        with:
-          build-dir: build
-          run-build: false
-          options: |
-            MOD_BUILD_VERSION="$MOD_BUILD_VERSION"
-            FREESWITCH_INCLUDE_DIR=/usr/include/freeswitch
-            INSTALL_MOD_DIR=/usr/local/freeswitch/mod
-            CMAKE_BUILD_TYPE=Release
+        run: |
+          cmake -B build \
+            -DMOD_BUILD_VERSION="${{ github.run_number }}, commit: ${{ github.sha }}/${{ github.ref_name }}" \
+            -DFREESWITCH_INCLUDE_DIR=/usr/include/freeswitch \
+            -DINSTALL_MOD_DIR=/usr/local/freeswitch/mod \
+            -DCMAKE_BUILD_TYPE=Release
 
       - name: Get number of CPU cores
         id: nproc
         run: echo "cpu_cores=$(nproc)" >> $GITHUB_OUTPUT
 
       - name: Compile
-        uses: threeal/cmake-action@v2.1.0
-        with:
-          build-dir: build
-          build-args: |
-            -j ${{ steps.nproc.outputs.cpu_cores }}
+        run: cmake --build build -j ${{ steps.nproc.outputs.cpu_cores }}
 
       - name: Test
-        run: ls -lsa ./*
+        run: ls -lsa ./build/*
