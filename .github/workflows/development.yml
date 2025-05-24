@@ -20,7 +20,7 @@ jobs:
           MOD_BUILD_VERSION: "${{ github.run_number }}, commit: ${{ github.sha }}/${{ github.ref_name }}"
 
         with:
-          source-dir: src
+          source-dir: .
           build-dir: build
           run-build: false
           options: |
@@ -32,7 +32,7 @@ jobs:
       - name: Compile
         uses: threeal/cmake-action@v2.1.0
         with:
-          source-dir: src
+          source-dir: .
           build-dir: build
 
       - name: Test
