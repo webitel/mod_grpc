@@ -39,7 +39,7 @@ jobs:
         with:
           build-dir: build
           build-args: |
-            -- -j$(nproc)
+            -j $(nproc)
 
       - name: Test
         run: ls -lsa ./*
