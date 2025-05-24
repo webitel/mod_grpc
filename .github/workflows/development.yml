@@ -16,12 +16,13 @@ jobs:
 
       - name: Configure build files
         uses: threeal/cmake-action@v2.1.0
+        working-directory: src
         env:
           MOD_BUILD_VERSION: "${{ github.run_number }}, commit: ${{ github.sha }}/${{ github.ref_name }}"
 
         with:
-          source-dir: .
-          build-dir: build
+          source-dir: ..
+          build-dir: ../build
           run-build: false
           options: |
             MOD_BUILD_VERSION="$MOD_BUILD_VERSION"
@@ -29,11 +30,13 @@ jobs:
             INSTALL_MOD_DIR=/usr/local/freeswitch/mod
             CMAKE_BUILD_TYPE=Release
 
+
       - name: Compile
         uses: threeal/cmake-action@v2.1.0
+        working-directory: src
         with:
-          source-dir: .
-          build-dir: build
+          source-dir: ..
+          build-dir: ../build
 
       - name: Test
         run: ls -lsa ./src/*

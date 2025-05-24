@@ -16,8 +16,6 @@ if (MOD_BUILD_VERSION)
     add_definitions(-DMOD_BUILD_VERSION=\"${MOD_BUILD_VERSION}\")
 endif ()
 
-add_subdirectory(src)
-
 include(FetchContent)
 set(BUILD_TESTING OFF)
 
