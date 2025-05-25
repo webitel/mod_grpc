@@ -34,5 +34,48 @@ jobs:
       - name: Compile
         run: cmake --build build -j ${{ steps.nproc.outputs.cpu_cores }}
 
-      - name: Test
-        run: ls -lsa ./build/*
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-source
+          compression-level: 9
+          path: build/mod_grpc.so
+
+  build:
+    name: Build package
+    runs-on: [ arc-c-runner-set ]
+    steps:
+      - name: Get Freeswitch version
+        id: fs_version
+        run: |
+          FREESWITCH_VERSION=$(freeswitch -version | cut -f 3 -d " " | cut -f 1 -d "-")
+          echo "FREESWITCH_VERSION=$FREESWITCH_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download compiled file
+        uses: actions/download-artifact@v4
+        with:
+          name: build-source
+
+      - name: Build package
+        uses: webitel/reusable-workflows/actions/nfpm-build-action@main
+        with:
+          nfpm-version: latest
+          formats: deb
+          target: dist
+          package-name: freeswitch-mod-grpc
+          package-description: Webitel GRPC for FreeSWITCH
+          maintainer: Webitel <support@webitel.com>
+          homepage: https://webitel.com
+          arch: amd64
+          platform: linux
+          version: ${{ steps.fs_version.outputs.FREESWITCH_VERSION }}
+          release: ${{ github.run_number }}
+          contents: |
+            src=mod_grpc.so dst=/usr/lib/freeswitch/mod/mod_grpc.so type=file
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-packages
+          compression-level: 9
+          path: dist
