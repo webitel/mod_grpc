@@ -43,6 +43,7 @@ jobs:
 
   build:
     name: Build package
+    needs: [ compile ]
     runs-on: [ arc-c-runner-set ]
     steps:
       - name: Get Freeswitch version
