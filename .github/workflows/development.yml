@@ -27,7 +27,7 @@ jobs:
       prerelease: freeswitch
       package-name: freeswitch-mod-grpc
       package-description: "FreeSWITCH: Webitel gRPC module"
-      package-contents: src=mod_grpc.so dst=/usr/lib/freeswitch/mod/mod_grpc.so type=file mode=0644
+      package-contents: src=mod_grpc.so dst=/usr/lib/freeswitch/mod/mod_grpc.so type=file
       upload-artifact-pattern: build/mod_grpc.so
       args: |
         -DMOD_BUILD_VERSION="${{ github.run_number }}, commit: ${{ github.sha }}/${{ github.ref_name }}" \
