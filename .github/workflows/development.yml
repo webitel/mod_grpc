@@ -97,7 +97,7 @@ jobs:
 
   release:
     name: Release assets
-    needs: [ deploy ]
+    needs: [ build, deploy ]
     runs-on: [ arc-c-runner-set ]
     environment: releases
     permissions:
