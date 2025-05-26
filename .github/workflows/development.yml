@@ -10,117 +10,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    name: Prepare
+    uses: webitel/reusable-workflows/.github/workflows/go-prepare.yml@7a10c22563df4852961b55bb5513c1633450db3e
+    with:
+      development-branch: master
+      triggered-branch: master # ${{ github.ref_name }}
+      build-number: ${{ github.run_number }}
+
   compile:
-    name: Compile module
-    runs-on: [ arc-c-runner-set ]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Configure build files
-        run: |
-          cmake -B build \
-            -DMOD_BUILD_VERSION="${{ github.run_number }}, commit: ${{ github.sha }}/${{ github.ref_name }}" \
-            -DFREESWITCH_INCLUDE_DIR=/usr/include/freeswitch \
-            -DINSTALL_MOD_DIR=/usr/local/freeswitch/mod \
-            -DCMAKE_BUILD_TYPE=Release
-
-      - name: Get number of CPU cores
-        id: nproc
-        run: echo "cpu_cores=$(nproc)" >> $GITHUB_OUTPUT
-
-      - name: Compile
-        run: cmake --build build -j ${{ steps.nproc.outputs.cpu_cores }}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-source
-          compression-level: 9
-          path: build/mod_grpc.so
-
-  build:
-    name: Build package
-    needs: [ compile ]
-    runs-on: [ arc-c-runner-set ]
-    outputs:
-      freeswitch-version: ${{ steps.fs_version.outputs.FREESWITCH_VERSION }}
-      file: ${{ steps.build.outputs.packages }}
-
-    steps:
-      - name: Get Freeswitch version
-        id: fs_version
-        run: |
-          FREESWITCH_VERSION=$(freeswitch -version | cut -f 3 -d " " | cut -f 1 -d "-")
-          echo "FREESWITCH_VERSION=$FREESWITCH_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Download compiled file
-        uses: actions/download-artifact@v4
-        with:
-          name: build-source
-
-      - name: Build package
-        id: build
-        uses: webitel/reusable-workflows/actions/nfpm-build-action@main
-        with:
-          nfpm-version: latest
-          formats: deb
-          target: dist
-          package-name: freeswitch-mod-grpc
-          package-description: Webitel GRPC for FreeSWITCH
-          maintainer: Webitel <support@webitel.com>
-          homepage: https://webitel.com
-          arch: amd64
-          platform: linux
-          version: ${{ steps.fs_version.outputs.FREESWITCH_VERSION }}
-          release: ${{ github.run_number }}
-          contents: |
-            src=mod_grpc.so dst=/usr/lib/freeswitch/mod/mod_grpc.so type=file
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-packages
-          compression-level: 9
-          path: dist
+    name: Build
+    needs: [ prepare ]
+    uses: webitel/reusable-workflows/.github/workflows/c-build.yml@8b0b5e2472b8fddabbaf87262d1b0170182c3058
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      prerelease: freeswitch
+      package-name: freeswitch-mod-grpc
+      package-description: "FreeSWITCH: Webitel gRPC module"
+      package-contents: src=mod_grpc.so dst=/usr/lib/freeswitch/mod/mod_grpc.so type=file mode=0644
+      upload-artifact-pattern: build/mod_grpc.so
+      args: |
+        -DMOD_BUILD_VERSION="${{ github.run_number }}, commit: ${{ github.sha }}/${{ github.ref_name }}" \
+        -DFREESWITCH_INCLUDE_DIR=/usr/include/freeswitch \
+        -DINSTALL_MOD_DIR=/usr/local/freeswitch/mod \
+        -DCMAKE_BUILD_TYPE=Release
 
   deploy:
     name: Deploy
-    needs: [ build ]
-    uses: webitel/reusable-workflows/.github/workflows/_deploy.yml@fbf131e007e2c7b0bfafcd9bf0f306be596c8836
+    needs: [ prepare, compile ]
+    uses: webitel/reusable-workflows/.github/workflows/_deploy.yml@445c69dffb531031e9c13fb029cb8bd2f7cc2ac7
     secrets: inherit
     with:
-      component: main
+      component: ${{ needs.prepare.outputs.component }}
       repository-environment: acceptance
-
-  release:
-    name: Release assets
-    needs: [ build, deploy ]
-    runs-on: [ arc-c-runner-set ]
-    environment: releases
-    permissions:
-      contents: write
-
-    env:
-      VERSION: ${{ needs.build.outputs.freeswitch-version }}-${{ github.run_number }}
-
-    steps:
-      - name: Download package
-        uses: actions/download-artifact@v4
-        with:
-          name: build-packages
-          path: dist
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.VERSION }}
-          name: Release ${{ env.VERSION }}
-          target_commitish: ${{ github.sha }}
-          draft: false
-          make_latest: true
-          generate_release_notes: true
-          files: |
-            ${{ needs.build.outputs.file }}
