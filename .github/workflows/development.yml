@@ -86,10 +86,20 @@ jobs:
           compression-level: 9
           path: dist
 
+  deploy:
+    name: Deploy
+    needs: [ build ]
+    uses: webitel/reusable-workflows/.github/workflows/_deploy.yml@fbf131e007e2c7b0bfafcd9bf0f306be596c8836
+    secrets: inherit
+    with:
+      component: main
+      repository-environment: acceptance
+
   release:
     name: Release assets
-    needs: [ build ]
+    needs: [ deploy ]
     runs-on: [ arc-c-runner-set ]
+    environment: releases
     permissions:
       contents: write
 
@@ -101,12 +111,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-packages
+          path: dist
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}
           name: Release ${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
           draft: false
           make_latest: true
           generate_release_notes: true
