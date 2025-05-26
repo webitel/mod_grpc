@@ -37,8 +37,8 @@ jobs:
     uses: webitel/reusable-workflows/.github/workflows/c-build.yml@00a794ff50397685831c622dbe6ef53b6e270e88
     with:
       version: ${{ needs.version.outputs.version }}
-      version-build: ${{ needs.version.outputs.version-build }}
-      prerelease: freeswitch${{ needs.freeswitch-version.outputs.version }}
+      version-build: ${{ github.run_number }}-freeswitch${{ needs.freeswitch-version.outputs.version }}
+      prerelease: ${{ needs.version.outputs.component == 'dev' && 'dev' }} # Set prerelease if it is dev build
       package-name: freeswitch-mod-grpc
       package-description: "FreeSWITCH: Webitel gRPC module"
       package-contents: src=mod_grpc.so dst=/usr/lib/freeswitch/mod/mod_grpc.so type=file
