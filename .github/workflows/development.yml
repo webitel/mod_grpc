@@ -10,9 +10,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prepare:
-    name: Prepare
-    uses: webitel/reusable-workflows/.github/workflows/go-prepare.yml@7a10c22563df4852961b55bb5513c1633450db3e
+  version:
+    name: Version
+    uses: webitel/reusable-workflows/.github/workflows/_version.yml@main
     with:
       development-branch: master
       triggered-branch: master # ${{ github.ref_name }}
@@ -20,10 +20,10 @@ jobs:
 
   compile:
     name: Build
-    needs: [ prepare ]
+    needs: [ version ]
     uses: webitel/reusable-workflows/.github/workflows/c-build.yml@8b0b5e2472b8fddabbaf87262d1b0170182c3058
     with:
-      version: ${{ needs.prepare.outputs.version }}
+      version: ${{ needs.version.outputs.version }}
       prerelease: freeswitch
       package-name: freeswitch-mod-grpc
       package-description: "FreeSWITCH: Webitel gRPC module"
@@ -37,9 +37,9 @@ jobs:
 
   deploy:
     name: Deploy
-    needs: [ prepare, compile ]
+    needs: [ version, compile ]
     uses: webitel/reusable-workflows/.github/workflows/_deploy.yml@445c69dffb531031e9c13fb029cb8bd2f7cc2ac7
     secrets: inherit
     with:
-      component: ${{ needs.prepare.outputs.component }}
+      component: ${{ needs.version.outputs.component }}
       repository-environment: acceptance
