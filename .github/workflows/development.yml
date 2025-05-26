@@ -12,7 +12,7 @@ concurrency:
 jobs:
   version:
     name: Version
-    uses: webitel/reusable-workflows/.github/workflows/_version.yml@44c6ce18ca2864f7a2f4ec0a200846d3125517a1
+    uses: webitel/reusable-workflows/.github/workflows/_version.yml@00a794ff50397685831c622dbe6ef53b6e270e88
     with:
       development-branch: master
       triggered-branch: master # ${{ github.ref_name }}
@@ -34,7 +34,7 @@ jobs:
   compile:
     name: Build
     needs: [ version, freeswitch-version ]
-    uses: webitel/reusable-workflows/.github/workflows/c-build.yml@44c6ce18ca2864f7a2f4ec0a200846d3125517a1
+    uses: webitel/reusable-workflows/.github/workflows/c-build.yml@00a794ff50397685831c622dbe6ef53b6e270e88
     with:
       version: ${{ needs.version.outputs.version }}
       version-build: ${{ needs.version.outputs.version-build }}
@@ -52,7 +52,7 @@ jobs:
   deploy:
     name: Deploy
     needs: [ version, compile ]
-    uses: webitel/reusable-workflows/.github/workflows/_deploy.yml@44c6ce18ca2864f7a2f4ec0a200846d3125517a1
+    uses: webitel/reusable-workflows/.github/workflows/_deploy.yml@00a794ff50397685831c622dbe6ef53b6e270e88
     secrets: inherit
     with:
       component: ${{ needs.version.outputs.component }}
