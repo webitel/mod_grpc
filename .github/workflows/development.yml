@@ -12,7 +12,7 @@ concurrency:
 jobs:
   version:
     name: Version
-    uses: webitel/reusable-workflows/.github/workflows/_version.yml@main
+    uses: webitel/reusable-workflows/.github/workflows/_version.yml@44c6ce18ca2864f7a2f4ec0a200846d3125517a1
     with:
       development-branch: master
       triggered-branch: master # ${{ github.ref_name }}
@@ -34,9 +34,10 @@ jobs:
   compile:
     name: Build
     needs: [ version, freeswitch-version ]
-    uses: webitel/reusable-workflows/.github/workflows/c-build.yml@8b0b5e2472b8fddabbaf87262d1b0170182c3058
+    uses: webitel/reusable-workflows/.github/workflows/c-build.yml@44c6ce18ca2864f7a2f4ec0a200846d3125517a1
     with:
       version: ${{ needs.version.outputs.version }}
+      version-build: ${{ needs.version.outputs.version-build }}
       prerelease: freeswitch${{ needs.freeswitch-version.outputs.version }}
       package-name: freeswitch-mod-grpc
       package-description: "FreeSWITCH: Webitel gRPC module"
@@ -51,7 +52,7 @@ jobs:
   deploy:
     name: Deploy
     needs: [ version, compile ]
-    uses: webitel/reusable-workflows/.github/workflows/_deploy.yml@445c69dffb531031e9c13fb029cb8bd2f7cc2ac7
+    uses: webitel/reusable-workflows/.github/workflows/_deploy.yml@44c6ce18ca2864f7a2f4ec0a200846d3125517a1
     secrets: inherit
     with:
       component: ${{ needs.version.outputs.component }}
