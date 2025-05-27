@@ -1,9 +1,9 @@
-name: Development
+name: Release
 
 on:
   push:
     branches:
-      - master
+      - v*.*
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -39,7 +39,6 @@ jobs:
       version: ${{ needs.version.outputs.version }}
       version-build: ${{ github.run_number }}
       version-metadata: freeswitch${{ needs.freeswitch-version.outputs.version }}
-      prerelease: dev
       package-name: freeswitch-mod-grpc
       package-description: "FreeSWITCH: Webitel gRPC module"
       package-contents: src=mod_grpc.so dst=/usr/lib/freeswitch/mod/mod_grpc.so type=file
@@ -57,4 +56,6 @@ jobs:
     secrets: inherit
     with:
       component: ${{ needs.version.outputs.component }}
-      repository-environment: acceptance
+      repository-environment: ${{ needs.version.outputs.component }}
+      create-tag: true
+      version: ${{ needs.version.outputs.version }}-${{ github.run_number }}
