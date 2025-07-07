@@ -765,6 +765,16 @@ public:
             sip_hangup_phrase = get_str(switch_event_get_header(e, "variable_sip_invite_failure_phrase"));
         }
 
+        // DEV-5528
+        auto variable_last_bridge_to = get_str(switch_event_get_header(e, "variable_last_bridge_to"));
+        if (cause_ == "ATTENDED_TRANSFER" && wbt_transfer_from.empty() && !variable_last_bridge_to.empty()) {
+            auto session = switch_core_session_locate(variable_last_bridge_to.c_str());
+            if (session) {
+                wbt_transfer_from = get_str(switch_channel_get_variable(switch_core_session_get_channel(session), "bridge_uuid"));
+                switch_core_session_rwunlock(session);
+            }
+        }
+
         auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
         if (!eavesdrop.empty()) {
             notifyEavesdropPartner("leave");
