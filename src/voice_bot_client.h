@@ -20,12 +20,12 @@ extern "C" {
 #include <utility>
 
 #include "generated/fs.grpc.pb.h"
-#include "generated/voicebot.grpc.pb.h"
+#include "generated/voice.grpc.pb.h"
 
 class VoiceBotCall {
 public:
     explicit VoiceBotCall(std::string callId, int32_t model_rate_, int32_t channel_rate_,
-                          std::unique_ptr<::voicebot::VoiceBot::Stub> &stub_) {
+                          std::unique_ptr<::ai_bots::VoiceBot::Stub> &stub_) {
         model_rate = model_rate_;
         channel_rate = channel_rate_;
         id = std::move(callId);
@@ -33,10 +33,10 @@ public:
     }
 
     bool Start(std::string &start_message) {
-        ::voicebot::AudioRequest req;
+        ::ai_bots::AudioRequest req;
         auto metadata = req.mutable_metadata();
         metadata->set_conversation_id(id);
-        metadata->set_rate(model_rate);
+        // metadata->set_rate(model_rate);
         if (!start_message.empty()) {
             metadata->set_initial_ai_message(start_message);
         }
@@ -46,9 +46,9 @@ public:
 
     void Listen() {
         rt = std::thread([this] {
-            ::voicebot::AudioResponse reply;
+            ::ai_bots::AudioResponse reply;
             switch_audio_resampler_t *resampler = nullptr;
-            int out_rate = 16000;
+            int out_rate = 24000;
             if (out_rate != channel_rate) {
                 switch_resample_create(&resampler,
                                        out_rate,
@@ -134,7 +134,7 @@ public:
         bool ok(true);
         while (audio_buffer.size() >= target_frame_size) {
             std::vector<uint8_t> send_buffer(audio_buffer.begin(), audio_buffer.begin() + target_frame_size);
-            ::voicebot::AudioRequest req;
+            ::ai_bots::AudioRequest req;
             auto audio = req.mutable_audiodata();
             audio->set_conversation_id(id);
             audio->set_audio_bytes(send_buffer.data(), send_buffer.size());
@@ -181,19 +181,19 @@ public:
     bool isBreak = false;
 
     std::vector<uint8_t> audio_buffer;
-    voicebot::AudioRequest request;
+    ai_bots::AudioRequest request;
     std::string id;
     int32_t model_rate;
     int32_t channel_rate;
 
-    std::unique_ptr<::grpc::ClientReaderWriter<::voicebot::AudioRequest, voicebot::AudioResponse>> rw;
+    std::unique_ptr<::grpc::ClientReaderWriter<::ai_bots::AudioRequest, ai_bots::AudioResponse>> rw;
 };
 
 class VoiceBotHub {
 public:
     explicit VoiceBotHub(const std::shared_ptr<grpc::Channel> &channel_) {
         channel = channel_;
-        stub_ = ::voicebot::VoiceBot::NewStub(channel);
+        stub_ = ::ai_bots::VoiceBot::NewStub(channel);
     }
 
     ~VoiceBotHub() {
@@ -221,7 +221,7 @@ public:
 
 private:
     std::shared_ptr<grpc::Channel> channel;
-    std::unique_ptr<::voicebot::VoiceBot::Stub> stub_;
+    std::unique_ptr<::ai_bots::VoiceBot::Stub> stub_;
 };
 
 #endif //MOD_GRPC_VOICE_BOT_CLIENT_H

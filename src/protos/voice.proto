@@ -1,7 +1,6 @@
 syntax = "proto3";
-
-option go_package = "github.com/webitel/voicebot;gen";
-package voicebot;
+package ai_bots;
+option go_package = "github.com/webitel/protos/ai_bots;ai_bots";
 
 // The VoiceBot service definition
 service VoiceBot {
@@ -9,11 +8,12 @@ service VoiceBot {
   rpc Converse (stream AudioRequest) returns (stream AudioResponse) {}
 }
 
+
 message Metadata {
   string conversation_id = 1;
   string initial_ai_message = 2;
   map<string, string> user_data = 3;
-  int32 rate = 4;
+  string rate = 4;
 }
 
 message AudioData {
@@ -35,4 +35,5 @@ message AudioResponse {
   bytes audio_data = 2;
   bool stop_talk = 3;
   bool end_conversation = 4;
+  map<string,string> variables = 5;
 }
