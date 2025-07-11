@@ -1678,6 +1678,8 @@ namespace mod_grpc {
                 break;
             }
 
+            switch_ivr_parse_all_events(session);
+
             switch_buffer_lock(ud->client_->buffer);
             voice_len = switch_buffer_inuse(ud->client_->buffer);
             if (voice_len >= write_frame.datalen) {
