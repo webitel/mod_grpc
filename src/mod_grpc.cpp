@@ -1594,6 +1594,7 @@ namespace mod_grpc {
         write_frame.codec = NULL;
         int model_rate = 16000;
         std::string start_message = "";
+        google::protobuf::Map<std::string, std::string> current_vars;
 
         if (!zstr(data) && (mycmd = strdup(data))) {
             argc = switch_separate_string(mycmd, ' ', argv, (sizeof(argv) / sizeof(argv[0])));
@@ -1688,6 +1689,15 @@ namespace mod_grpc {
                 switch_generate_sln_silence((int16_t *) write_frame.data, write_frame.samples, imp.number_of_channels, -1);
             }
             switch_buffer_unlock(ud->client_->buffer);
+
+            current_vars = ud->client_->flushVars(); // This thread checks and consumes
+            if (!current_vars.empty()) {
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "received new variables:\n");
+                for (const auto& pair : current_vars) {
+                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "  %s: %s\n", pair.first.c_str(), pair.second.c_str());
+                    switch_channel_set_variable(channel, pair.first.c_str(), pair.second.c_str());
+                }
+            }
 
             if (ud->client_->breakStream() && voice_len < write_frame.datalen) {
                 break;

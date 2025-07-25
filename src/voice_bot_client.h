@@ -20,12 +20,12 @@ extern "C" {
 #include <utility>
 
 #include "generated/fs.grpc.pb.h"
-#include "generated/voice.grpc.pb.h"
+#include "generated/converse.grpc.pb.h"
 
 class VoiceBotCall {
 public:
     explicit VoiceBotCall(std::string callId, int32_t model_rate_, int32_t channel_rate_,
-                          std::unique_ptr<::ai_bots::VoiceBot::Stub> &stub_) {
+                          std::unique_ptr<::ai_bots::ConverseService::Stub> &stub_) {
         model_rate = model_rate_;
         channel_rate = channel_rate_;
         id = std::move(callId);
@@ -33,12 +33,11 @@ public:
     }
 
     bool Start(std::string &start_message) {
-        ::ai_bots::AudioRequest req;
-        auto metadata = req.mutable_metadata();
-        metadata->set_conversation_id(id);
-        // metadata->set_rate(model_rate);
+        ::ai_bots::ConverseRequest req;
+        auto config = req.mutable_config();
+        config->set_conversation_id(id);
         if (!start_message.empty()) {
-            metadata->set_initial_ai_message(start_message);
+            config->set_dialog_id(start_message);
         }
 
         return rw->Write(req);
@@ -46,7 +45,7 @@ public:
 
     void Listen() {
         rt = std::thread([this] {
-            ::ai_bots::AudioResponse reply;
+            ::ai_bots::ConverseResponse reply;
             switch_audio_resampler_t *resampler = nullptr;
             int out_rate = 24000;
             if (out_rate != channel_rate) {
@@ -98,6 +97,8 @@ public:
                         switch_buffer_zero(buffer);
                     }
                     switch_buffer_unlock(buffer);
+                } else if (!reply.variables().empty()) {
+                    this->setVars(reply.variables());
                 }
             }
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "close reader\n");
@@ -134,10 +135,9 @@ public:
         bool ok(true);
         while (audio_buffer.size() >= target_frame_size) {
             std::vector<uint8_t> send_buffer(audio_buffer.begin(), audio_buffer.begin() + target_frame_size);
-            ::ai_bots::AudioRequest req;
-            auto audio = req.mutable_audiodata();
-            audio->set_conversation_id(id);
-            audio->set_audio_bytes(send_buffer.data(), send_buffer.size());
+            ::ai_bots::ConverseRequest req;
+            auto input = req.mutable_input();
+            input->set_audio_data(send_buffer.data(), send_buffer.size());
 //            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::Write\n");
             ok = rw->Write(req);
 //            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::WriteEnd\n");
@@ -171,6 +171,18 @@ public:
         return isBreak;
     }
 
+    void setVars(google::protobuf::Map<std::string, std::string> vars_) {
+        std::lock_guard<std::mutex> lock(varsMutex);
+        vars = std::move(vars_);
+    }
+
+    google::protobuf::Map<std::string, std::string> flushVars() {
+        std::lock_guard<std::mutex> lock(varsMutex);
+        auto v = std::move(vars);
+        vars.clear();
+        return v;
+    }
+
     // Context for the client. It could be used to convey extra information to
     // the server and/or tweak certain RPC behaviors.
     grpc::ClientContext context;
@@ -179,21 +191,23 @@ public:
     switch_mutex_t *mutex;
     std::mutex stopMutex;
     bool isBreak = false;
+    google::protobuf::Map<std::string, std::string> vars;
+    std::mutex varsMutex;
 
     std::vector<uint8_t> audio_buffer;
-    ai_bots::AudioRequest request;
+    ai_bots::ConverseRequest request;
     std::string id;
     int32_t model_rate;
     int32_t channel_rate;
 
-    std::unique_ptr<::grpc::ClientReaderWriter<::ai_bots::AudioRequest, ai_bots::AudioResponse>> rw;
+    std::unique_ptr<::grpc::ClientReaderWriter<::ai_bots::ConverseRequest, ai_bots::ConverseResponse>> rw;
 };
 
 class VoiceBotHub {
 public:
     explicit VoiceBotHub(const std::shared_ptr<grpc::Channel> &channel_) {
         channel = channel_;
-        stub_ = ::ai_bots::VoiceBot::NewStub(channel);
+        stub_ = ::ai_bots::ConverseService::NewStub(channel);
     }
 
     ~VoiceBotHub() {
@@ -221,7 +235,7 @@ public:
 
 private:
     std::shared_ptr<grpc::Channel> channel;
-    std::unique_ptr<::ai_bots::VoiceBot::Stub> stub_;
+    std::unique_ptr<::ai_bots::ConverseService::Stub> stub_;
 };
 
 #endif //MOD_GRPC_VOICE_BOT_CLIENT_H

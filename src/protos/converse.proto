@@ -1,0 +1,38 @@
+syntax = "proto3";
+package ai_bots;
+option go_package = "github.com/webitel/protos/ai_bots;ai_bots";
+
+
+service ConverseService {
+  rpc Converse(stream ConverseRequest) returns (stream ConverseResponse);
+}
+
+message Config {
+  string conversation_id = 1;
+  string dialog_id = 2;
+  map<string, string> user_data = 3;
+  string rate = 4;
+}
+
+message Input {
+  oneof data {
+    bytes audio_data = 1;
+    string text_data = 2;
+  }
+}
+
+message ConverseRequest {
+  oneof request_type {
+    Config config = 1;
+    Input input = 2;
+  }
+}
+
+message ConverseResponse {
+  string conversation_id = 1;
+  bytes audio_data = 2;
+  string text_data = 6;
+  bool stop_talk = 3;
+  bool end_conversation = 4;
+  map<string, string> variables = 5;
+}

@@ -14,7 +14,7 @@ extern "C" {
 
 #include "generated/fs.grpc.pb.h"
 #include "generated/stream.grpc.pb.h"
-#include "generated/voice.grpc.pb.h"
+#include "generated/converse.grpc.pb.h"
 #include "Cluster.h"
 #include "amd_client.h"
 #include "push_client.h"
