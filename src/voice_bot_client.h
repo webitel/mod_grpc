@@ -128,9 +128,9 @@ public:
 
     inline bool write(void *data, uint32_t datalen) {
         audio_buffer.insert(audio_buffer.end(), (uint8_t *) data, (uint8_t *) data + datalen);
-        size_t target_frame_size = 1024;
+        size_t target_frame_size = 3200;
         if (model_rate == 8000) {
-            target_frame_size = 512;
+            target_frame_size = 3200;
         }
         bool ok(true);
         while (audio_buffer.size() >= target_frame_size) {
