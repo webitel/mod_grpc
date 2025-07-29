@@ -243,6 +243,7 @@ protected:
         std::string parent_id;
         std::string direction;
         std::string destination;
+        std::string destination_name;
     };
 
     struct OutboundCallParameters {
@@ -283,6 +284,9 @@ protected:
         }
         if (info->to) {
             cJSON_AddItemToObject(j, "to", toJson(info->to));
+        }
+        if (!info->destination_name.empty()) {
+            cJSON_AddItemToObject(j, "destination_name", cJSON_CreateString(info->destination_name.c_str()));
         }
     }
 
@@ -394,6 +398,8 @@ protected:
         switch_url_decode(destination);
         info.destination = std::string(destination);
         delete destination;
+
+        info.destination_name = event_->getVar("variable_sip_to_display");
 
         auto gateway = event_->getVar("variable_sip_h_X-Webitel-Gateway-Id");
         auto user = event_->getVar("variable_sip_h_X-Webitel-User-Id");
