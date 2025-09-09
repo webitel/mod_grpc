@@ -561,7 +561,9 @@ namespace mod_grpc {
                 contact_id = switch_channel_get_variable_partner(chan_b_s, "wbt_contact_id");
             }
 
-            if (cc_to_agent_id) {
+            auto disable_transfer_form = switch_false(switch_channel_get_variable_partner(chan_a_s, "wbt_transfer_form"));
+
+            if (!disable_transfer_form && cc_to_agent_id) {
                 switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to_agent", cc_to_agent_id);
             }
             if (contact_id) {
@@ -574,7 +576,7 @@ namespace mod_grpc {
 
             switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to", request->leg_a_id().c_str());
 
-            if (cc_from_attempt_id &&
+            if (!disable_transfer_form && cc_from_attempt_id &&
                 (cc_to_attempt_id = switch_channel_get_variable_partner(chan_b_s, "cc_attempt_id"))) {
                 switch_channel_set_variable_partner(chan_a_s, "wbt_transfer_to_attempt",
                                                     std::string(cc_to_attempt_id).c_str());
