@@ -291,7 +291,7 @@ namespace mod_grpc {
         return Status::OK;
 
     }
-
+    // TODO cleanup
     Status ApiServiceImpl::Bridge(ServerContext *context, const fs::BridgeRequest *request,
                                   fs::BridgeResponse *reply) {
         int bridged = 1;
@@ -299,10 +299,17 @@ namespace mod_grpc {
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "receive bridge %s to %s\n",
                           request->leg_a_id().c_str(), request->leg_b_id().c_str());
 
-//        switch_core_session_t *session;
-//        session = switch_core_session_locate(request->leg_b_id().c_str());
-//        if (session) {
-//            switch_channel_t *channel = switch_core_session_get_channel(session);
+        switch_core_session_t *asession;
+        asession = switch_core_session_locate(request->leg_a_id().c_str());
+        if (asession) {
+            switch_core_session_flush_private_events(asession);
+            switch_channel_t *channel = switch_core_session_get_channel(asession);
+            if (switch_channel_test_flag(channel, CF_BROADCAST)) {
+                switch_channel_stop_broadcast(channel);
+            } else {
+                switch_channel_set_flag_value(channel, CF_BREAK, 2);
+            }
+
 //            int cnt = 0;
 //            while (switch_channel_ready(channel) && cnt < 10 && (switch_channel_test_flag(channel, CF_ORIGINATING)) ) {
 //                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "waiting for done originate\n");
@@ -310,10 +317,15 @@ namespace mod_grpc {
 //                cnt++;
 //            }
 //
-//            switch_core_session_rwunlock(session);
-//        }
+            switch_core_session_rwunlock(asession);
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "bridge %s to %s error: not found A\n",
+                  request->leg_a_id().c_str(), request->leg_b_id().c_str());
+            reply->mutable_error()->set_message("not found A leg");
+            return Status::OK;
+        }
 
-        if (switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str()) != SWITCH_STATUS_SUCCESS) {
+        if (bridged && switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str()) != SWITCH_STATUS_SUCCESS) {
             bridged = 0;
         }
 
@@ -334,7 +346,7 @@ namespace mod_grpc {
         }
 
         if (!bridged) {
-            reply->mutable_error()->set_message("not found call id");
+            reply->mutable_error()->set_message("unknown bridge error");
         }
 
         return Status::OK;
