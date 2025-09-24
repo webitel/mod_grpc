@@ -42,6 +42,18 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Receive event: [%s]\n", switch_event_name(event->event_id));
         switch (event->event_id) {
             case SWITCH_EVENT_CHANNEL_CREATE: {
+                auto contact = get_str(switch_event_get_header(event, "variable_sip_h_X-Webitel-Contact-Id"));
+                if (!contact.empty()) {
+                    auto uuid_ = get_str(switch_event_get_header(event, "Unique-ID"));
+                    auto session = switch_core_session_locate(uuid_.c_str());
+                    if (session) {
+                        auto channel = switch_core_session_get_channel(session);
+                        switch_channel_set_variable(channel, "wbt_contact_id", contact.c_str());
+                        switch_core_session_rwunlock(session);
+                        switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "variable_wbt_contact_id", contact.c_str());
+                    }
+                }
+
                 CallEvent<Ringing>(event).fire();
                 break;
             }
