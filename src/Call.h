@@ -616,6 +616,10 @@ public:
             addAttribute("originate", true);
         }
 
+        if (event_->getVar("variable_wbt_record_screen") == "true") {
+            addAttribute("record_screen", true);
+        }
+
         auto wbt_heartbeat = event_->getVar("variable_wbt_heartbeat");
         if (!wbt_heartbeat.empty()) {
             int sec = 0;
