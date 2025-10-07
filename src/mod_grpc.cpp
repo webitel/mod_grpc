@@ -1628,11 +1628,15 @@ namespace mod_grpc {
 //                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
 
                     if (ud->client_->out_rate != ud->client_->channel_rate) { // Channel rate ?
-                        switch_resample_create(&ud->rresampler,
-                                               ud->client_->channel_rate,
-                                               ud->client_->out_rate,
-                                               320, 10, 1); // TODO
-
+                        int err;
+                        ud->rresampler = speex_resampler_init(1, ud->client_->channel_rate, ud->client_->out_rate, SWITCH_RESAMPLE_QUALITY, &err);
+                        if (0!=err) {
+                            switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                SWITCH_LOG_ERROR,
+                                "GRPC stream: writer resample from %d to %d err: %d\n", ud->client_->channel_rate, ud->client_->out_rate, err);
+                            return SWITCH_FALSE;
+                        }
 
                         switch_log_printf(
                                 SWITCH_CHANNEL_SESSION_LOG(ud->session),
@@ -1656,7 +1660,8 @@ namespace mod_grpc {
                 // cleanup
                 try {
                     if (ud->rresampler) {
-                        switch_resample_destroy(&ud->rresampler);
+                        speex_resampler_destroy(ud->rresampler);
+                        ud->rresampler = nullptr;
                     }
 
                     if (ud->client_) {
@@ -1716,12 +1721,18 @@ namespace mod_grpc {
                     };
                     //
                     if (ud->rresampler) {
-                        uint8_t resample_data[SWITCH_RECOMMENDED_BUFFER_SIZE];
-                        auto data = (int16_t *) read_frame.data;
-                        switch_resample_process(ud->rresampler, data, (int) read_frame.datalen / 2);
-                        auto linear_len = ud->rresampler->to_len * 2;
-                        memcpy(resample_data, ud->rresampler->to, linear_len);
-                        ok = ud->client_->Write(resample_data, linear_len);
+                        spx_int16_t out[SWITCH_RECOMMENDED_BUFFER_SIZE];
+                        spx_uint32_t out_len = SWITCH_RECOMMENDED_BUFFER_SIZE;
+                        spx_uint32_t in_len = read_frame.samples;
+                        size_t written;
+
+                        speex_resampler_process_interleaved_int(
+                            ud->rresampler,
+                            (const spx_int16_t *) read_frame.data,
+                            (spx_uint32_t *) &in_len,
+                            &out[0],
+                            &out_len);
+                        ok = ud->client_->Write(&out[0], sizeof(spx_int16_t) * out_len);
                     } else {
                         ok = ud->client_->Write(read_frame.data, read_frame.datalen);
                     }
@@ -2651,6 +2662,8 @@ namespace mod_grpc {
                         switch_codec_implementation_t imp = {};
                         int model_rate = 16000;
                         std::string dialog_id = argv[4];
+                        model_rate = atoi(argv[3]);
+
                         google::protobuf::Map<std::string, std::string> current_vars;
 
 

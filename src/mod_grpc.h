@@ -5,6 +5,7 @@ extern "C" {
 #include <switch.h>
 #include <switch_curl.h>
 #include <sys/select.h>
+#include <speex/speex_resampler.h>
 }
 
 #include <thread>
@@ -22,6 +23,8 @@ extern "C" {
 
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
 #define STT_BUG_NAME "wbt_stt_bug"
+
+
 
 #ifndef MOD_BUILD_VERSION
 #define MOD_BUILD_VERSION "DEV"
@@ -65,7 +68,7 @@ namespace mod_grpc {
         switch_core_session_t *session;
         switch_channel_t *channel;
         RecognizeCall* client_;
-        switch_audio_resampler_t *rresampler;
+        SpeexResamplerState *rresampler;
     };
 
     static char *wbt_cache_supported_formats[] = { "wbt_prepare", NULL };
