@@ -49,6 +49,15 @@ class ConverseService final {
     std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>> PrepareAsyncConverse(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>>(PrepareAsyncConverseRaw(context, cq));
     }
+    std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>> Recognize(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>>(RecognizeRaw(context));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>> AsyncRecognize(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>>(AsyncRecognizeRaw(context, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>> PrepareAsyncRecognize(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>>(PrepareAsyncRecognizeRaw(context, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -56,6 +65,7 @@ class ConverseService final {
       // Перше повідомлення від клієнта ЗАВЖДИ має бути типу `Config`.
       // Після цього клієнт надсилає потік повідомлень типу `Input`.
       virtual void Converse(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::ai_bots::ConverseRequest,::ai_bots::ConverseResponse>* reactor) = 0;
+      virtual void Recognize(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::ai_bots::RecognizeRequest,::ai_bots::RecognizeResponse>* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -64,6 +74,9 @@ class ConverseService final {
     virtual ::grpc::ClientReaderWriterInterface< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>* ConverseRaw(::grpc::ClientContext* context) = 0;
     virtual ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>* AsyncConverseRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) = 0;
     virtual ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>* PrepareAsyncConverseRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderWriterInterface< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* RecognizeRaw(::grpc::ClientContext* context) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* AsyncRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* PrepareAsyncRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -77,10 +90,20 @@ class ConverseService final {
     std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>> PrepareAsyncConverse(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>>(PrepareAsyncConverseRaw(context, cq));
     }
+    std::unique_ptr< ::grpc::ClientReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>> Recognize(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>>(RecognizeRaw(context));
+    }
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>> AsyncRecognize(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>>(AsyncRecognizeRaw(context, cq, tag));
+    }
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>> PrepareAsyncRecognize(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>>(PrepareAsyncRecognizeRaw(context, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
       void Converse(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::ai_bots::ConverseRequest,::ai_bots::ConverseResponse>* reactor) override;
+      void Recognize(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::ai_bots::RecognizeRequest,::ai_bots::RecognizeResponse>* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -95,7 +118,11 @@ class ConverseService final {
     ::grpc::ClientReaderWriter< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>* ConverseRaw(::grpc::ClientContext* context) override;
     ::grpc::ClientAsyncReaderWriter< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>* AsyncConverseRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) override;
     ::grpc::ClientAsyncReaderWriter< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>* PrepareAsyncConverseRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* RecognizeRaw(::grpc::ClientContext* context) override;
+    ::grpc::ClientAsyncReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* AsyncRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* PrepareAsyncRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_Converse_;
+    const ::grpc::internal::RpcMethod rpcmethod_Recognize_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -107,6 +134,7 @@ class ConverseService final {
     // Перше повідомлення від клієнта ЗАВЖДИ має бути типу `Config`.
     // Після цього клієнт надсилає потік повідомлень типу `Input`.
     virtual ::grpc::Status Converse(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::ai_bots::ConverseResponse, ::ai_bots::ConverseRequest>* stream);
+    virtual ::grpc::Status Recognize(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::ai_bots::RecognizeResponse, ::ai_bots::RecognizeRequest>* stream);
   };
   template <class BaseClass>
   class WithAsyncMethod_Converse : public BaseClass {
@@ -128,7 +156,27 @@ class ConverseService final {
       ::grpc::Service::RequestAsyncBidiStreaming(0, context, stream, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Converse<Service > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_Recognize : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_Recognize() {
+      ::grpc::Service::MarkMethodAsync(1);
+    }
+    ~WithAsyncMethod_Recognize() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::ai_bots::RecognizeResponse, ::ai_bots::RecognizeRequest>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestRecognize(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::ai_bots::RecognizeResponse, ::ai_bots::RecognizeRequest>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncBidiStreaming(1, context, stream, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_Converse<WithAsyncMethod_Recognize<Service > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_Converse : public BaseClass {
    private:
@@ -152,7 +200,30 @@ class ConverseService final {
       ::grpc::CallbackServerContext* /*context*/)
       { return nullptr; }
   };
-  typedef WithCallbackMethod_Converse<Service > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_Recognize : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_Recognize() {
+      ::grpc::Service::MarkMethodCallback(1,
+          new ::grpc::internal::CallbackBidiHandler< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context) { return this->Recognize(context); }));
+    }
+    ~WithCallbackMethod_Recognize() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::ai_bots::RecognizeResponse, ::ai_bots::RecognizeRequest>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerBidiReactor< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* Recognize(
+      ::grpc::CallbackServerContext* /*context*/)
+      { return nullptr; }
+  };
+  typedef WithCallbackMethod_Converse<WithCallbackMethod_Recognize<Service > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_Converse : public BaseClass {
@@ -167,6 +238,23 @@ class ConverseService final {
     }
     // disable synchronous version of this method
     ::grpc::Status Converse(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::ai_bots::ConverseResponse, ::ai_bots::ConverseRequest>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_Recognize : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_Recognize() {
+      ::grpc::Service::MarkMethodGeneric(1);
+    }
+    ~WithGenericMethod_Recognize() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::ai_bots::RecognizeResponse, ::ai_bots::RecognizeRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -192,6 +280,26 @@ class ConverseService final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_Recognize : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_Recognize() {
+      ::grpc::Service::MarkMethodRaw(1);
+    }
+    ~WithRawMethod_Recognize() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::ai_bots::RecognizeResponse, ::ai_bots::RecognizeRequest>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestRecognize(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncBidiStreaming(1, context, stream, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_Converse : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -211,6 +319,29 @@ class ConverseService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* Converse(
+      ::grpc::CallbackServerContext* /*context*/)
+      { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_Recognize : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_Recognize() {
+      ::grpc::Service::MarkMethodRawCallback(1,
+          new ::grpc::internal::CallbackBidiHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context) { return this->Recognize(context); }));
+    }
+    ~WithRawCallbackMethod_Recognize() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::ai_bots::RecognizeResponse, ::ai_bots::RecognizeRequest>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* Recognize(
       ::grpc::CallbackServerContext* /*context*/)
       { return nullptr; }
   };

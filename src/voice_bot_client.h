@@ -203,6 +203,137 @@ public:
     std::unique_ptr<::grpc::ClientReaderWriter<::ai_bots::ConverseRequest, ai_bots::ConverseResponse>> rw;
 };
 
+class RecognizeCall {
+    public:
+    RecognizeCall(std::string dialogId, int32_t _out_rate, int32_t channel_rate_,
+                          std::unique_ptr<::ai_bots::ConverseService::Stub> &stub_) {
+        out_rate = _out_rate;
+        channel_rate = channel_rate_;
+        id = std::move(dialogId);
+        rw = stub_->Recognize(&context);
+    };
+
+    ~RecognizeCall() {
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Destroy RecognizeCall\n");
+    }
+
+    bool Start() const {
+        ::ai_bots::RecognizeRequest req;
+        auto config = req.mutable_config();
+        config->set_dialog_id(id.c_str());
+
+        return rw->Write(req);
+    }
+
+    void setBreak() {
+        std::lock_guard<std::mutex> lock(stopMutex);
+        isBreak = true;
+    }
+
+    bool breakStream() {
+        std::lock_guard<std::mutex> lock(stopMutex);
+        return isBreak;
+    }
+
+    void setVars(google::protobuf::Map<std::string, std::string> vars_) {
+        std::lock_guard<std::mutex> lock(varsMutex);
+        vars = std::move(vars_);
+    }
+
+    google::protobuf::Map<std::string, std::string> flushVars() {
+        std::lock_guard<std::mutex> lock(varsMutex);
+        auto v = std::move(vars);
+        vars.clear();
+        return v;
+    }
+
+    inline bool write(void *data, uint32_t datalen) {
+        ::ai_bots::RecognizeRequest req;
+        auto input = req.mutable_input();
+        input->set_audio_data(data, datalen);
+        return  rw->Write(req);
+    }
+
+    inline bool Write(void *data, uint32_t len) {
+        return this->write(data, len);
+    }
+
+    inline bool Write(uint8_t *data, uint32_t len) {
+        return this->write(data, (uint32_t) len);
+    }
+
+    bool Listen(int sec) {
+        rt = std::thread([this] {
+            ::ai_bots::RecognizeResponse reply;
+
+            while (rw->Read(&reply)) {
+                if (!ready) {
+                    {
+                        std::lock_guard<std::mutex> lock(readyMutex);
+                        ready = true;
+                        readyCondVar.notify_one();
+                    }
+                }
+
+                if (!reply.variables().empty()) {
+                    this->setVars(reply.variables());
+                }
+
+                interrupted = reply.interrupted();
+
+                if (reply.is_final()) {
+                    break;
+                }
+
+            }
+
+            setBreak();
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "close reader\n");
+
+        });
+
+        std::unique_lock<std::mutex> lock(readyMutex);
+        readyCondVar.wait_for(lock, std::chrono::seconds(sec), [this] {
+            return ready;
+        });
+
+        return ready;
+
+    };
+
+    bool Finish() {
+        context.TryCancel();
+        rw->WritesDone();
+        auto status = rw->Finish();
+        if (!status.ok()) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "error: %s [%s]\n",
+                              status.error_message().c_str(), status.error_details().c_str());
+        }
+        if (rt.joinable()) {
+            rt.join();
+        }
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "finish\n");
+        return true;
+    }
+    int32_t out_rate;
+    int32_t channel_rate;
+    bool interrupted = false;
+
+private:
+    std::unique_ptr<::grpc::ClientReaderWriter<::ai_bots::RecognizeRequest, ai_bots::RecognizeResponse>> rw;
+    grpc::ClientContext context;
+    std::mutex stopMutex;
+    bool isBreak = false;
+    std::thread rt;
+    ai_bots::ConverseRequest request;
+    std::string id;
+    google::protobuf::Map<std::string, std::string> vars;
+    std::mutex varsMutex;
+    std::condition_variable readyCondVar;
+    std::mutex readyMutex;
+    bool ready = false;
+};
+
 class VoiceBotHub {
 public:
     explicit VoiceBotHub(const std::shared_ptr<grpc::Channel> &channel_) {
@@ -232,6 +363,21 @@ public:
         }
         return call;
     }
+
+
+    RecognizeCall *Recognize(const std::string &dialogId, int32_t out_rate, int32_t channel_rate) {
+        //todo
+        if (!connected()) {
+            return nullptr;
+        }
+        auto *call = new RecognizeCall(dialogId, out_rate, channel_rate, stub_);
+        if (!call->Start()) {
+            delete call;
+            return nullptr;
+        }
+        return call;
+    }
+
 
 private:
     std::shared_ptr<grpc::Channel> channel;

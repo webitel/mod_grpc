@@ -21,6 +21,7 @@ extern "C" {
 #include "voice_bot_client.h"
 
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
+#define STT_BUG_NAME "wbt_stt_bug"
 
 #ifndef MOD_BUILD_VERSION
 #define MOD_BUILD_VERSION "DEV"
@@ -57,6 +58,13 @@ namespace mod_grpc {
         switch_core_session_t *session;
         switch_channel_t *channel;
         VoiceBotCall* client_;
+        switch_audio_resampler_t *rresampler;
+    };
+
+    struct RecognizeStream {
+        switch_core_session_t *session;
+        switch_channel_t *channel;
+        RecognizeCall* client_;
         switch_audio_resampler_t *rresampler;
     };
 
@@ -199,6 +207,7 @@ namespace mod_grpc {
         bool UseFCM() const;
         bool UseAPN() const;
         AsyncClientCall* AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate);
+        RecognizeCall* AsyncRecognize(std::string conn, switch_core_session_t *session, int32_t out_rate, int32_t channel_rate, std::string &dialog_id);
         VoiceBotCall* AsyncVoiceBotStream(std::string conn, switch_core_session_t *session, int32_t model_rate, int32_t channel_rate, std::string &start_message);
         PushClient* GetPushClient();
     private:

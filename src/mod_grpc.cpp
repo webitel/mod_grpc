@@ -1093,6 +1093,25 @@ namespace mod_grpc {
         return amdClient_->Stream(domain_id, uuid, name, rate);
     }
 
+    RecognizeCall* ServerImpl::AsyncRecognize(std::string conn, switch_core_session_t *session, int32_t out_rate, int32_t channel_rate, std::string &dialog_id) {
+        auto client = getVoiceBotClient(conn);
+        if (!client) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                              "failed to get Recognize client for connection: %s\n", conn.c_str());
+            return nullptr;
+        }
+        auto call = client->Recognize(dialog_id, out_rate, channel_rate);
+        if (!call) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                              "failed to create Recognize call for session: %s\n",
+                              switch_core_session_get_uuid(session));
+            return nullptr;
+        }
+
+        return call;
+
+    }
+
     VoiceBotCall* ServerImpl::AsyncVoiceBotStream(std::string conn, switch_core_session_t *session, int32_t model_rate, int32_t channel_rate, std::string &start_message) {
         auto client = getVoiceBotClient(conn);
         if (!client) {
@@ -1577,6 +1596,141 @@ namespace mod_grpc {
                                 SWITCH_CHANNEL_SESSION_LOG(ud->session),
                                 SWITCH_LOG_CRIT,
                                 "GRPC stream: error send \n");
+                        return SWITCH_FALSE;
+                    }
+
+                } catch (...) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: SWITCH_ABC_TYPE_WRITEs \n");
+                }
+                break;
+            }
+        }
+
+        return SWITCH_TRUE;
+    }
+
+
+
+    static switch_bool_t recognizer_audio_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type) {
+        auto *ud = static_cast<RecognizeStream *>(user_data);
+
+        switch (type) {
+            case SWITCH_ABC_TYPE_INIT: {
+                // connect
+                try {
+                    if (switch_core_media_bug_test_flag(bug, SMBF_ANSWER_REQ)) {
+                        switch_core_media_bug_clear_flag(bug, SMBF_ANSWER_REQ);
+                    }
+
+//                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
+
+                    if (ud->client_->out_rate != ud->client_->channel_rate) { // Channel rate ?
+                        switch_resample_create(&ud->rresampler,
+                                               ud->client_->channel_rate,
+                                               ud->client_->out_rate,
+                                               320, 10, 1); // TODO
+
+
+                        switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                SWITCH_LOG_DEBUG,
+                                "GRPC stream: writer resample from %d to %d \n", ud->client_->channel_rate, ud->client_->out_rate);
+
+                    } else {
+                        ud->rresampler = nullptr;
+                    }
+                } catch (...) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: SWITCH_ABC_TYPE_INIT \n");
+                }
+
+                break;
+            }
+
+            case SWITCH_ABC_TYPE_CLOSE: {
+                // cleanup
+                try {
+                    if (ud->rresampler) {
+                        switch_resample_destroy(&ud->rresampler);
+                    }
+
+                    if (ud->client_) {
+                        if (ud->client_->interrupted) {
+                            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "grpc_read_thread: set cancel\n");
+                            switch_channel_t *channel = switch_core_session_get_channel(ud->session);
+                            if (switch_channel_test_flag(channel, CF_BROADCAST)) {
+                                switch_channel_stop_broadcast(channel);
+                            } else {
+                                switch_channel_set_flag_value(channel, CF_BREAK, 1);
+                            }
+                        }
+                        ud->client_->Finish();
+                        delete ud->client_;
+                    }
+
+                } catch (...) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: SWITCH_ABC_TYPE_CLOSE \n");
+                }
+                break;
+            }
+
+            case SWITCH_ABC_TYPE_READ:  {
+                uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
+                switch_frame_t read_frame = { 0 };
+                switch_status_t status;
+
+                read_frame.data = data;
+                read_frame.buflen = SWITCH_RECOMMENDED_BUFFER_SIZE;
+
+                auto current_vars = ud->client_->flushVars(); // This thread checks and consumes
+                if (!current_vars.empty()) {
+                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "received new variables:\n");
+                    for (const auto& pair : current_vars) {
+                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "  %s: %s\n", pair.first.c_str(), pair.second.c_str());
+                        switch_channel_set_variable(ud->channel, pair.first.c_str(), pair.second.c_str());
+                    }
+                }
+
+                if (ud->client_->breakStream()) {
+                    switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: receive break \n");
+                    return SWITCH_FALSE;
+                }
+
+                try {
+                    bool ok;
+                    status = switch_core_media_bug_read(bug, &read_frame, SWITCH_FALSE);
+                    if (status != SWITCH_STATUS_SUCCESS && status != SWITCH_STATUS_BREAK) {
+                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "switch_core_media_bug_read SWITCH_TRUE \n");
+                        return SWITCH_TRUE;
+                    };
+                    //
+                    if (ud->rresampler) {
+                        uint8_t resample_data[SWITCH_RECOMMENDED_BUFFER_SIZE];
+                        auto data = (int16_t *) read_frame.data;
+                        switch_resample_process(ud->rresampler, data, (int) read_frame.datalen / 2);
+                        auto linear_len = ud->rresampler->to_len * 2;
+                        memcpy(resample_data, ud->rresampler->to, linear_len);
+                        ok = ud->client_->Write(resample_data, linear_len);
+                    } else {
+                        ok = ud->client_->Write(read_frame.data, read_frame.datalen);
+                    }
+
+                    if (!ok) {
+                        switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_CRIT,
+                            "GRPC stream: error send \n");
                         return SWITCH_FALSE;
                     }
 
@@ -2453,6 +2607,129 @@ namespace mod_grpc {
     }
 
 
+#define WBT_STT_API_SYNTAX "<uuid> [start|stop] <conn> <dialog_id> <rate>"
+    SWITCH_STANDARD_API(stt_api_function) {
+        char *mycmd = NULL, *argv[5] = {0};
+        int argc = 0;
+        switch_status_t status = SWITCH_STATUS_FALSE;
+
+        if (!zstr(cmd) && (mycmd = strdup(cmd))) {
+            argc = switch_separate_string(mycmd, ' ', argv, (sizeof(argv) / sizeof(argv[0])));
+        }
+
+        if (zstr(cmd) ||
+            (argc < 2) ||
+            (!strcasecmp(argv[1], "stop") && argc < 2) ||
+            (!strcasecmp(argv[1], "start") && argc < 5) ||
+            zstr(argv[0])) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Error with command %s %s %s.\n",
+                              cmd, argv[0], argv[1]);
+            stream->write_function(stream, "-USAGE: %s\n", WBT_STT_API_SYNTAX);
+        } else {
+            switch_core_session_t *lsession = NULL;
+
+            if ((lsession = switch_core_session_locate(argv[0]))) {
+                if (!strcasecmp(argv[1], "stop")) {
+                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_INFO, "stop transcribing\n");
+                    {
+                        switch_channel_t *channel = switch_core_session_get_channel(lsession);
+                        switch_media_bug_t *bug;
+                        if ((bug = static_cast<switch_media_bug_t *>(switch_channel_get_private(channel, "__wbt_stt__")))) {
+                            switch_channel_set_private(channel, "__wbt_stt__", NULL);
+                            switch_core_media_bug_remove(lsession, &bug);
+                            status = SWITCH_STATUS_SUCCESS;
+                        }
+                    }
+                    // todo stop
+                } else if (!strcasecmp(argv[1], "start")) {
+                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_INFO, "start transcribing\n"); {
+                        switch_channel_t *channel = switch_core_session_get_channel(lsession);
+                        switch_media_bug_t *bug = nullptr;
+                        switch_media_bug_flag_t flags = SMBF_READ_STREAM;
+                        mod_grpc::RecognizeStream *ud = nullptr;
+
+                        switch_codec_implementation_t imp = {};
+                        int model_rate = 16000;
+                        std::string dialog_id = argv[4];
+                        google::protobuf::Map<std::string, std::string> current_vars;
+
+
+                        switch_core_session_get_read_impl(lsession, &imp);
+
+                        if (model_rate == 0) {
+                            model_rate = imp.actual_samples_per_second;
+                        }
+
+                        switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_DEBUG, "connection %s\n", argv[2]);
+                        switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_DEBUG, "send rate %d\n", model_rate);
+                        switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_DEBUG, "channel rate %d\n",
+                            imp.actual_samples_per_second);
+
+                        ud = new mod_grpc::RecognizeStream;
+                        ud->client_ = server_->AsyncRecognize(argv[2], lsession, model_rate,
+                                                                   imp.actual_samples_per_second, dialog_id);
+                        if (!ud->client_) {
+                            switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_ERROR, "not found bot connection %s\n",
+                                mycmd);
+                            switch_core_session_rwunlock(lsession);
+                            goto done;
+                        }
+
+                        ud->session = lsession;
+                        ud->channel = channel;
+
+                        if (!ud->client_->Listen(5)) {
+                            ud->client_->Finish();
+                            delete ud->client_;
+                            switch_log_printf(
+                               SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_ERROR, "timeout connection %s\n",
+                               mycmd);
+                            switch_core_session_rwunlock(lsession);
+                            goto done;
+                        };
+
+                        if (switch_core_media_bug_add(
+                                lsession,
+                                STT_BUG_NAME,
+                                nullptr,
+                                recognizer_audio_callback,
+                                ud, //user_data
+                                0,
+                                flags,
+                                &bug) != SWITCH_STATUS_SUCCESS) {
+                            switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_ERROR,
+                                "Can not add media bug.  Media not enabled on channel\n");
+                            switch_core_session_rwunlock(lsession);
+                            goto done;
+                        }
+
+                        switch_channel_set_private(channel, "__wbt_stt__", bug);
+                    }
+
+                    status = SWITCH_STATUS_SUCCESS;
+                }
+
+                switch_core_session_rwunlock(lsession);
+            }
+        }
+
+        if (status == SWITCH_STATUS_SUCCESS) {
+            stream->write_function(stream, "+OK Success\n");
+        } else {
+            stream->write_function(stream, "-ERR Operation Failed\n");
+        }
+
+    done:
+        switch_safe_free(mycmd);
+        return SWITCH_STATUS_SUCCESS;
+    }
+
+
     SWITCH_MODULE_LOAD_FUNCTION(mod_grpc_load) {
         try {
             *module_interface = switch_loadable_module_create_module_interface(pool, modname);
@@ -2468,6 +2745,9 @@ namespace mod_grpc {
             }
             switch_core_add_state_handler(&wbt_state_handlers);
             SWITCH_ADD_API(api_interface, "wbt_version", "Show build version", version_api_function, "");
+            SWITCH_ADD_API(api_interface, "uuid_wbt_stt", "STT", stt_api_function, WBT_STT_API_SYNTAX);
+            switch_console_set_complete("add uuid_wbt_stt ::console::list_uuid ");
+
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_background", "wbt_background", "wbt_background", wbt_background, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "", SAF_NONE | SAF_SUPPORT_NOMEDIA);

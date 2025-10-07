@@ -23,6 +23,7 @@ namespace ai_bots {
 
 static const char* ConverseService_method_names[] = {
   "/ai_bots.ConverseService/Converse",
+  "/ai_bots.ConverseService/Recognize",
 };
 
 std::unique_ptr< ConverseService::Stub> ConverseService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -33,6 +34,7 @@ std::unique_ptr< ConverseService::Stub> ConverseService::NewStub(const std::shar
 
 ConverseService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
   : channel_(channel), rpcmethod_Converse_(ConverseService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::BIDI_STREAMING, channel)
+  , rpcmethod_Recognize_(ConverseService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::BIDI_STREAMING, channel)
   {}
 
 ::grpc::ClientReaderWriter< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>* ConverseService::Stub::ConverseRaw(::grpc::ClientContext* context) {
@@ -51,6 +53,22 @@ void ConverseService::Stub::async::Converse(::grpc::ClientContext* context, ::gr
   return ::grpc::internal::ClientAsyncReaderWriterFactory< ::ai_bots::ConverseRequest, ::ai_bots::ConverseResponse>::Create(channel_.get(), cq, rpcmethod_Converse_, context, false, nullptr);
 }
 
+::grpc::ClientReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* ConverseService::Stub::RecognizeRaw(::grpc::ClientContext* context) {
+  return ::grpc::internal::ClientReaderWriterFactory< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>::Create(channel_.get(), rpcmethod_Recognize_, context);
+}
+
+void ConverseService::Stub::async::Recognize(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::ai_bots::RecognizeRequest,::ai_bots::RecognizeResponse>* reactor) {
+  ::grpc::internal::ClientCallbackReaderWriterFactory< ::ai_bots::RecognizeRequest,::ai_bots::RecognizeResponse>::Create(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, reactor);
+}
+
+::grpc::ClientAsyncReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* ConverseService::Stub::AsyncRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_Recognize_, context, true, tag);
+}
+
+::grpc::ClientAsyncReaderWriter< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>* ConverseService::Stub::PrepareAsyncRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_Recognize_, context, false, nullptr);
+}
+
 ConverseService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       ConverseService_method_names[0],
@@ -62,12 +80,28 @@ ConverseService::Service::Service() {
              ::ai_bots::ConverseRequest>* stream) {
                return service->Converse(ctx, stream);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      ConverseService_method_names[1],
+      ::grpc::internal::RpcMethod::BIDI_STREAMING,
+      new ::grpc::internal::BidiStreamingHandler< ConverseService::Service, ::ai_bots::RecognizeRequest, ::ai_bots::RecognizeResponse>(
+          [](ConverseService::Service* service,
+             ::grpc::ServerContext* ctx,
+             ::grpc::ServerReaderWriter<::ai_bots::RecognizeResponse,
+             ::ai_bots::RecognizeRequest>* stream) {
+               return service->Recognize(ctx, stream);
+             }, this)));
 }
 
 ConverseService::Service::~Service() {
 }
 
 ::grpc::Status ConverseService::Service::Converse(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::ai_bots::ConverseResponse, ::ai_bots::ConverseRequest>* stream) {
+  (void) context;
+  (void) stream;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status ConverseService::Service::Recognize(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::ai_bots::RecognizeResponse, ::ai_bots::RecognizeRequest>* stream) {
   (void) context;
   (void) stream;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");

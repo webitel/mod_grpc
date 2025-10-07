@@ -25,6 +25,24 @@ namespace _pb = ::google::protobuf;
 namespace _pbi = ::google::protobuf::internal;
 namespace _fl = ::google::protobuf::internal::field_layout;
 namespace ai_bots {
+              template <typename>
+PROTOBUF_CONSTEXPR RecognizeResponse_VariablesEntry_DoNotUse::RecognizeResponse_VariablesEntry_DoNotUse(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : RecognizeResponse_VariablesEntry_DoNotUse::MapEntry(_class_data_.base()){}
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : RecognizeResponse_VariablesEntry_DoNotUse::MapEntry() {
+}
+#endif  // PROTOBUF_CUSTOM_VTABLE
+struct RecognizeResponse_VariablesEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR RecognizeResponse_VariablesEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~RecognizeResponse_VariablesEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    RecognizeResponse_VariablesEntry_DoNotUse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RecognizeResponse_VariablesEntry_DoNotUseDefaultTypeInternal _RecognizeResponse_VariablesEntry_DoNotUse_default_instance_;
 
 inline constexpr Input::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -87,6 +105,33 @@ struct Config_UserDataEntry_DoNotUseDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Config_UserDataEntry_DoNotUseDefaultTypeInternal _Config_UserDataEntry_DoNotUse_default_instance_;
+
+inline constexpr RecognizeResponse::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : variables_{},
+        is_final_{false},
+        interrupted_{false},
+        _cached_size_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR RecognizeResponse::RecognizeResponse(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct RecognizeResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR RecognizeResponseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~RecognizeResponseDefaultTypeInternal() {}
+  union {
+    RecognizeResponse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RecognizeResponseDefaultTypeInternal _RecognizeResponse_default_instance_;
 
 inline constexpr ConverseResponse::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -157,6 +202,32 @@ struct ConfigDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ConfigDefaultTypeInternal _Config_default_instance_;
+
+inline constexpr RecognizeRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : request_type_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR RecognizeRequest::RecognizeRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct RecognizeRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR RecognizeRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~RecognizeRequestDefaultTypeInternal() {}
+  union {
+    RecognizeRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RecognizeRequestDefaultTypeInternal _RecognizeRequest_default_instance_;
 
 inline constexpr ConverseRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -237,6 +308,40 @@ const ::uint32_t
         ::_pbi::kInvalidFieldOffsetTag,
         ::_pbi::kInvalidFieldOffsetTag,
         PROTOBUF_FIELD_OFFSET(::ai_bots::ConverseRequest, _impl_.request_type_),
+        ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeRequest, _internal_metadata_),
+        ~0u,  // no _extensions_
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeRequest, _impl_._oneof_case_[0]),
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        ::_pbi::kInvalidFieldOffsetTag,
+        ::_pbi::kInvalidFieldOffsetTag,
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeRequest, _impl_.request_type_),
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeResponse_VariablesEntry_DoNotUse, _impl_._has_bits_),
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeResponse_VariablesEntry_DoNotUse, _internal_metadata_),
+        ~0u,  // no _extensions_
+        ~0u,  // no _oneof_case_
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeResponse_VariablesEntry_DoNotUse, _impl_.key_),
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeResponse_VariablesEntry_DoNotUse, _impl_.value_),
+        0,
+        1,
+        ~0u,  // no _has_bits_
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeResponse, _internal_metadata_),
+        ~0u,  // no _extensions_
+        ~0u,  // no _oneof_case_
+        ~0u,  // no _weak_field_map_
+        ~0u,  // no _inlined_string_donated_
+        ~0u,  // no _split_
+        ~0u,  // no sizeof(Split)
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeResponse, _impl_.is_final_),
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeResponse, _impl_.interrupted_),
+        PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeResponse, _impl_.variables_),
         PROTOBUF_FIELD_OFFSET(::ai_bots::ConverseResponse_VariablesEntry_DoNotUse, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::ai_bots::ConverseResponse_VariablesEntry_DoNotUse, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -271,14 +376,20 @@ static const ::_pbi::MigrationSchema
         {12, -1, -1, sizeof(::ai_bots::Config)},
         {24, -1, -1, sizeof(::ai_bots::Input)},
         {35, -1, -1, sizeof(::ai_bots::ConverseRequest)},
-        {46, 56, -1, sizeof(::ai_bots::ConverseResponse_VariablesEntry_DoNotUse)},
-        {58, -1, -1, sizeof(::ai_bots::ConverseResponse)},
+        {46, -1, -1, sizeof(::ai_bots::RecognizeRequest)},
+        {57, 67, -1, sizeof(::ai_bots::RecognizeResponse_VariablesEntry_DoNotUse)},
+        {69, -1, -1, sizeof(::ai_bots::RecognizeResponse)},
+        {80, 90, -1, sizeof(::ai_bots::ConverseResponse_VariablesEntry_DoNotUse)},
+        {92, -1, -1, sizeof(::ai_bots::ConverseResponse)},
 };
 static const ::_pb::Message* const file_default_instances[] = {
     &::ai_bots::_Config_UserDataEntry_DoNotUse_default_instance_._instance,
     &::ai_bots::_Config_default_instance_._instance,
     &::ai_bots::_Input_default_instance_._instance,
     &::ai_bots::_ConverseRequest_default_instance_._instance,
+    &::ai_bots::_RecognizeRequest_default_instance_._instance,
+    &::ai_bots::_RecognizeResponse_VariablesEntry_DoNotUse_default_instance_._instance,
+    &::ai_bots::_RecognizeResponse_default_instance_._instance,
     &::ai_bots::_ConverseResponse_VariablesEntry_DoNotUse_default_instance_._instance,
     &::ai_bots::_ConverseResponse_default_instance_._instance,
 };
@@ -292,29 +403,38 @@ const char descriptor_table_protodef_converse_2eproto[] ABSL_ATTRIBUTE_SECTION_V
     "ut\022\024\n\naudio_data\030\001 \001(\014H\000\022\023\n\ttext_data\030\002 "
     "\001(\tH\000B\006\n\004data\"e\n\017ConverseRequest\022!\n\006conf"
     "ig\030\001 \001(\0132\017.ai_bots.ConfigH\000\022\037\n\005input\030\002 \001"
-    "(\0132\016.ai_bots.InputH\000B\016\n\014request_type\"\356\001\n"
-    "\020ConverseResponse\022\027\n\017conversation_id\030\001 \001"
-    "(\t\022\022\n\naudio_data\030\002 \001(\014\022\021\n\ttext_data\030\006 \001("
-    "\t\022\021\n\tstop_talk\030\003 \001(\010\022\030\n\020end_conversation"
-    "\030\004 \001(\010\022;\n\tvariables\030\005 \003(\0132(.ai_bots.Conv"
-    "erseResponse.VariablesEntry\0320\n\016Variables"
-    "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\0012V\n"
-    "\017ConverseService\022C\n\010Converse\022\030.ai_bots.C"
-    "onverseRequest\032\031.ai_bots.ConverseRespons"
-    "e(\0010\001B+Z)github.com/webitel/protos/ai_bo"
-    "ts;ai_botsb\006proto3"
+    "(\0132\016.ai_bots.InputH\000B\016\n\014request_type\"f\n\020"
+    "RecognizeRequest\022!\n\006config\030\001 \001(\0132\017.ai_bo"
+    "ts.ConfigH\000\022\037\n\005input\030\002 \001(\0132\016.ai_bots.Inp"
+    "utH\000B\016\n\014request_type\"\252\001\n\021RecognizeRespon"
+    "se\022\020\n\010is_final\030\001 \001(\010\022\023\n\013interrupted\030\002 \001("
+    "\010\022<\n\tvariables\030\003 \003(\0132).ai_bots.Recognize"
+    "Response.VariablesEntry\0320\n\016VariablesEntr"
+    "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\356\001\n\020Co"
+    "nverseResponse\022\027\n\017conversation_id\030\001 \001(\t\022"
+    "\022\n\naudio_data\030\002 \001(\014\022\021\n\ttext_data\030\006 \001(\t\022\021"
+    "\n\tstop_talk\030\003 \001(\010\022\030\n\020end_conversation\030\004 "
+    "\001(\010\022;\n\tvariables\030\005 \003(\0132(.ai_bots.Convers"
+    "eResponse.VariablesEntry\0320\n\016VariablesEnt"
+    "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\0012\236\001\n\017C"
+    "onverseService\022C\n\010Converse\022\030.ai_bots.Con"
+    "verseRequest\032\031.ai_bots.ConverseResponse("
+    "\0010\001\022F\n\tRecognize\022\031.ai_bots.RecognizeRequ"
+    "est\032\032.ai_bots.RecognizeResponse(\0010\001B+Z)g"
+    "ithub.com/webitel/protos/ai_bots;ai_bots"
+    "b\006proto3"
 };
 static ::absl::once_flag descriptor_table_converse_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_converse_2eproto = {
     false,
     false,
-    738,
+    1088,
     descriptor_table_protodef_converse_2eproto,
     "converse.proto",
     &descriptor_table_converse_2eproto_once,
     nullptr,
     0,
-    6,
+    9,
     schemas,
     file_default_instances,
     TableStruct_converse_2eproto::offsets,
@@ -1433,6 +1553,782 @@ void ConverseRequest::InternalSwap(ConverseRequest* PROTOBUF_RESTRICT other) {
 }
 
 ::google::protobuf::Metadata ConverseRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class RecognizeRequest::_Internal {
+ public:
+  static constexpr ::int32_t kOneofCaseOffset =
+      PROTOBUF_FIELD_OFFSET(::ai_bots::RecognizeRequest, _impl_._oneof_case_);
+};
+
+void RecognizeRequest::set_allocated_config(::ai_bots::Config* config) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_request_type();
+  if (config) {
+    ::google::protobuf::Arena* submessage_arena = config->GetArena();
+    if (message_arena != submessage_arena) {
+      config = ::google::protobuf::internal::GetOwnedMessage(message_arena, config, submessage_arena);
+    }
+    set_has_config();
+    _impl_.request_type_.config_ = config;
+  }
+  // @@protoc_insertion_point(field_set_allocated:ai_bots.RecognizeRequest.config)
+}
+void RecognizeRequest::set_allocated_input(::ai_bots::Input* input) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_request_type();
+  if (input) {
+    ::google::protobuf::Arena* submessage_arena = input->GetArena();
+    if (message_arena != submessage_arena) {
+      input = ::google::protobuf::internal::GetOwnedMessage(message_arena, input, submessage_arena);
+    }
+    set_has_input();
+    _impl_.request_type_.input_ = input;
+  }
+  // @@protoc_insertion_point(field_set_allocated:ai_bots.RecognizeRequest.input)
+}
+RecognizeRequest::RecognizeRequest(::google::protobuf::Arena* arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:ai_bots.RecognizeRequest)
+}
+inline PROTOBUF_NDEBUG_INLINE RecognizeRequest::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from, const ::ai_bots::RecognizeRequest& from_msg)
+      : request_type_{},
+        _cached_size_{0},
+        _oneof_case_{from._oneof_case_[0]} {}
+
+RecognizeRequest::RecognizeRequest(
+    ::google::protobuf::Arena* arena,
+    const RecognizeRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  RecognizeRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  switch (request_type_case()) {
+    case REQUEST_TYPE_NOT_SET:
+      break;
+      case kConfig:
+        _impl_.request_type_.config_ = ::google::protobuf::Message::CopyConstruct<::ai_bots::Config>(arena, *from._impl_.request_type_.config_);
+        break;
+      case kInput:
+        _impl_.request_type_.input_ = ::google::protobuf::Message::CopyConstruct<::ai_bots::Input>(arena, *from._impl_.request_type_.input_);
+        break;
+  }
+
+  // @@protoc_insertion_point(copy_constructor:ai_bots.RecognizeRequest)
+}
+inline PROTOBUF_NDEBUG_INLINE RecognizeRequest::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : request_type_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+inline void RecognizeRequest::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+RecognizeRequest::~RecognizeRequest() {
+  // @@protoc_insertion_point(destructor:ai_bots.RecognizeRequest)
+  SharedDtor(*this);
+}
+inline void RecognizeRequest::SharedDtor(MessageLite& self) {
+  RecognizeRequest& this_ = static_cast<RecognizeRequest&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  if (this_.has_request_type()) {
+    this_.clear_request_type();
+  }
+  this_._impl_.~Impl_();
+}
+
+void RecognizeRequest::clear_request_type() {
+// @@protoc_insertion_point(one_of_clear_start:ai_bots.RecognizeRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  switch (request_type_case()) {
+    case kConfig: {
+      if (GetArena() == nullptr) {
+        delete _impl_.request_type_.config_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_type_.config_);
+      }
+      break;
+    }
+    case kInput: {
+      if (GetArena() == nullptr) {
+        delete _impl_.request_type_.input_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.request_type_.input_);
+      }
+      break;
+    }
+    case REQUEST_TYPE_NOT_SET: {
+      break;
+    }
+  }
+  _impl_._oneof_case_[0] = REQUEST_TYPE_NOT_SET;
+}
+
+
+inline void* RecognizeRequest::PlacementNew_(const void*, void* mem,
+                                        ::google::protobuf::Arena* arena) {
+  return ::new (mem) RecognizeRequest(arena);
+}
+constexpr auto RecognizeRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(RecognizeRequest),
+                                            alignof(RecognizeRequest));
+}
+PROTOBUF_CONSTINIT
+PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::google::protobuf::internal::ClassDataFull RecognizeRequest::_class_data_ = {
+    ::google::protobuf::internal::ClassData{
+        &_RecognizeRequest_default_instance_._instance,
+        &_table_.header,
+        nullptr,  // OnDemandRegisterArenaDtor
+        nullptr,  // IsInitialized
+        &RecognizeRequest::MergeImpl,
+        ::google::protobuf::Message::GetNewImpl<RecognizeRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        &RecognizeRequest::SharedDtor,
+        ::google::protobuf::Message::GetClearImpl<RecognizeRequest>(), &RecognizeRequest::ByteSizeLong,
+            &RecognizeRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+        PROTOBUF_FIELD_OFFSET(RecognizeRequest, _impl_._cached_size_),
+        false,
+    },
+    &RecognizeRequest::kDescriptorMethods,
+    &descriptor_table_converse_2eproto,
+    nullptr,  // tracker
+};
+const ::google::protobuf::internal::ClassData* RecognizeRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
+  return _class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 2, 2, 0, 2> RecognizeRequest::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    2, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    2,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    _class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::ai_bots::RecognizeRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .ai_bots.Config config = 1;
+    {PROTOBUF_FIELD_OFFSET(RecognizeRequest, _impl_.request_type_.config_), _Internal::kOneofCaseOffset + 0, 0,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .ai_bots.Input input = 2;
+    {PROTOBUF_FIELD_OFFSET(RecognizeRequest, _impl_.request_type_.input_), _Internal::kOneofCaseOffset + 0, 1,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+  }}, {{
+    {::_pbi::TcParser::GetTable<::ai_bots::Config>()},
+    {::_pbi::TcParser::GetTable<::ai_bots::Input>()},
+  }}, {{
+  }},
+};
+
+PROTOBUF_NOINLINE void RecognizeRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:ai_bots.RecognizeRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  clear_request_type();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::uint8_t* RecognizeRequest::_InternalSerialize(
+            const MessageLite& base, ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) {
+          const RecognizeRequest& this_ = static_cast<const RecognizeRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::uint8_t* RecognizeRequest::_InternalSerialize(
+            ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+          const RecognizeRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(serialize_to_array_start:ai_bots.RecognizeRequest)
+          ::uint32_t cached_has_bits = 0;
+          (void)cached_has_bits;
+
+          switch (this_.request_type_case()) {
+            case kConfig: {
+              target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+                  1, *this_._impl_.request_type_.config_, this_._impl_.request_type_.config_->GetCachedSize(), target,
+                  stream);
+              break;
+            }
+            case kInput: {
+              target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+                  2, *this_._impl_.request_type_.input_, this_._impl_.request_type_.input_->GetCachedSize(), target,
+                  stream);
+              break;
+            }
+            default:
+              break;
+          }
+          if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+            target =
+                ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+                    this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+          }
+          // @@protoc_insertion_point(serialize_to_array_end:ai_bots.RecognizeRequest)
+          return target;
+        }
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::size_t RecognizeRequest::ByteSizeLong(const MessageLite& base) {
+          const RecognizeRequest& this_ = static_cast<const RecognizeRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::size_t RecognizeRequest::ByteSizeLong() const {
+          const RecognizeRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(message_byte_size_start:ai_bots.RecognizeRequest)
+          ::size_t total_size = 0;
+
+          ::uint32_t cached_has_bits = 0;
+          // Prevent compiler warnings about cached_has_bits being unused
+          (void)cached_has_bits;
+
+          switch (this_.request_type_case()) {
+            // .ai_bots.Config config = 1;
+            case kConfig: {
+              total_size += 1 +
+                            ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.request_type_.config_);
+              break;
+            }
+            // .ai_bots.Input input = 2;
+            case kInput: {
+              total_size += 1 +
+                            ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.request_type_.input_);
+              break;
+            }
+            case REQUEST_TYPE_NOT_SET: {
+              break;
+            }
+          }
+          return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                                     &this_._impl_._cached_size_);
+        }
+
+void RecognizeRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<RecognizeRequest*>(&to_msg);
+  auto& from = static_cast<const RecognizeRequest&>(from_msg);
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:ai_bots.RecognizeRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (const uint32_t oneof_from_case = from._impl_._oneof_case_[0]) {
+    const uint32_t oneof_to_case = _this->_impl_._oneof_case_[0];
+    const bool oneof_needs_init = oneof_to_case != oneof_from_case;
+    if (oneof_needs_init) {
+      if (oneof_to_case != 0) {
+        _this->clear_request_type();
+      }
+      _this->_impl_._oneof_case_[0] = oneof_from_case;
+    }
+
+    switch (oneof_from_case) {
+      case kConfig: {
+        if (oneof_needs_init) {
+          _this->_impl_.request_type_.config_ =
+              ::google::protobuf::Message::CopyConstruct<::ai_bots::Config>(arena, *from._impl_.request_type_.config_);
+        } else {
+          _this->_impl_.request_type_.config_->MergeFrom(from._internal_config());
+        }
+        break;
+      }
+      case kInput: {
+        if (oneof_needs_init) {
+          _this->_impl_.request_type_.input_ =
+              ::google::protobuf::Message::CopyConstruct<::ai_bots::Input>(arena, *from._impl_.request_type_.input_);
+        } else {
+          _this->_impl_.request_type_.input_->MergeFrom(from._internal_input());
+        }
+        break;
+      }
+      case REQUEST_TYPE_NOT_SET:
+        break;
+    }
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void RecognizeRequest::CopyFrom(const RecognizeRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:ai_bots.RecognizeRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void RecognizeRequest::InternalSwap(RecognizeRequest* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.request_type_, other->_impl_.request_type_);
+  swap(_impl_._oneof_case_[0], other->_impl_._oneof_case_[0]);
+}
+
+::google::protobuf::Metadata RecognizeRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+              RecognizeResponse_VariablesEntry_DoNotUse::RecognizeResponse_VariablesEntry_DoNotUse() : SuperType(_class_data_.base()) {}
+              RecognizeResponse_VariablesEntry_DoNotUse::RecognizeResponse_VariablesEntry_DoNotUse(::google::protobuf::Arena* arena)
+                  : SuperType(arena, _class_data_.base()) {}
+#else   // PROTOBUF_CUSTOM_VTABLE
+              RecognizeResponse_VariablesEntry_DoNotUse::RecognizeResponse_VariablesEntry_DoNotUse() : SuperType() {}
+              RecognizeResponse_VariablesEntry_DoNotUse::RecognizeResponse_VariablesEntry_DoNotUse(::google::protobuf::Arena* arena) : SuperType(arena) {}
+#endif  // PROTOBUF_CUSTOM_VTABLE
+              inline void* RecognizeResponse_VariablesEntry_DoNotUse::PlacementNew_(const void*, void* mem,
+                                                      ::google::protobuf::Arena* arena) {
+                return ::new (mem) RecognizeResponse_VariablesEntry_DoNotUse(arena);
+              }
+              constexpr auto RecognizeResponse_VariablesEntry_DoNotUse::InternalNewImpl_() {
+                return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(RecognizeResponse_VariablesEntry_DoNotUse),
+                                                          alignof(RecognizeResponse_VariablesEntry_DoNotUse));
+              }
+              PROTOBUF_CONSTINIT
+              PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+              const ::google::protobuf::internal::ClassDataFull RecognizeResponse_VariablesEntry_DoNotUse::_class_data_ = {
+                  ::google::protobuf::internal::ClassData{
+                      &_RecognizeResponse_VariablesEntry_DoNotUse_default_instance_._instance,
+                      &_table_.header,
+                      nullptr,  // OnDemandRegisterArenaDtor
+                      nullptr,  // IsInitialized
+                      &RecognizeResponse_VariablesEntry_DoNotUse::MergeImpl,
+                      ::google::protobuf::Message::GetNewImpl<RecognizeResponse_VariablesEntry_DoNotUse>(),
+              #if defined(PROTOBUF_CUSTOM_VTABLE)
+                      &RecognizeResponse_VariablesEntry_DoNotUse::SharedDtor,
+                      static_cast<void (::google::protobuf::MessageLite::*)()>(
+                          &RecognizeResponse_VariablesEntry_DoNotUse::ClearImpl),
+                          ::google::protobuf::Message::ByteSizeLongImpl, ::google::protobuf::Message::_InternalSerializeImpl
+                          ,
+              #endif  // PROTOBUF_CUSTOM_VTABLE
+                      PROTOBUF_FIELD_OFFSET(RecognizeResponse_VariablesEntry_DoNotUse, _impl_._cached_size_),
+                      false,
+                  },
+                  &RecognizeResponse_VariablesEntry_DoNotUse::kDescriptorMethods,
+                  &descriptor_table_converse_2eproto,
+                  nullptr,  // tracker
+              };
+              const ::google::protobuf::internal::ClassData* RecognizeResponse_VariablesEntry_DoNotUse::GetClassData() const {
+                ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
+                ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
+                return _class_data_.base();
+              }
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 57, 2> RecognizeResponse_VariablesEntry_DoNotUse::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(RecognizeResponse_VariablesEntry_DoNotUse, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    _class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::DiscardEverythingFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::ai_bots::RecognizeResponse_VariablesEntry_DoNotUse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // string value = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(RecognizeResponse_VariablesEntry_DoNotUse, _impl_.value_)}},
+    // string key = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 63, 0, PROTOBUF_FIELD_OFFSET(RecognizeResponse_VariablesEntry_DoNotUse, _impl_.key_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string key = 1;
+    {PROTOBUF_FIELD_OFFSET(RecognizeResponse_VariablesEntry_DoNotUse, _impl_.key_), -1, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // string value = 2;
+    {PROTOBUF_FIELD_OFFSET(RecognizeResponse_VariablesEntry_DoNotUse, _impl_.value_), -1, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\50\3\5\0\0\0\0\0"
+    "ai_bots.RecognizeResponse.VariablesEntry"
+    "key"
+    "value"
+  }},
+};
+
+// ===================================================================
+
+class RecognizeResponse::_Internal {
+ public:
+};
+
+RecognizeResponse::RecognizeResponse(::google::protobuf::Arena* arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:ai_bots.RecognizeResponse)
+}
+inline PROTOBUF_NDEBUG_INLINE RecognizeResponse::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from, const ::ai_bots::RecognizeResponse& from_msg)
+      : variables_{visibility, arena, from.variables_},
+        _cached_size_{0} {}
+
+RecognizeResponse::RecognizeResponse(
+    ::google::protobuf::Arena* arena,
+    const RecognizeResponse& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, _class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  RecognizeResponse* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, is_final_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, is_final_),
+           offsetof(Impl_, interrupted_) -
+               offsetof(Impl_, is_final_) +
+               sizeof(Impl_::interrupted_));
+
+  // @@protoc_insertion_point(copy_constructor:ai_bots.RecognizeResponse)
+}
+inline PROTOBUF_NDEBUG_INLINE RecognizeResponse::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : variables_{visibility, arena},
+        _cached_size_{0} {}
+
+inline void RecognizeResponse::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, is_final_),
+           0,
+           offsetof(Impl_, interrupted_) -
+               offsetof(Impl_, is_final_) +
+               sizeof(Impl_::interrupted_));
+}
+RecognizeResponse::~RecognizeResponse() {
+  // @@protoc_insertion_point(destructor:ai_bots.RecognizeResponse)
+  SharedDtor(*this);
+}
+inline void RecognizeResponse::SharedDtor(MessageLite& self) {
+  RecognizeResponse& this_ = static_cast<RecognizeResponse&>(self);
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* RecognizeResponse::PlacementNew_(const void*, void* mem,
+                                        ::google::protobuf::Arena* arena) {
+  return ::new (mem) RecognizeResponse(arena);
+}
+constexpr auto RecognizeResponse::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_.variables_) +
+          decltype(RecognizeResponse::_impl_.variables_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_.variables_) +
+          decltype(RecognizeResponse::_impl_.variables_)::
+              InternalGetArenaOffsetAlt(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::CopyInit(
+        sizeof(RecognizeResponse), alignof(RecognizeResponse), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&RecognizeResponse::PlacementNew_,
+                                 sizeof(RecognizeResponse),
+                                 alignof(RecognizeResponse));
+  }
+}
+PROTOBUF_CONSTINIT
+PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::google::protobuf::internal::ClassDataFull RecognizeResponse::_class_data_ = {
+    ::google::protobuf::internal::ClassData{
+        &_RecognizeResponse_default_instance_._instance,
+        &_table_.header,
+        nullptr,  // OnDemandRegisterArenaDtor
+        nullptr,  // IsInitialized
+        &RecognizeResponse::MergeImpl,
+        ::google::protobuf::Message::GetNewImpl<RecognizeResponse>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        &RecognizeResponse::SharedDtor,
+        ::google::protobuf::Message::GetClearImpl<RecognizeResponse>(), &RecognizeResponse::ByteSizeLong,
+            &RecognizeResponse::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+        PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_._cached_size_),
+        false,
+    },
+    &RecognizeResponse::kDescriptorMethods,
+    &descriptor_table_converse_2eproto,
+    nullptr,  // tracker
+};
+const ::google::protobuf::internal::ClassData* RecognizeResponse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(_class_data_.tc_table);
+  return _class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 3, 1, 43, 2> RecognizeResponse::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    3, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    _class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::ai_bots::RecognizeResponse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // bool interrupted = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(RecognizeResponse, _impl_.interrupted_), 63>(),
+     {16, 63, 0, PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_.interrupted_)}},
+    // bool is_final = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(RecognizeResponse, _impl_.is_final_), 63>(),
+     {8, 63, 0, PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_.is_final_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // bool is_final = 1;
+    {PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_.is_final_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kBool)},
+    // bool interrupted = 2;
+    {PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_.interrupted_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kBool)},
+    // map<string, string> variables = 3;
+    {PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_.variables_), 0, 0,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
+  }}, {{
+    {::_pbi::TcParser::GetMapAuxInfo<
+        decltype(RecognizeResponse()._impl_.variables_)>(
+        1, 0, 0, 9,
+        9)},
+  }}, {{
+    "\31\0\0\11\0\0\0\0"
+    "ai_bots.RecognizeResponse"
+    "variables"
+  }},
+};
+
+PROTOBUF_NOINLINE void RecognizeResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:ai_bots.RecognizeResponse)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.variables_.Clear();
+  ::memset(&_impl_.is_final_, 0, static_cast<::size_t>(
+      reinterpret_cast<char*>(&_impl_.interrupted_) -
+      reinterpret_cast<char*>(&_impl_.is_final_)) + sizeof(_impl_.interrupted_));
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::uint8_t* RecognizeResponse::_InternalSerialize(
+            const MessageLite& base, ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) {
+          const RecognizeResponse& this_ = static_cast<const RecognizeResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::uint8_t* RecognizeResponse::_InternalSerialize(
+            ::uint8_t* target,
+            ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+          const RecognizeResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(serialize_to_array_start:ai_bots.RecognizeResponse)
+          ::uint32_t cached_has_bits = 0;
+          (void)cached_has_bits;
+
+          // bool is_final = 1;
+          if (this_._internal_is_final() != 0) {
+            target = stream->EnsureSpace(target);
+            target = ::_pbi::WireFormatLite::WriteBoolToArray(
+                1, this_._internal_is_final(), target);
+          }
+
+          // bool interrupted = 2;
+          if (this_._internal_interrupted() != 0) {
+            target = stream->EnsureSpace(target);
+            target = ::_pbi::WireFormatLite::WriteBoolToArray(
+                2, this_._internal_interrupted(), target);
+          }
+
+          // map<string, string> variables = 3;
+          if (!this_._internal_variables().empty()) {
+            using MapType = ::google::protobuf::Map<std::string, std::string>;
+            using WireHelper = _pbi::MapEntryFuncs<std::string, std::string,
+                                           _pbi::WireFormatLite::TYPE_STRING,
+                                           _pbi::WireFormatLite::TYPE_STRING>;
+            const auto& field = this_._internal_variables();
+
+            if (stream->IsSerializationDeterministic() && field.size() > 1) {
+              for (const auto& entry : ::google::protobuf::internal::MapSorterPtr<MapType>(field)) {
+                target = WireHelper::InternalSerialize(
+                    3, entry.first, entry.second, target, stream);
+                ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                    entry.first.data(), static_cast<int>(entry.first.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "ai_bots.RecognizeResponse.variables");
+                ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                    entry.second.data(), static_cast<int>(entry.second.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "ai_bots.RecognizeResponse.variables");
+              }
+            } else {
+              for (const auto& entry : field) {
+                target = WireHelper::InternalSerialize(
+                    3, entry.first, entry.second, target, stream);
+                ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                    entry.first.data(), static_cast<int>(entry.first.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "ai_bots.RecognizeResponse.variables");
+                ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+                    entry.second.data(), static_cast<int>(entry.second.length()),
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "ai_bots.RecognizeResponse.variables");
+              }
+            }
+          }
+
+          if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+            target =
+                ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+                    this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+          }
+          // @@protoc_insertion_point(serialize_to_array_end:ai_bots.RecognizeResponse)
+          return target;
+        }
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+        ::size_t RecognizeResponse::ByteSizeLong(const MessageLite& base) {
+          const RecognizeResponse& this_ = static_cast<const RecognizeResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+        ::size_t RecognizeResponse::ByteSizeLong() const {
+          const RecognizeResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          // @@protoc_insertion_point(message_byte_size_start:ai_bots.RecognizeResponse)
+          ::size_t total_size = 0;
+
+          ::uint32_t cached_has_bits = 0;
+          // Prevent compiler warnings about cached_has_bits being unused
+          (void)cached_has_bits;
+
+          ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+           {
+            // map<string, string> variables = 3;
+            {
+              total_size +=
+                  1 * ::google::protobuf::internal::FromIntSize(this_._internal_variables_size());
+              for (const auto& entry : this_._internal_variables()) {
+                total_size += _pbi::MapEntryFuncs<std::string, std::string,
+                                               _pbi::WireFormatLite::TYPE_STRING,
+                                               _pbi::WireFormatLite::TYPE_STRING>::ByteSizeLong(entry.first, entry.second);
+              }
+            }
+          }
+           {
+            // bool is_final = 1;
+            if (this_._internal_is_final() != 0) {
+              total_size += 2;
+            }
+            // bool interrupted = 2;
+            if (this_._internal_interrupted() != 0) {
+              total_size += 2;
+            }
+          }
+          return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                                     &this_._impl_._cached_size_);
+        }
+
+void RecognizeResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
+  auto* const _this = static_cast<RecognizeResponse*>(&to_msg);
+  auto& from = static_cast<const RecognizeResponse&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:ai_bots.RecognizeResponse)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.variables_.MergeFrom(from._impl_.variables_);
+  if (from._internal_is_final() != 0) {
+    _this->_impl_.is_final_ = from._impl_.is_final_;
+  }
+  if (from._internal_interrupted() != 0) {
+    _this->_impl_.interrupted_ = from._impl_.interrupted_;
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void RecognizeResponse::CopyFrom(const RecognizeResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:ai_bots.RecognizeResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void RecognizeResponse::InternalSwap(RecognizeResponse* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.variables_.InternalSwap(&other->_impl_.variables_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_.interrupted_)
+      + sizeof(RecognizeResponse::_impl_.interrupted_)
+      - PROTOBUF_FIELD_OFFSET(RecognizeResponse, _impl_.is_final_)>(
+          reinterpret_cast<char*>(&_impl_.is_final_),
+          reinterpret_cast<char*>(&other->_impl_.is_final_));
+}
+
+::google::protobuf::Metadata RecognizeResponse::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================
