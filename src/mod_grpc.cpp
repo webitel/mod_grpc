@@ -35,11 +35,10 @@ using grpc::Status;
 using grpc::StatusCode;
 
 namespace mod_grpc {
-
     void clearVoiceBotCache() {
         std::lock_guard<std::mutex> lock(cacheMutex);
 
-        for (auto const& x : voiceBotCache) {
+        for (auto const &x: voiceBotCache) {
             auto cli = x.second.get();
             delete cli;
         }
@@ -47,12 +46,12 @@ namespace mod_grpc {
         voiceBotCache.clear();
     }
 
-    std::shared_ptr<VoiceBotHub> getVoiceBotClient(const std::string& conn) {
-        {
+    std::shared_ptr<VoiceBotHub> getVoiceBotClient(const std::string &conn) { {
             std::lock_guard<std::mutex> lock(cacheMutex);
             auto it = voiceBotCache.find(conn);
             if (it != voiceBotCache.end()) {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "voicebot %s use cached channel\n", conn.c_str());
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "voicebot %s use cached channel\n",
+                                  conn.c_str());
                 return it->second;
             }
         }
@@ -70,9 +69,7 @@ namespace mod_grpc {
                 return nullptr;
             }
 
-            auto client = std::shared_ptr<VoiceBotHub>(new VoiceBotHub(channel));
-
-            {
+            auto client = std::shared_ptr<VoiceBotHub>(new VoiceBotHub(channel)); {
                 std::lock_guard<std::mutex> lock(cacheMutex);
                 voiceBotCache[conn] = client;
             }
@@ -80,11 +77,11 @@ namespace mod_grpc {
                               conn.c_str());
 
             return client;
-
         } catch (std::exception &ex) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "create voice bot connection error: %s\n",
                               ex.what());
-        } catch (...) { // Exceptions must not propogate to C caller
+        } catch (...) {
+            // Exceptions must not propogate to C caller
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
                               "create voice bot connection error: unknow\n");
         }
@@ -186,7 +183,7 @@ namespace mod_grpc {
                 abort();
             }
 
-            for (const auto &ex : request->extensions()) {
+            for (const auto &ex: request->extensions()) {
                 switch_caller_extension_add_application(caller_session, extension,
                                                         ex.appname().c_str(),
                                                         ex.args().c_str());
@@ -219,7 +216,7 @@ namespace mod_grpc {
 
         switch_core_session_rwunlock(caller_session);
 
-        done:
+    done:
         if (var_event) {
             switch_event_destroy(&var_event);
         }
@@ -251,14 +248,12 @@ namespace mod_grpc {
             if (!result.compare(0, 4, "-ERR")) {
                 reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
                 reply->mutable_error()->set_message(result.substr(4));
-
             } else if (!result.compare(0, 6, "-USAGE")) {
                 reply->mutable_error()->set_type(fs::ErrorExecute_Type_USAGE);
                 reply->mutable_error()->set_message(result.substr(6));
             } else {
                 reply->set_data(result);
             }
-
         } else {
             reply->set_data("todo: empty response");
         }
@@ -268,7 +263,6 @@ namespace mod_grpc {
 
     Status ApiServiceImpl::SetVariables(ServerContext *context, const fs::SetVariablesRequest *request,
                                         fs::SetVariablesResponse *reply) {
-
         switch_core_session_t *psession = nullptr;
 
         if (request->uuid().empty() || request->variables().empty()) {
@@ -289,8 +283,8 @@ namespace mod_grpc {
         }
 
         return Status::OK;
-
     }
+
     // TODO cleanup
     Status ApiServiceImpl::Bridge(ServerContext *context, const fs::BridgeRequest *request,
                                   fs::BridgeResponse *reply) {
@@ -310,22 +304,23 @@ namespace mod_grpc {
                 switch_channel_set_flag_value(channel, CF_BREAK, 2);
             }
 
-//            int cnt = 0;
-//            while (switch_channel_ready(channel) && cnt < 10 && (switch_channel_test_flag(channel, CF_ORIGINATING)) ) {
-//                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "waiting for done originate\n");
-//                switch_ivr_sleep(session, 30, SWITCH_TRUE, NULL);
-//                cnt++;
-//            }
-//
+            //            int cnt = 0;
+            //            while (switch_channel_ready(channel) && cnt < 10 && (switch_channel_test_flag(channel, CF_ORIGINATING)) ) {
+            //                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "waiting for done originate\n");
+            //                switch_ivr_sleep(session, 30, SWITCH_TRUE, NULL);
+            //                cnt++;
+            //            }
+            //
             switch_core_session_rwunlock(asession);
         } else {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "bridge %s to %s error: not found A\n",
-                  request->leg_a_id().c_str(), request->leg_b_id().c_str());
+                              request->leg_a_id().c_str(), request->leg_b_id().c_str());
             reply->mutable_error()->set_message("not found A leg");
             return Status::OK;
         }
 
-        if (bridged && switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str()) != SWITCH_STATUS_SUCCESS) {
+        if (bridged && switch_ivr_uuid_bridge(request->leg_a_id().c_str(), request->leg_b_id().c_str()) !=
+            SWITCH_STATUS_SUCCESS) {
             bridged = 0;
         }
 
@@ -414,7 +409,7 @@ namespace mod_grpc {
 
         count = switch_core_session_hupall_matching_vars_ans(vars, cause,
                                                              static_cast<switch_hup_type_t>(SHT_UNANSWERED |
-                                                                                            SHT_ANSWERED));
+                                                                 SHT_ANSWERED));
         reply->set_count(count);
 
         if (vars) {
@@ -438,7 +433,8 @@ namespace mod_grpc {
                 flags |= SMF_PRIORITY; // FIXME add parameter
                 flags |= SMF_LOOP;
 
-                auto ivrBroadcastStatus = switch_ivr_broadcast(request->id().c_str(), request->playback_file().c_str(), flags); 
+                auto ivrBroadcastStatus = switch_ivr_broadcast(request->id().c_str(), request->playback_file().c_str(),
+                                                               flags);
                 if (ivrBroadcastStatus != SWITCH_STATUS_SUCCESS) {
                     switch_core_session_rwunlock(psession);
                     return Status::CANCELLED;
@@ -452,7 +448,6 @@ namespace mod_grpc {
             }
 
             switch_core_session_rwunlock(psession);
-
         } else {
             reply->mutable_error()->set_message("No such channel!");
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
@@ -564,7 +559,6 @@ namespace mod_grpc {
 
         if (leg_a_s && leg_b_s && chan_a_s && chan_b_s && pa && pb
             && switch_channel_test_flag(chan_a_s, CF_BRIDGED) && switch_channel_test_flag(chan_b_s, CF_BRIDGED)) {
-
             const char *contact_id;
 
             if (switch_channel_get_partner_uuid(chan_a_s)) {
@@ -575,7 +569,8 @@ namespace mod_grpc {
                 contact_id = switch_channel_get_variable_partner(chan_b_s, "wbt_contact_id");
             }
 
-            auto disable_transfer_form = switch_false(switch_channel_get_variable_partner(chan_a_s, "wbt_transfer_form"));
+            auto disable_transfer_form = switch_false(
+                switch_channel_get_variable_partner(chan_a_s, "wbt_transfer_form"));
 
             if (!disable_transfer_form && cc_to_agent_id) {
                 switch_channel_set_variable_partner(chan_b_s, "wbt_transfer_to_agent", cc_to_agent_id);
@@ -599,7 +594,6 @@ namespace mod_grpc {
             if (!switch_channel_down(chan_a_s) && !switch_core_media_bug_count(leg_a_s, "session_record") &&
                 switch_true(switch_channel_get_variable_partner(chan_a_s, "recording_follow_transfer")) &&
                 !switch_core_media_bug_count(leg_b_s, "session_record")) {
-
                 auto pas = switch_core_session_locate(pa);
                 if (pas) {
                     switch_ivr_transfer_recordings(pas, leg_a_s);
@@ -646,7 +640,7 @@ namespace mod_grpc {
 
         if (!request->id().empty() && (session = switch_core_session_locate(request->id().c_str()))) {
             switch_channel_t *channel = switch_core_session_get_channel(session);
-//            switch_channel_clear_flag(channel, CF_HOLD);
+            //            switch_channel_clear_flag(channel, CF_HOLD);
             if (switch_channel_test_flag(channel, CF_BROADCAST)) {
                 switch_channel_stop_broadcast(channel);
                 switch_channel_wait_for_flag(channel, CF_BROADCAST, SWITCH_FALSE, 5000, NULL);
@@ -679,7 +673,6 @@ namespace mod_grpc {
 
     Status ApiServiceImpl::ConfirmPush(ServerContext *context, const fs::ConfirmPushRequest *request,
                                        fs::ConfirmPushResponse *reply) {
-
         if (request->id().empty()) {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
             reply->mutable_error()->set_message("bad request: no call id");
@@ -735,7 +728,8 @@ namespace mod_grpc {
                     switch_ivr_sleep(session, 50, SWITCH_TRUE, NULL);
                 }
             }
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "broadcast: %s\n", request->args().c_str());
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "broadcast: %s\n",
+                              request->args().c_str());
             switch_core_session_rwunlock(session);
 
             if (switch_ivr_broadcast(request->id().c_str(), request->args().c_str(), flags) == SWITCH_STATUS_SUCCESS) {
@@ -744,7 +738,6 @@ namespace mod_grpc {
                 reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
                 reply->mutable_error()->set_message("invalid uuid!");
             }
-
         } else {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
             reply->mutable_error()->set_message("No such channel!");
@@ -753,9 +746,9 @@ namespace mod_grpc {
         return Status::OK;
     }
 
-    Status ApiServiceImpl::SetEavesdropState(::grpc::ServerContext* context, const ::fs::SetEavesdropStateRequest* request,
-                                             ::fs::SetEavesdropStateResponse* reply) {
-
+    Status ApiServiceImpl::SetEavesdropState(::grpc::ServerContext *context,
+                                             const ::fs::SetEavesdropStateRequest *request,
+                                             ::fs::SetEavesdropStateResponse *reply) {
         if (request->id().empty()) {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
             reply->mutable_error()->set_message("bad request: no call id");
@@ -778,8 +771,8 @@ namespace mod_grpc {
                 switch_channel_set_variable(channel, WBT_EAVESDROP_STATE, "prompt");
             }
 
-            if (switch_channel_queue_dtmf_string(switch_core_session_get_channel(session), dtmf.c_str()) == SWITCH_STATUS_GENERR) {
-
+            if (switch_channel_queue_dtmf_string(switch_core_session_get_channel(session), dtmf.c_str()) ==
+                SWITCH_STATUS_GENERR) {
             }
             switch_core_session_rwunlock(session);
 
@@ -797,7 +790,6 @@ namespace mod_grpc {
 
     Status ApiServiceImpl::BlindTransfer(::grpc::ServerContext *context, const ::fs::BlindTransferRequest *request,
                                          ::fs::BlindTransferResponse *reply) {
-
         if (request->id().empty()) {
             reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
             reply->mutable_error()->set_message("bad request: id is required");
@@ -820,7 +812,8 @@ namespace mod_grpc {
                 switch_channel_set_variable_var_check(channel, kv.first.c_str(), kv.second.c_str(), SWITCH_FALSE);
             }
 
-            if (switch_ivr_session_transfer(session, request->destination().c_str(), request->dialplan().c_str(), request->context().c_str()) != SWITCH_STATUS_SUCCESS) {
+            if (switch_ivr_session_transfer(session, request->destination().c_str(), request->dialplan().c_str(),
+                                            request->context().c_str()) != SWITCH_STATUS_SUCCESS) {
                 reply->mutable_error()->set_type(fs::ErrorExecute_Type_ERROR);
                 reply->mutable_error()->set_message("internal error");
             }
@@ -912,7 +905,6 @@ namespace mod_grpc {
     }
 
     void ServerImpl::Shutdown() {
-
         if (server_) {
             server_->Shutdown();
         }
@@ -956,94 +948,93 @@ namespace mod_grpc {
     }
 
     Config loadConfig() {
-
         auto config = Config();
         static switch_xml_config_item_t instructions[] = {
-                SWITCH_CONFIG_ITEM(
-                        "grpc_host",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.grpc_host,
-                        nullptr,
-                        nullptr, "grpc_host", "GRPC server address"),
-                SWITCH_CONFIG_ITEM(
-                        "consul_ttl_sec",
-                        SWITCH_CONFIG_INT,
-                        CONFIG_RELOADABLE,
-                        &config.consul_tts_sec,
-                        (void *) 60,
-                        nullptr, nullptr, "GRPC TTL"),
-                SWITCH_CONFIG_ITEM(
-                        "consul_deregister_critical_ttl_sec",
-                        SWITCH_CONFIG_INT,
-                        CONFIG_RELOADABLE,
-                        &config.consul_deregister_critical_tts_sec,
-                        (void *) 120,
-                        nullptr, nullptr, "GRPC degeregister critical TTL"),
-                SWITCH_CONFIG_ITEM(
-                        "grpc_port",
-                        SWITCH_CONFIG_INT,
-                        CONFIG_RELOADABLE,
-                        &config.grpc_port,
-                        (void *) 50051,
-                        nullptr, nullptr, "GRPC server port"),
-                SWITCH_CONFIG_ITEM(
-                        "consul_address",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.consul_address,
-                        nullptr,
-                        nullptr, "consul_address", "Consul address"),
-                SWITCH_CONFIG_ITEM(
-                        "amd_ai_address",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.amd_ai_address,
-                        nullptr,
-                        nullptr, "amd_ai_address", "AMD stream AI address"),
-                SWITCH_CONFIG_ITEM(
-                        "auto_answer_delay",
-                        SWITCH_CONFIG_INT,
-                        CONFIG_RELOADABLE,
-                        &config.auto_answer_delay,
-                        (void *) 0,
-                        nullptr, nullptr, "Auto answer delay time is seconds"),
-                SWITCH_CONFIG_ITEM(
-                        "push_wait_callback",
-                        SWITCH_CONFIG_INT,
-                        CONFIG_RELOADABLE,
-                        &config.push_wait_callback,
-                        2000,
-                        nullptr, "push_wait_callback", "Push wait callback time"),
-                SWITCH_CONFIG_ITEM(
-                        "push_service",
-                        SWITCH_CONFIG_STRING,
-                        CONFIG_RELOADABLE,
-                        &config.push_service,
-                        nullptr,
-                        nullptr, "push_service", "Push service endpoint"),
-                SWITCH_CONFIG_ITEM(
-                        "heartbeat",
-                        SWITCH_CONFIG_INT,
-                        CONFIG_RELOADABLE,
-                        &config.heartbeat,
-                        0,
-                        nullptr, "heartbeat", "Enable Media Heartbeat"),
-                SWITCH_CONFIG_ITEM(
-                        "push_fcm_enabled",
-                        SWITCH_CONFIG_BOOL,
-                        CONFIG_RELOADABLE,
-                        &config.push_fcm_enabled,
-                        0,
-                        nullptr, "push_fcm_enabled", "Enable FCM"),
-                SWITCH_CONFIG_ITEM(
-                        "push_apn_enabled",
-                        SWITCH_CONFIG_BOOL,
-                        CONFIG_RELOADABLE,
-                        &config.push_apn_enabled,
-                        0,
-                        nullptr, "push_apn_enabled", "Enable APN"),
-                SWITCH_CONFIG_ITEM_END()
+            SWITCH_CONFIG_ITEM(
+                "grpc_host",
+                SWITCH_CONFIG_STRING,
+                CONFIG_RELOADABLE,
+                &config.grpc_host,
+                nullptr,
+                nullptr, "grpc_host", "GRPC server address"),
+            SWITCH_CONFIG_ITEM(
+                "consul_ttl_sec",
+                SWITCH_CONFIG_INT,
+                CONFIG_RELOADABLE,
+                &config.consul_tts_sec,
+                (void *) 60,
+                nullptr, nullptr, "GRPC TTL"),
+            SWITCH_CONFIG_ITEM(
+                "consul_deregister_critical_ttl_sec",
+                SWITCH_CONFIG_INT,
+                CONFIG_RELOADABLE,
+                &config.consul_deregister_critical_tts_sec,
+                (void *) 120,
+                nullptr, nullptr, "GRPC degeregister critical TTL"),
+            SWITCH_CONFIG_ITEM(
+                "grpc_port",
+                SWITCH_CONFIG_INT,
+                CONFIG_RELOADABLE,
+                &config.grpc_port,
+                (void *) 50051,
+                nullptr, nullptr, "GRPC server port"),
+            SWITCH_CONFIG_ITEM(
+                "consul_address",
+                SWITCH_CONFIG_STRING,
+                CONFIG_RELOADABLE,
+                &config.consul_address,
+                nullptr,
+                nullptr, "consul_address", "Consul address"),
+            SWITCH_CONFIG_ITEM(
+                "amd_ai_address",
+                SWITCH_CONFIG_STRING,
+                CONFIG_RELOADABLE,
+                &config.amd_ai_address,
+                nullptr,
+                nullptr, "amd_ai_address", "AMD stream AI address"),
+            SWITCH_CONFIG_ITEM(
+                "auto_answer_delay",
+                SWITCH_CONFIG_INT,
+                CONFIG_RELOADABLE,
+                &config.auto_answer_delay,
+                (void *) 0,
+                nullptr, nullptr, "Auto answer delay time is seconds"),
+            SWITCH_CONFIG_ITEM(
+                "push_wait_callback",
+                SWITCH_CONFIG_INT,
+                CONFIG_RELOADABLE,
+                &config.push_wait_callback,
+                2000,
+                nullptr, "push_wait_callback", "Push wait callback time"),
+            SWITCH_CONFIG_ITEM(
+                "push_service",
+                SWITCH_CONFIG_STRING,
+                CONFIG_RELOADABLE,
+                &config.push_service,
+                nullptr,
+                nullptr, "push_service", "Push service endpoint"),
+            SWITCH_CONFIG_ITEM(
+                "heartbeat",
+                SWITCH_CONFIG_INT,
+                CONFIG_RELOADABLE,
+                &config.heartbeat,
+                0,
+                nullptr, "heartbeat", "Enable Media Heartbeat"),
+            SWITCH_CONFIG_ITEM(
+                "push_fcm_enabled",
+                SWITCH_CONFIG_BOOL,
+                CONFIG_RELOADABLE,
+                &config.push_fcm_enabled,
+                0,
+                nullptr, "push_fcm_enabled", "Enable FCM"),
+            SWITCH_CONFIG_ITEM(
+                "push_apn_enabled",
+                SWITCH_CONFIG_BOOL,
+                CONFIG_RELOADABLE,
+                &config.push_apn_enabled,
+                0,
+                nullptr, "push_apn_enabled", "Enable APN"),
+            SWITCH_CONFIG_ITEM_END()
         };
 
         if (switch_xml_config_parse_module_settings("grpc.conf", SWITCH_FALSE, instructions) != SWITCH_STATUS_SUCCESS) {
@@ -1055,18 +1046,20 @@ namespace mod_grpc {
     }
 
     std::string toJson(const PushData *data) {
-        return "{\"type\":\"call\", \"call_id\":\"" + data->call_id + "\",\"from_number\":\"" + data->from_number + "\",\"from_name\":\"" + data->from_name +
-               "\",\"direction\":\"" + data->direction + "\",\"auto_answer\":" + std::to_string(data->auto_answer) + "}";
+        return "{\"type\":\"call\", \"call_id\":\"" + data->call_id + "\",\"from_number\":\"" + data->from_number +
+               "\",\"from_name\":\"" + data->from_name +
+               "\",\"direction\":\"" + data->direction + "\",\"auto_answer\":" + std::to_string(data->auto_answer) +
+               "}";
     }
 
     static size_t writeCallback(char *contents, size_t size, size_t nmemb, void *userp) {
-        ((std::string*)userp)->append((char*)contents, size * nmemb);
+        ((std::string *) userp)->append((char *) contents, size * nmemb);
         return size * nmemb;
     }
 
-    std::string ReplaceAll(std::string str, const std::string& from, const std::string& to) {
+    std::string ReplaceAll(std::string str, const std::string &from, const std::string &to) {
         size_t start_pos = 0;
-        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
             str.replace(start_pos, from.length(), to);
             start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
         }
@@ -1089,11 +1082,12 @@ namespace mod_grpc {
         return this->auto_answer_delay;
     }
 
-    AsyncClientCall* ServerImpl::AsyncStreamPCMA(int64_t  domain_id, const char *uuid, const char *name, int32_t rate) {
+    AsyncClientCall *ServerImpl::AsyncStreamPCMA(int64_t domain_id, const char *uuid, const char *name, int32_t rate) {
         return amdClient_->Stream(domain_id, uuid, name, rate);
     }
 
-    RecognizeCall* ServerImpl::AsyncRecognize(std::string conn, switch_core_session_t *session, int32_t out_rate, int32_t channel_rate, std::string &dialog_id) {
+    RecognizeCall *ServerImpl::AsyncRecognize(std::string conn, switch_core_session_t *session, int32_t out_rate,
+                                              int32_t channel_rate, std::string &dialog_id) {
         auto client = getVoiceBotClient(conn);
         if (!client) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
@@ -1109,10 +1103,10 @@ namespace mod_grpc {
         }
 
         return call;
-
     }
 
-    VoiceBotCall* ServerImpl::AsyncVoiceBotStream(std::string conn, switch_core_session_t *session, int32_t model_rate, int32_t channel_rate, std::string &start_message) {
+    VoiceBotCall *ServerImpl::AsyncVoiceBotStream(std::string conn, switch_core_session_t *session, int32_t model_rate,
+                                                  int32_t channel_rate, std::string &start_message) {
         auto client = getVoiceBotClient(conn);
         if (!client) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
@@ -1128,7 +1122,8 @@ namespace mod_grpc {
             return nullptr;
         }
 
-        if (switch_mutex_init(&call->mutex, SWITCH_MUTEX_NESTED, switch_core_session_get_pool(session)) != SWITCH_STATUS_SUCCESS) {
+        if (switch_mutex_init(&call->mutex, SWITCH_MUTEX_NESTED, switch_core_session_get_pool(session)) !=
+            SWITCH_STATUS_SUCCESS) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
                               "failed to initialize mutex for VoiceBot call: %s\n",
                               switch_core_session_get_uuid(session));
@@ -1151,7 +1146,7 @@ namespace mod_grpc {
         return pushClient;
     }
 
-    static void split_str(const std::string& str, const std::string& delimiter, std::vector<std::string> &out) {
+    static void split_str(const std::string &str, const std::string &delimiter, std::vector<std::string> &out) {
         size_t pos = 0;
         std::string s = str;
         while ((pos = s.find(delimiter)) != std::string::npos) {
@@ -1177,7 +1172,7 @@ namespace mod_grpc {
                     t2 = cp->times->hungup ? cp->times->hungup : switch_micro_time_now();
                 }
                 talk += difftime(t2,
-                                 (switch_time_t)(cp->times->bridged));
+                                 (switch_time_t) (cp->times->bridged));
             }
         }
         switch_channel_set_variable(channel, WBT_TALK_SEC, std::to_string(static_cast<int>(talk / 1000000)).c_str());
@@ -1189,12 +1184,13 @@ namespace mod_grpc {
         if (heartbeat_interval) {
             auto channel = switch_core_session_get_channel(session);
             switch_core_session_enable_heartbeat(session, heartbeat_interval);
-            switch_channel_set_variable_var_check(channel, "wbt_heartbeat", std::to_string(heartbeat_interval).c_str(), SWITCH_FALSE);
+            switch_channel_set_variable_var_check(channel, "wbt_heartbeat", std::to_string(heartbeat_interval).c_str(),
+                                                  SWITCH_FALSE);
         }
         return SWITCH_STATUS_SUCCESS;
     }
 
-    static PushData* get_push_body(const char *uuid, switch_channel *channel, int autoDelayTime) {
+    static PushData *get_push_body(const char *uuid, switch_channel *channel, int autoDelayTime) {
         auto *pData = new PushData;
         pData->call_id = std::string(uuid);
         const char *name = nullptr;
@@ -1232,8 +1228,8 @@ namespace mod_grpc {
     }
 
     static inline void fire_event(switch_channel_t *channel, const char *name) {
-        switch_event_t      *event;
-        switch_status_t     status;
+        switch_event_t *event;
+        switch_status_t status;
         status = switch_event_create_subclass(&event, SWITCH_EVENT_CLONE, name);
         if (status != SWITCH_STATUS_SUCCESS) {
             return;
@@ -1261,12 +1257,12 @@ namespace mod_grpc {
         expanded = switch_channel_expand_variables(channel, variable);
         app = switch_core_session_strdup(session, expanded);
 
-        for(p = app; p && *p; p++) {
-            if (*p == ' ' || (*p == ':' && (*(p+1) != ':'))) {
+        for (p = app; p && *p; p++) {
+            if (*p == ' ' || (*p == ':' && (*(p + 1) != ':'))) {
                 *p++ = '\0';
                 arg = p;
                 break;
-            } else if (*p == ':' && (*(p+1) == ':')) {
+            } else if (*p == ':' && (*(p + 1) == ':')) {
                 bg++;
                 break;
             }
@@ -1303,12 +1299,13 @@ namespace mod_grpc {
                         if (tmp) {
                             ud->vad = switch_vad_init((int) ud->read_impl.actual_samples_per_second, 1);
                             ud->stop_vad_on_answer =
-                                    switch_true(switch_channel_get_variable(ud->channel, "wbt_ai_vad_stop_on_answer")) == 1;
+                                    switch_true(switch_channel_get_variable(ud->channel, "wbt_ai_vad_stop_on_answer"))
+                                    == 1;
                             switch_vad_set_param(ud->vad, "thresh", tmp);
                             switch_log_printf(
-                                    SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                                    SWITCH_LOG_DEBUG,
-                                    "amd use vad thresh %d \n", tmp);
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                SWITCH_LOG_DEBUG,
+                                "amd use vad thresh %d \n", tmp);
 
                             if ((var = switch_channel_get_variable(ud->channel, "wbt_ai_vad_debug"))) {
                                 tmp = atoi(var);
@@ -1323,12 +1320,11 @@ namespace mod_grpc {
                             if (tmp) {
                                 ud->max_silence_sec = tmp;
                                 switch_log_printf(
-                                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                                        SWITCH_LOG_DEBUG,
-                                        "amd use vad maximum silence seconds %d \n", tmp);
+                                    SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                                    SWITCH_LOG_DEBUG,
+                                    "amd use vad maximum silence seconds %d \n", tmp);
                             }
                         }
-
                     }
 
                     if (ud->read_impl.actual_samples_per_second != MODEL_RATE) {
@@ -1341,9 +1337,9 @@ namespace mod_grpc {
                     }
                 } catch (...) {
                     switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC stream: SWITCH_ABC_TYPE_INIT \n");
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: SWITCH_ABC_TYPE_INIT \n");
                 }
 
                 break;
@@ -1359,7 +1355,8 @@ namespace mod_grpc {
                     ud->client_->Finish();
 
                     std::string amd_result;
-                    std::vector<std::string> amd_results(ud->client_->reply.results().begin(), ud->client_->reply.results().end());
+                    std::vector<std::string> amd_results(ud->client_->reply.results().begin(),
+                                                         ud->client_->reply.results().end());
 
                     bool skip_hangup = false;
 
@@ -1368,12 +1365,12 @@ namespace mod_grpc {
                         if (ud->vad && switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
                             amd_result = "silence";
                         }
-//                        switch_channel_set_variable(ud->channel, "execute_on_answer", NULL); // TODO
+                        //                        switch_channel_set_variable(ud->channel, "execute_on_answer", NULL); // TODO
                     } else {
                         amd_result = ud->client_->reply.result();
                     }
 
-                    for (auto &l : ud->positive) {
+                    for (auto &l: ud->positive) {
                         if (l == amd_result) {
                             // TODO DEV-4626
                             if (!switch_channel_test_flag(ud->channel, CF_ANSWERED)) {
@@ -1391,8 +1388,9 @@ namespace mod_grpc {
                     }
 
                     switch_channel_set_variable(ud->channel, WBT_AMD_AI, amd_result.c_str());
-                    for (auto &r : amd_results) {
-                        switch_channel_add_variable_var_check(ud->channel, WBT_AMD_AI_LOG, r.c_str(), SWITCH_FALSE, SWITCH_STACK_PUSH);
+                    for (auto &r: amd_results) {
+                        switch_channel_add_variable_var_check(ud->channel, WBT_AMD_AI_LOG, r.c_str(), SWITCH_FALSE,
+                                                              SWITCH_STACK_PUSH);
                     }
 
                     if (!amd_results.empty()) {
@@ -1402,20 +1400,21 @@ namespace mod_grpc {
                                                             return std::move(a) + "<-" + b;
                                                         });
                         switch_log_printf(
-                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                                SWITCH_LOG_NOTICE,
-                                "ML amd result: %s [%s]\n", amd_result.c_str(), s.c_str());
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_NOTICE,
+                            "ML amd result: %s [%s]\n", amd_result.c_str(), s.c_str());
                     }
 
                     auto ready = switch_channel_ready(ud->channel);
-                    switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE, !ready || !skip_hangup ? "false" : "true");
+                    switch_channel_set_variable(ud->channel, WBT_AMD_AI_POSITIVE,
+                                                !ready || !skip_hangup ? "false" : "true");
                     if (ready) {
                         amd_fire_event(ud->channel);
                     } else {
                         switch_log_printf(
-                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                                SWITCH_LOG_WARNING,
-                                "GRPC stream: skip amd event, channel state is hangup \n");
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_WARNING,
+                            "GRPC stream: skip amd event, channel state is hangup \n");
                     }
                     if (!skip_hangup) {
                         switch_channel_hangup(ud->channel, SWITCH_CAUSE_NORMAL_UNSPECIFIED);
@@ -1425,9 +1424,9 @@ namespace mod_grpc {
                     delete ud;
                 } catch (...) {
                     switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC stream: SWITCH_ABC_TYPE_CLOSE \n");
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: SWITCH_ABC_TYPE_CLOSE \n");
                 }
                 break;
             }
@@ -1435,7 +1434,7 @@ namespace mod_grpc {
             case SWITCH_ABC_TYPE_READ:
             case SWITCH_ABC_TYPE_WRITE: {
                 uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
-                switch_frame_t read_frame = { 0 };
+                switch_frame_t read_frame = {0};
                 switch_status_t status;
 
                 read_frame.data = data;
@@ -1444,7 +1443,9 @@ namespace mod_grpc {
                 try {
                     status = switch_core_media_bug_read(bug, &read_frame, SWITCH_FALSE);
                     if (status != SWITCH_STATUS_SUCCESS && status != SWITCH_STATUS_BREAK) {
-                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "switch_core_media_bug_read SWITCH_TRUE \n");
+                        switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG,
+                            "switch_core_media_bug_read SWITCH_TRUE \n");
                         return SWITCH_TRUE;
                     };
 
@@ -1452,7 +1453,7 @@ namespace mod_grpc {
 
                     if (ud->vad) {
                         if (!ud->answered) {
-                            ud->answered = switch_channel_test_flag(ud->channel, CF_ANSWERED) ;
+                            ud->answered = switch_channel_test_flag(ud->channel, CF_ANSWERED);
                         }
                         if (ud->stop_vad_on_answer && ud->answered) {
                             switch_vad_destroy(&ud->vad);
@@ -1462,8 +1463,9 @@ namespace mod_grpc {
                             vad_state = switch_vad_process(ud->vad, (int16_t *) read_frame.data,
                                                            read_frame.datalen / 2);
                             if (vad_state == SWITCH_VAD_STATE_STOP_TALKING) {
-                                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "amd vad reset: %s\n",
-                                                  switch_vad_state2str(vad_state));
+                                switch_log_printf(
+                                    SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "amd vad reset: %s\n",
+                                    switch_vad_state2str(vad_state));
                                 switch_vad_reset(ud->vad);
                             }
 
@@ -1475,8 +1477,10 @@ namespace mod_grpc {
                                     ud->silence_ms = 0;
                                 }
 
-                                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "amd vad state: %s [silence = %d]\n",
-                                                  switch_vad_state2str(vad_state), ud->silence_ms / 1000);
+                                switch_log_printf(
+                                    SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG,
+                                    "amd vad state: %s [silence = %d]\n",
+                                    switch_vad_state2str(vad_state), ud->silence_ms / 1000);
                             }
                         }
                     }
@@ -1498,15 +1502,15 @@ namespace mod_grpc {
                     }
 
                     if (ud->max_silence_sec && ud->max_silence_sec <= (ud->silence_ms / 1000)) {
-                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "Maximum silence seconds\n");
+                        switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "Maximum silence seconds\n");
                         return SWITCH_FALSE;
                     }
-
                 } catch (...) {
                     switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC stream: SWITCH_ABC_TYPE_WRITEs \n");
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: SWITCH_ABC_TYPE_WRITEs \n");
                 }
                 break;
             }
@@ -1526,9 +1530,10 @@ namespace mod_grpc {
                         switch_core_media_bug_clear_flag(bug, SMBF_ANSWER_REQ);
                     }
 
-//                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
+                    //                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
 
-                    if (ud->client_->model_rate != ud->client_->channel_rate) { // Channel rate ?
+                    if (ud->client_->model_rate != ud->client_->channel_rate) {
+                        // Channel rate ?
                         switch_resample_create(&ud->rresampler,
                                                ud->client_->channel_rate,
                                                ud->client_->model_rate,
@@ -1536,18 +1541,18 @@ namespace mod_grpc {
 
 
                         switch_log_printf(
-                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                                SWITCH_LOG_DEBUG,
-                                "GRPC stream: writer resample from %d to %d \n", ud->client_->channel_rate, ud->client_->model_rate);
-
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_DEBUG,
+                            "GRPC stream: writer resample from %d to %d \n", ud->client_->channel_rate,
+                            ud->client_->model_rate);
                     } else {
                         ud->rresampler = nullptr;
                     }
                 } catch (...) {
                     switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC stream: SWITCH_ABC_TYPE_INIT \n");
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: SWITCH_ABC_TYPE_INIT \n");
                 }
 
                 break;
@@ -1563,16 +1568,16 @@ namespace mod_grpc {
                     ud->client_->Finish();
                 } catch (...) {
                     switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC stream: SWITCH_ABC_TYPE_CLOSE \n");
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: SWITCH_ABC_TYPE_CLOSE \n");
                 }
                 break;
             }
 
-            case SWITCH_ABC_TYPE_READ_REPLACE:  {
+            case SWITCH_ABC_TYPE_READ_REPLACE: {
                 uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
-                switch_frame_t *read_frame ;
+                switch_frame_t *read_frame;
                 switch_status_t status;
 
                 try {
@@ -1593,17 +1598,16 @@ namespace mod_grpc {
 
                     if (!ok) {
                         switch_log_printf(
-                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                                SWITCH_LOG_CRIT,
-                                "GRPC stream: error send \n");
-                        return SWITCH_FALSE;
-                    }
-
-                } catch (...) {
-                    switch_log_printf(
                             SWITCH_CHANNEL_SESSION_LOG(ud->session),
                             SWITCH_LOG_CRIT,
-                            "GRPC stream: SWITCH_ABC_TYPE_WRITEs \n");
+                            "GRPC stream: error send \n");
+                        return SWITCH_FALSE;
+                    }
+                } catch (...) {
+                    switch_log_printf(
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: SWITCH_ABC_TYPE_WRITEs \n");
                 }
                 break;
             }
@@ -1611,7 +1615,6 @@ namespace mod_grpc {
 
         return SWITCH_TRUE;
     }
-
 
 
     static switch_bool_t recognizer_audio_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type) {
@@ -1625,32 +1628,35 @@ namespace mod_grpc {
                         switch_core_media_bug_clear_flag(bug, SMBF_ANSWER_REQ);
                     }
 
-//                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
+                    //                    switch_core_session_get_read_impl(ud->session, &ud->read_impl);
 
-                    if (ud->client_->out_rate != ud->client_->channel_rate) { // Channel rate ?
+                    if (ud->client_->out_rate != ud->client_->channel_rate) {
+                        // Channel rate ?
                         int err;
-                        ud->rresampler = speex_resampler_init(1, ud->client_->channel_rate, ud->client_->out_rate, SWITCH_RESAMPLE_QUALITY, &err);
-                        if (0!=err) {
+                        ud->rresampler = speex_resampler_init(1, ud->client_->channel_rate, ud->client_->out_rate,
+                                                              SWITCH_RESAMPLE_QUALITY, &err);
+                        if (0 != err) {
                             switch_log_printf(
                                 SWITCH_CHANNEL_SESSION_LOG(ud->session),
                                 SWITCH_LOG_ERROR,
-                                "GRPC stream: writer resample from %d to %d err: %d\n", ud->client_->channel_rate, ud->client_->out_rate, err);
+                                "GRPC stream: writer resample from %d to %d err: %d\n", ud->client_->channel_rate,
+                                ud->client_->out_rate, err);
                             return SWITCH_FALSE;
                         }
 
                         switch_log_printf(
-                                SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                                SWITCH_LOG_DEBUG,
-                                "GRPC stream: writer resample from %d to %d \n", ud->client_->channel_rate, ud->client_->out_rate);
-
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_DEBUG,
+                            "GRPC stream: writer resample from %d to %d \n", ud->client_->channel_rate,
+                            ud->client_->out_rate);
                     } else {
                         ud->rresampler = nullptr;
                     }
                 } catch (...) {
                     switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC stream: SWITCH_ABC_TYPE_INIT \n");
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: SWITCH_ABC_TYPE_INIT \n");
                 }
 
                 break;
@@ -1666,7 +1672,9 @@ namespace mod_grpc {
 
                     if (ud->client_) {
                         if (ud->client_->interrupted) {
-                            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "grpc_read_thread: set cancel\n");
+                            switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG,
+                                "grpc_read_thread: set cancel\n");
                             switch_channel_t *channel = switch_core_session_get_channel(ud->session);
                             if (switch_channel_test_flag(channel, CF_BROADCAST)) {
                                 switch_channel_stop_broadcast(channel);
@@ -1677,19 +1685,18 @@ namespace mod_grpc {
                         ud->client_->Finish();
                         delete ud->client_;
                     }
-
                 } catch (...) {
                     switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC stream: SWITCH_ABC_TYPE_CLOSE \n");
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: SWITCH_ABC_TYPE_CLOSE \n");
                 }
                 break;
             }
 
-            case SWITCH_ABC_TYPE_READ:  {
+            case SWITCH_ABC_TYPE_READ: {
                 uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
-                switch_frame_t read_frame = { 0 };
+                switch_frame_t read_frame = {0};
                 switch_status_t status;
 
                 read_frame.data = data;
@@ -1697,18 +1704,21 @@ namespace mod_grpc {
 
                 auto current_vars = ud->client_->flushVars(); // This thread checks and consumes
                 if (!current_vars.empty()) {
-                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "received new variables:\n");
-                    for (const auto& pair : current_vars) {
-                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "  %s: %s\n", pair.first.c_str(), pair.second.c_str());
+                    switch_log_printf(
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "received new variables:\n");
+                    for (const auto &pair: current_vars) {
+                        switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "  %s: %s\n", pair.first.c_str(),
+                            pair.second.c_str());
                         switch_channel_set_variable(ud->channel, pair.first.c_str(), pair.second.c_str());
                     }
                 }
 
                 if (ud->client_->breakStream()) {
                     switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC stream: receive break \n");
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: receive break \n");
                     return SWITCH_FALSE;
                 }
 
@@ -1716,7 +1726,9 @@ namespace mod_grpc {
                     bool ok;
                     status = switch_core_media_bug_read(bug, &read_frame, SWITCH_FALSE);
                     if (status != SWITCH_STATUS_SUCCESS && status != SWITCH_STATUS_BREAK) {
-                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG, "switch_core_media_bug_read SWITCH_TRUE \n");
+                        switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG,
+                            "switch_core_media_bug_read SWITCH_TRUE \n");
                         return SWITCH_TRUE;
                     };
                     //
@@ -1744,12 +1756,11 @@ namespace mod_grpc {
                             "GRPC stream: error send \n");
                         return SWITCH_FALSE;
                     }
-
                 } catch (...) {
                     switch_log_printf(
-                            SWITCH_CHANNEL_SESSION_LOG(ud->session),
-                            SWITCH_LOG_CRIT,
-                            "GRPC stream: SWITCH_ABC_TYPE_WRITEs \n");
+                        SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                        SWITCH_LOG_CRIT,
+                        "GRPC stream: SWITCH_ABC_TYPE_WRITEs \n");
                 }
                 break;
             }
@@ -1760,17 +1771,17 @@ namespace mod_grpc {
 
     SWITCH_STANDARD_APP(wbt_voice_bot_function2) {
         switch_channel_t *channel = switch_core_session_get_channel(session);
-        char *mycmd = NULL, *argv[3] = { 0 };
+        char *mycmd = NULL, *argv[3] = {0};
         int argc = 0;
         size_t voice_len = 0;
         switch_media_bug_t *bug = nullptr;
         switch_media_bug_flag_t flags = SMBF_READ_REPLACE;
         mod_grpc::VoiceBotStream *ud = nullptr;
-        switch_frame_t write_frame = { 0 };
+        switch_frame_t write_frame = {0};
         void *abuf = NULL;
-        switch_codec_implementation_t imp = {  };
-        switch_codec_t codec = { 0 };
-        switch_frame_t *read_frame = { 0 };
+        switch_codec_implementation_t imp = {};
+        switch_codec_t codec = {0};
+        switch_frame_t *read_frame = {0};
         switch_status_t status = SWITCH_STATUS_SUCCESS;
         write_frame.codec = NULL;
         int model_rate = 16000;
@@ -1781,7 +1792,7 @@ namespace mod_grpc {
             argc = switch_separate_string(mycmd, ' ', argv, (sizeof(argv) / sizeof(argv[0])));
         }
 
-        if (argc < 1 ) {
+        if (argc < 1) {
             // TODO ERROR
         }
 
@@ -1790,23 +1801,26 @@ namespace mod_grpc {
         }
 
 
-        if (argc > 2 ) {
+        if (argc > 2) {
             start_message = std::string(argv[2]);
         }
 
         switch_core_session_get_read_impl(session, &imp);
 
         if (model_rate == 0) {
-            model_rate= imp.actual_samples_per_second;
+            model_rate = imp.actual_samples_per_second;
         }
         switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "connection %s\n", argv[0]);
         switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "send rate %d\n", model_rate);
-        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "channel rate %d\n", imp.actual_samples_per_second);
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "channel rate %d\n",
+                          imp.actual_samples_per_second);
 
         ud = new mod_grpc::VoiceBotStream;
-        ud->client_ = server_->AsyncVoiceBotStream(argv[0], session, model_rate, imp.actual_samples_per_second, start_message);
+        ud->client_ = server_->AsyncVoiceBotStream(argv[0], session, model_rate, imp.actual_samples_per_second,
+                                                   start_message);
         if (!ud->client_) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "not found bot connection %s\n", data);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "not found bot connection %s\n",
+                              data);
             goto cleanup_;
         }
 
@@ -1819,13 +1833,16 @@ namespace mod_grpc {
                                    imp.number_of_channels,
                                    SWITCH_CODEC_FLAG_ENCODE | SWITCH_CODEC_FLAG_DECODE, NULL,
                                    switch_core_session_get_pool(session)) != SWITCH_STATUS_SUCCESS) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Codec Error L16@%uhz %u channels %dms\n",
-                              imp.actual_samples_per_second, imp.number_of_channels, imp.microseconds_per_packet / 1000);
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+                              "Codec Error L16@%uhz %u channels %dms\n",
+                              imp.actual_samples_per_second, imp.number_of_channels,
+                              imp.microseconds_per_packet / 1000);
             goto cleanup_;
         }
 
 
-        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "Codec Activated L16@%uhz %u channels %dms\n",
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG,
+                          "Codec Activated L16@%uhz %u channels %dms\n",
                           imp.actual_samples_per_second, imp.number_of_channels, imp.microseconds_per_packet / 1000);
 
         write_frame.codec = &codec;
@@ -1848,12 +1865,13 @@ namespace mod_grpc {
                 ud, //user_data
                 0,
                 flags,
-                &bug) != SWITCH_STATUS_SUCCESS ) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
+                &bug) != SWITCH_STATUS_SUCCESS) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+                              "Can not add media bug.  Media not enabled on channel\n");
             goto cleanup_;
         }
 
-        while(switch_channel_ready(channel)) {
+        while (switch_channel_ready(channel)) {
             status = switch_core_session_read_frame(session, &read_frame, SWITCH_IO_FLAG_NONE, 0);
 
             if (!SWITCH_READ_ACCEPTABLE(status)) {
@@ -1867,15 +1885,18 @@ namespace mod_grpc {
             if (voice_len >= write_frame.datalen) {
                 switch_buffer_read(ud->client_->buffer, write_frame.data, write_frame.datalen);
             } else {
-                switch_generate_sln_silence((int16_t *) write_frame.data, write_frame.samples, imp.number_of_channels, -1);
+                switch_generate_sln_silence((int16_t *) write_frame.data, write_frame.samples, imp.number_of_channels,
+                                            -1);
             }
             switch_buffer_unlock(ud->client_->buffer);
 
             current_vars = ud->client_->flushVars(); // This thread checks and consumes
             if (!current_vars.empty()) {
                 switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "received new variables:\n");
-                for (const auto& pair : current_vars) {
-                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "  %s: %s\n", pair.first.c_str(), pair.second.c_str());
+                for (const auto &pair: current_vars) {
+                    switch_log_printf(
+                        SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "  %s: %s\n", pair.first.c_str(),
+                        pair.second.c_str());
                     switch_channel_set_variable(channel, pair.first.c_str(), pair.second.c_str());
                 }
             }
@@ -1929,13 +1950,15 @@ namespace mod_grpc {
 
         tmp = switch_channel_get_variable(channel, "sip_h_X-Webitel-Domain-Id");
         if (!tmp || !(domain_id = atoi(tmp))) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  Not found sip_h_X-Webitel-Domain-Id\n");
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+                              "Can not stream session.  Not found sip_h_X-Webitel-Domain-Id\n");
             err = "ai_bad_request";
             goto error_;
         }
 
         if (!switch_channel_media_up(channel) || !switch_core_session_get_read_codec(session)) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not stream session.  Media not enabled on channel\n");
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+                              "Can not stream session.  Media not enabled on channel\n");
             err = "ai_no_media";
             goto error_;
         }
@@ -1944,7 +1967,8 @@ namespace mod_grpc {
         ud->session = session;
         ud->channel = channel;
         ud->positive = std::move(positive_labels);
-        ud->client_ = server_->AsyncStreamPCMA(domain_id, switch_channel_get_uuid(channel), switch_channel_get_uuid(channel), MODEL_RATE);
+        ud->client_ = server_->AsyncStreamPCMA(domain_id, switch_channel_get_uuid(channel),
+                                               switch_channel_get_uuid(channel), MODEL_RATE);
         ud->vad = nullptr;
         ud->max_silence_sec = 0;
         ud->silence_ms = 0;
@@ -1962,14 +1986,15 @@ namespace mod_grpc {
                 ud, //user_data
                 0, //TODO
                 flags,
-                &bug) != SWITCH_STATUS_SUCCESS ) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Can not add media bug.  Media not enabled on channel\n");
+                &bug) != SWITCH_STATUS_SUCCESS) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+                              "Can not add media bug.  Media not enabled on channel\n");
             err = "ai_no_media";
             goto error_;
         }
         return;
 
-        error_:
+    error_:
         // todo add positive application ?
         delete ud;
 
@@ -1997,8 +2022,8 @@ namespace mod_grpc {
         const char *wbt_push_apn = switch_channel_get_variable(channel, "wbt_push_apn");
         int send = 0;
         auto pData = get_push_body(uuid, channel, server_->AutoAnswerDelayTime());
-        std::vector <std::string> android;
-        std::vector <std::string> apple;
+        std::vector<std::string> android;
+        std::vector<std::string> apple;
 
         if (wbt_push_fcm && server_->UseFCM()) {
             split_str(wbt_push_fcm, "::", android);
@@ -2009,11 +2034,14 @@ namespace mod_grpc {
 
         switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start push request %s\n", uuid);
         send = server_->GetPushClient()->Send(android, apple, session, server_->PushWaitCallback() + 2000, pData);
-        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop push request %s [send count %d]\n", uuid, send);
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG,
+                          "stop push request %s [send count %d]\n", uuid, send);
 
         if (send && server_->PushWaitCallback() > 0) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start wait callback %s [%d]\n", uuid, server_->PushWaitCallback());
-            switch_channel_wait_for_flag(channel, CF_SLA_INTERCEPT, SWITCH_TRUE, server_->PushWaitCallback(), NULL); //10s
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "start wait callback %s [%d]\n",
+                              uuid, server_->PushWaitCallback());
+            switch_channel_wait_for_flag(channel, CF_SLA_INTERCEPT, SWITCH_TRUE, server_->PushWaitCallback(), NULL);
+            //10s
             switch_channel_clear_flag(channel, CF_SLA_INTERCEPT);
             switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "stop wait callback %s\n", uuid);
         }
@@ -2065,7 +2093,9 @@ namespace mod_grpc {
 
                 if (switch_core_file_read(bg->fh, noise_buffer, &samples) == SWITCH_STATUS_SUCCESS) {
                     if (bg->debug) {
-                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "frame_samples %ld ; samples %ld\\n", frame_samples, samples);
+                        switch_log_printf(
+                            SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "frame_samples %ld ; samples %ld\\n",
+                            frame_samples, samples);
                     }
 
                     for (switch_size_t i = 0; i < frame_samples && i < samples; i++) {
@@ -2087,9 +2117,9 @@ namespace mod_grpc {
                     uint32_t pos = 0;
                     // TODO mod shout not working
                     auto status = switch_core_file_seek(bg->fh, &pos, 0, SEEK_SET);
-//                    if (bg->debug) {
-//                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "seek status = %d, pos = %d\n", status, pos);
-//                    }
+                    //                    if (bg->debug) {
+                    //                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "seek status = %d, pos = %d\n", status, pos);
+                    //                    }
                 }
 
                 break;
@@ -2105,7 +2135,7 @@ namespace mod_grpc {
     SWITCH_STANDARD_APP(wbt_background) {
         char *mydata;
         struct background_pvt *b = NULL;
-        char *argv[4] = { 0 };
+        char *argv[4] = {0};
         int argc;
         int volume_reduction = 1;
         std::string name = "wbt-bg";
@@ -2118,7 +2148,7 @@ namespace mod_grpc {
             return;
         }
 
-        if (!strcasecmp(argv[0], "stop") ) {
+        if (!strcasecmp(argv[0], "stop")) {
             if (argc > 1) {
                 name = ("wbt-" + std::string(argv[1]));
             }
@@ -2129,7 +2159,7 @@ namespace mod_grpc {
                 switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "stoped\n");
             }
             return;
-        } else if (!strcasecmp(argv[0], "start") && argc > 1 ) {
+        } else if (!strcasecmp(argv[0], "start") && argc > 1) {
             if (argc > 2) {
                 volume_reduction = atoi(argv[2]);
             }
@@ -2142,19 +2172,20 @@ namespace mod_grpc {
         }
 
         if (switch_channel_get_private(channel, name.c_str())) {
-            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "can't start \"%s\" already exists\n", name.c_str());
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+                              "can't start \"%s\" already exists\n", name.c_str());
             return;
         }
 
         switch_file_handle_t *fh = (switch_file_handle_t *) switch_core_session_alloc(session,
-                                                                                      sizeof(switch_file_handle_t));
+            sizeof(switch_file_handle_t));
         switch_codec_implementation_t write_impl;
         switch_core_session_get_write_impl(session, &write_impl);
 
         if (switch_core_file_open(fh, argv[1], write_impl.number_of_channels, write_impl.samples_per_second,
                                   SWITCH_FILE_FLAG_READ | SWITCH_FILE_DATA_SHORT, NULL) == SWITCH_STATUS_SUCCESS) {
             switch_media_bug_t *bug;
-            b = (background_pvt *)switch_core_session_alloc(session, sizeof(*b));
+            b = (background_pvt *) switch_core_session_alloc(session, sizeof(*b));
             b->name = name.c_str();
             b->fh = fh;
             b->volume_reduction = volume_reduction;
@@ -2163,8 +2194,8 @@ namespace mod_grpc {
             }
             b->debug = switch_true(switch_channel_get_variable(channel, "wbt_background_debug"));
 
-            switch_channel_set_variable(channel, SWITCH_SEND_SILENCE_WHEN_IDLE_VARIABLE , "-1");
-            switch_channel_set_variable(channel, "wbt_background_play" , "true");
+            switch_channel_set_variable(channel, SWITCH_SEND_SILENCE_WHEN_IDLE_VARIABLE, "-1");
+            switch_channel_set_variable(channel, "wbt_background_play", "true");
             if (switch_core_media_bug_add(session, name.c_str(), NULL, background_noise_callback, b, 0,
                                           SMBF_FIRST | SMBF_WRITE_REPLACE | SMBF_NO_PAUSE, &bug) ==
                 SWITCH_STATUS_SUCCESS) {
@@ -2204,7 +2235,6 @@ namespace mod_grpc {
                 switch_channel_set_variable(channel, SWITCH_CURRENT_APPLICATION_RESPONSE_VARIABLE, "PLAYBACK ERROR");
                 break;
         }
-
     }
 
     SWITCH_STANDARD_APP(wbt_blind_transfer_function) {
@@ -2212,11 +2242,10 @@ namespace mod_grpc {
     }
 
 
-    static switch_bool_t wbt_ai_cast_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type)
-    {
+    static switch_bool_t wbt_ai_cast_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type) {
         switch_buffer_t *buffer = (switch_buffer_t *) user_data;
         uint8_t data[SWITCH_RECOMMENDED_BUFFER_SIZE];
-        switch_frame_t frame = { 0 };
+        switch_frame_t frame = {0};
 
         frame.data = data;
         frame.buflen = SWITCH_RECOMMENDED_BUFFER_SIZE;
@@ -2258,7 +2287,7 @@ namespace mod_grpc {
         switch_mutex_t *mutex;
         switch_channel_t *channel = switch_core_session_get_channel(session);
 
-        switch_codec_implementation_t read_impl = {  };
+        switch_codec_implementation_t read_impl = {};
         switch_core_session_get_read_impl(session, &read_impl);
 
         if (switch_channel_test_flag(channel, CF_PROXY_MODE)) {
@@ -2272,7 +2301,8 @@ namespace mod_grpc {
 
         if (switch_core_media_bug_add(session, "wbt_ai_cast", NULL,
                                       wbt_ai_cast_callback, buffer, 0,
-                                      SMBF_READ_STREAM | SMBF_WRITE_STREAM | SMBF_READ_PING | SMBF_NO_PAUSE | SMBF_FIRST, &bug) != SWITCH_STATUS_SUCCESS) {
+                                      SMBF_READ_STREAM | SMBF_WRITE_STREAM | SMBF_READ_PING | SMBF_NO_PAUSE |
+                                      SMBF_FIRST, &bug) != SWITCH_STATUS_SUCCESS) {
             goto end;
         }
 
@@ -2292,14 +2322,14 @@ namespace mod_grpc {
             }
 
             if (!bytes) {
-                switch_generate_sln_silence((int16_t *) frame->data, (uint32_t)frame->datalen, 1,1);
+                switch_generate_sln_silence((int16_t *) frame->data, (uint32_t) frame->datalen, 1, 1);
             }
 
             switch_core_session_write_frame(session, frame, SWITCH_IO_FLAG_NONE, 0);
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "callback bytes %ld\n", bytes);
         }
 
-        end:
+    end:
         if (bug) {
             switch_core_media_bug_remove(session, &bug);
         }
@@ -2307,10 +2337,10 @@ namespace mod_grpc {
         if (buffer) {
             switch_buffer_destroy(&buffer);
         }
-//
-//        while (switch_channel_ready(switch_core_session_get_channel(session))) {
+        //
+        //        while (switch_channel_ready(switch_core_session_get_channel(session))) {
 
-//        }
+        //        }
     }
 
     SWITCH_STANDARD_API(version_api_function) {
@@ -2322,7 +2352,7 @@ namespace mod_grpc {
     static size_t stream_callback(void *contents, size_t size, size_t nmemb, void *userp) {
         size_t realsize = size * nmemb;
         char response[1024] = "";
-        strncat(response, (const char*)contents, realsize);
+        strncat(response, (const char *) contents, realsize);
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "stream response: %s\n", response);
         return realsize;
     }
@@ -2330,7 +2360,7 @@ namespace mod_grpc {
     void parse_url(const std::string &url, std::string &host, std::string &path) {
         size_t pos = url.find("://");
         if (pos != std::string::npos) {
-            pos += 3;  // Перескакуємо через "://"
+            pos += 3; // Перескакуємо через "://"
             size_t path_pos = url.find('/', pos);
             if (path_pos != std::string::npos) {
                 host = url.substr(pos, path_pos - pos);
@@ -2345,10 +2375,10 @@ namespace mod_grpc {
     static int in_http_cache(const char *path) {
         char *result = NULL;
         int found = 0;
-        switch_stream_handle_t stream = { 0 };
+        switch_stream_handle_t stream = {0};
         SWITCH_STANDARD_STREAM(stream);
         if (switch_api_execute("http_tryget", path, NULL, &stream) == SWITCH_STATUS_SUCCESS) {
-            result = (char *)stream.data;
+            result = (char *) stream.data;
             found = strncmp(result, "-ERR", 4) != 0;
         } else {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "execute http_tryget error\n");
@@ -2365,13 +2395,13 @@ namespace mod_grpc {
 
         std::ostringstream http_request_stream;
         http_request_stream << "GET " << path_parsed << " HTTP/1.1\r\n"
-                            << "Host: " << host << "\r\n"
-                            << "Connection: keep-alive\r\n"
-                            << "User-Agent: mod_grpc/" MOD_BUILD_VERSION "\r\n"  // Додавання заголовку User-Agent
-                            << "X-TTS-Prepare: true\r\n"
-                            << (call_id ? "X-TTS-Call-Id: " + std::string(call_id) + "\r\n": "")
-                            << (id ? "X-TTS-Prepare-Id: " + std::string(id) + "\r\n": "")
-                            << "\r\n";
+                << "Host: " << host << "\r\n"
+                << "Connection: keep-alive\r\n"
+                << "User-Agent: mod_grpc/" MOD_BUILD_VERSION "\r\n" // Додавання заголовку User-Agent
+                << "X-TTS-Prepare: true\r\n"
+                << (call_id ? "X-TTS-Call-Id: " + std::string(call_id) + "\r\n" : "")
+                << (id ? "X-TTS-Prepare-Id: " + std::string(id) + "\r\n" : "")
+                << "\r\n";
         return http_request_stream.str();
     }
 
@@ -2409,7 +2439,7 @@ namespace mod_grpc {
         sh->response_code = 500;
         sh->unavailable = 0;
         sh->err = NULL;
-        auto skip_cache = 0 ;
+        auto skip_cache = 0;
         size_t sent = 0;
         if (handle->params) {
             skip_cache = switch_true(switch_event_get_header(handle->params, "skip_cache"));
@@ -2435,10 +2465,10 @@ namespace mod_grpc {
         curl_easy_setopt(curl_handle, CURLOPT_URL, path);
         curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, sh->curl_error_buff);
         curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 10);
-        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "FreeSWITCH(mod_grpc)/"  MOD_BUILD_VERSION);
+        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "FreeSWITCH(mod_grpc)/" MOD_BUILD_VERSION);
         curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
-        curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, 30);	/* eventually timeout connect */
-        curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_LIMIT, 100);	/* handle trickle connections */
+        curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, 30); /* eventually timeout connect */
+        curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_LIMIT, 100); /* handle trickle connections */
         curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_TIME, 30);
         curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
         curl_easy_setopt(curl_handle, CURLOPT_CONNECT_ONLY, 1L);
@@ -2452,7 +2482,8 @@ namespace mod_grpc {
         // Отримання сокета
         res = curl_easy_getinfo(curl_handle, CURLINFO_ACTIVESOCKET, &sh->sockfd);
         if (res != CURLE_OK) {
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS get socket error: %s\n", curl_easy_strerror(res));
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS get socket error: %s\n",
+                              curl_easy_strerror(res));
             goto error;
         }
 
@@ -2460,7 +2491,8 @@ namespace mod_grpc {
         http_request = get_prepare_header(std::string(path), sh->call_id, sh->id);
 
 
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "send http [fd=%d]: %s\n", sh->sockfd, http_request.c_str());
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "send http [fd=%d]: %s\n", sh->sockfd,
+                          http_request.c_str());
         // Відправлення HTTP-запиту через сокет
         res = curl_easy_send(curl_handle, http_request.c_str(), http_request.size(), &sent);
         if (res != CURLE_OK) {
@@ -2473,7 +2505,7 @@ namespace mod_grpc {
         return SWITCH_STATUS_SUCCESS;
 
 
-        error:
+    error:
         if (curl_handle) {
             curl_easy_cleanup(curl_handle);
         }
@@ -2487,7 +2519,8 @@ namespace mod_grpc {
             curl_easy_cleanup(sh->curl_handle);
         }
         tts_set_result(sh);
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "TTS prepare close, res code = %ld\n", sh->response_code);
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "TTS prepare close, res code = %ld\n",
+                          sh->response_code);
         if (sh->err) {
             free(sh->err);
         }
@@ -2515,7 +2548,7 @@ namespace mod_grpc {
                         body_start += strlen(double_newline);
                         size_t json_len = strlen(body_start);
                         if (json_len > 0) {
-                            sh->err = (char *)malloc(json_len + 1);
+                            sh->err = (char *) malloc(json_len + 1);
                             if (sh->err) {
                                 strcpy(sh->err, body_start);
                             }
@@ -2531,7 +2564,8 @@ namespace mod_grpc {
 
         if (sh->in_cache) {
             sh->response_code = 200;
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "no need to execute, it's in the cache %s\n", sh->path);
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "no need to execute, it's in the cache %s\n",
+                              sh->path);
             return SWITCH_STATUS_FALSE;
         }
 
@@ -2548,7 +2582,7 @@ namespace mod_grpc {
         FD_SET(sh->sockfd, &fdread);
 
         timeout.tv_sec = 0;
-        timeout.tv_usec = 10000;  // 10 мс
+        timeout.tv_usec = 10000; // 10 мс
 
         // Перевіряємо готовність сокета
         int rc = select(sh->sockfd + 1, &fdread, NULL, NULL, &timeout);
@@ -2562,18 +2596,24 @@ namespace mod_grpc {
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "TTS prepare receive: \n%s\n", buffer);
                 return SWITCH_STATUS_BREAK;
             } else {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare curl: %s\n", curl_easy_strerror(res));
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare curl: %s\n",
+                                  curl_easy_strerror(res));
             }
             // TODO for test DEV-5234
             if (errno == 9) {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "TTS prepare select, skip : %s\n", strerror(errno));
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "TTS prepare select, skip : %s\n",
+                                  strerror(errno));
                 sh->response_code = 200;
-            } else if (errno == 11 && sh->unavailable < 10) { // Resource temporarily unavailable
+            } else if (errno == 11 && sh->unavailable < 10) {
+                // Resource temporarily unavailable
                 sh->unavailable++;
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare select: Resource temporarily unavailable, generate silence, count=%d\n", sh->unavailable);
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                                  "TTS prepare select: Resource temporarily unavailable, generate silence, count=%d\n",
+                                  sh->unavailable);
                 goto silence;
             } else {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare select: %s [%d]\n", strerror(errno), errno);
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "TTS prepare select: %s [%d]\n",
+                                  strerror(errno), errno);
             }
             return SWITCH_STATUS_FALSE;
         } else if (rc == 0) {
@@ -2592,13 +2632,14 @@ namespace mod_grpc {
                 return SWITCH_STATUS_BREAK;
             } else if (res == CURLE_AGAIN) {
                 // Даних поки немає, повторіть спробу пізніше
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "the data is not yet available, we are waiting...\n");
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG,
+                                  "the data is not yet available, we are waiting...\n");
             } else {
                 switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "read error: %s\n", curl_easy_strerror(res));
                 return SWITCH_STATUS_FALSE;
             }
         }
-        silence:
+    silence:
 
         if (handle->samplerate > 0) {
             size_t frame_size = (handle->samplerate * 3) / 20; //  150 мс
@@ -2610,9 +2651,10 @@ namespace mod_grpc {
             return SWITCH_STATUS_FALSE; // Повертаємо помилку при некоректному samplerate
         }
 
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "prepare TTS send silence %ld channels %d\n", *len, handle->channels);
-        switch_generate_sln_silence((int16_t *) data, (uint32_t)*len, handle->channels,
-                                    sh->silence ? sh->silence : (uint32_t)-1);
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "prepare TTS send silence %ld channels %d\n", *len,
+                          handle->channels);
+        switch_generate_sln_silence((int16_t *) data, (uint32_t) *len, handle->channels,
+                                    sh->silence ? sh->silence : (uint32_t) -1);
 
         return SWITCH_STATUS_SUCCESS;
     }
@@ -2641,11 +2683,11 @@ namespace mod_grpc {
 
             if ((lsession = switch_core_session_locate(argv[0]))) {
                 if (!strcasecmp(argv[1], "stop")) {
-                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_INFO, "stop transcribing\n");
-                    {
+                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_INFO, "stop transcribing\n"); {
                         switch_channel_t *channel = switch_core_session_get_channel(lsession);
                         switch_media_bug_t *bug;
-                        if ((bug = static_cast<switch_media_bug_t *>(switch_channel_get_private(channel, "__wbt_stt__")))) {
+                        if ((bug = static_cast<switch_media_bug_t *>(
+                                 switch_channel_get_private(channel, "__wbt_stt__")))) {
                             switch_channel_set_private(channel, "__wbt_stt__", NULL);
                             switch_core_media_bug_remove(lsession, &bug);
                             status = SWITCH_STATUS_SUCCESS;
@@ -2653,7 +2695,7 @@ namespace mod_grpc {
                     }
                     // todo stop
                 } else if (!strcasecmp(argv[1], "start")) {
-                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_INFO, "start transcribing\n"); {
+                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_INFO, "start transcribing\n"); {
                         switch_channel_t *channel = switch_core_session_get_channel(lsession);
                         switch_media_bug_t *bug = nullptr;
                         switch_media_bug_flag_t flags = SMBF_READ_STREAM;
@@ -2683,7 +2725,7 @@ namespace mod_grpc {
 
                         ud = new mod_grpc::RecognizeStream;
                         ud->client_ = server_->AsyncRecognize(argv[2], lsession, model_rate,
-                                                                   imp.actual_samples_per_second, dialog_id);
+                                                              imp.actual_samples_per_second, dialog_id);
                         if (!ud->client_) {
                             switch_log_printf(
                                 SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_ERROR, "not found bot connection %s\n",
@@ -2699,8 +2741,8 @@ namespace mod_grpc {
                             ud->client_->Finish();
                             delete ud->client_;
                             switch_log_printf(
-                               SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_ERROR, "timeout connection %s\n",
-                               mycmd);
+                                SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_ERROR, "timeout connection %s\n",
+                                mycmd);
                             switch_core_session_rwunlock(lsession);
                             goto done;
                         };
@@ -2754,7 +2796,8 @@ namespace mod_grpc {
             if (config.heartbeat) {
                 heartbeat_interval = config.heartbeat;
                 wbt_state_handlers.on_init = wbt_tweaks_on_init;
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Use session heartbeat, %d seconds\n", heartbeat_interval);
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Use session heartbeat, %d seconds\n",
+                                  heartbeat_interval);
             }
             switch_core_add_state_handler(&wbt_state_handlers);
             SWITCH_ADD_API(api_interface, "wbt_version", "Show build version", version_api_function, "");
@@ -2762,26 +2805,29 @@ namespace mod_grpc {
             switch_console_set_complete("add uuid_wbt_stt ::console::list_uuid ");
 
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
-            SWITCH_ADD_APP(app_interface, "wbt_background", "wbt_background", "wbt_background", wbt_background, "", SAF_NONE);
-            SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "", SAF_NONE | SAF_SUPPORT_NOMEDIA);
-            SWITCH_ADD_APP(app_interface, "wbt_voice_bot", "wbt_voice_bot", "wbt_voice_bot", wbt_voice_bot_function2, "", SAF_NONE);
+            SWITCH_ADD_APP(app_interface, "wbt_background", "wbt_background", "wbt_background", wbt_background, "",
+                           SAF_NONE);
+            SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "",
+                           SAF_NONE | SAF_SUPPORT_NOMEDIA);
+            SWITCH_ADD_APP(app_interface, "wbt_voice_bot", "wbt_voice_bot", "wbt_voice_bot", wbt_voice_bot_function2,
+                           "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer",
                            wbt_blind_transfer_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_queue_playback", "wbt_queue_playback", "wbt_queue_playback",
                            wbt_queue_playback_function, "", SAF_NONE);
             SWITCH_ADD_APP(
-                    app_interface,
-                    BUG_STREAM_NAME,
-                    BUG_STREAM_NAME,
-                    BUG_STREAM_NAME,
-                    wbt_amd_function,
-                    WBT_AMD_SYNTAX,
-                    SAF_NONE);
+                app_interface,
+                BUG_STREAM_NAME,
+                BUG_STREAM_NAME,
+                BUG_STREAM_NAME,
+                wbt_amd_function,
+                WBT_AMD_SYNTAX,
+                SAF_NONE);
 
             switch_event_reserve_subclass("SWITCH_EVENT_CUSTOM::" EVENT_NAME);
 
             file_interface = static_cast<switch_file_interface_t *>(switch_loadable_module_create_interface(
-                    *module_interface, SWITCH_FILE_INTERFACE));
+                *module_interface, SWITCH_FILE_INTERFACE));
             file_interface->interface_name = modname;
             file_interface->extens = wbt_cache_supported_formats;
             file_interface->file_open = silence_stream_file_open;
@@ -2791,7 +2837,8 @@ namespace mod_grpc {
             server_ = new ServerImpl(config);
 
             server_->Run();
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed FCM=%d APN=%d\n", server_->UseFCM(), server_->UseAPN());
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Module loaded completed FCM=%d APN=%d\n",
+                              server_->UseFCM(), server_->UseAPN());
             return SWITCH_STATUS_SUCCESS;
         } catch (std::string &err) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module: %s\n",
@@ -2801,11 +2848,11 @@ namespace mod_grpc {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module: %s\n",
                               ex.what());
             return SWITCH_STATUS_GENERR;
-        } catch (...) { // Exceptions must not propogate to C caller
+        } catch (...) {
+            // Exceptions must not propogate to C caller
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error loading GRPC module\n");
             return SWITCH_STATUS_GENERR;
         }
-
     }
 
     SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_grpc_shutdown) {
@@ -2819,7 +2866,8 @@ namespace mod_grpc {
         } catch (std::exception &ex) {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Error shutting down GRPC module: %s\n",
                               ex.what());
-        } catch (...) { // Exceptions must not propogate to C caller
+        } catch (...) {
+            // Exceptions must not propogate to C caller
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
                               "Unknown error shutting down GRPC module\n");
         }

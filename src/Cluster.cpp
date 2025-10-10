@@ -11,11 +11,9 @@
 #define CHECK_PATH "/v1/agent/check/pass/service:"
 
 namespace mod_grpc {
-
     template<typename Function>
     void Timer::setTimeout(Function function, int interval) {
-        stop();
-        {
+        stop(); {
             auto locked = std::unique_lock<std::mutex>(mutex);
             stopped = false;
         }
@@ -34,15 +32,14 @@ namespace mod_grpc {
         });
     }
 
-    void Timer::stop() {
-        {
+    void Timer::stop() { {
             auto locked = std::unique_lock<std::mutex>(mutex);
             stopped = true;
         }
 
         terminate.notify_one();
 
-        if(thread.joinable()) {
+        if (thread.joinable()) {
             thread.join();
         }
     }
@@ -51,16 +48,16 @@ namespace mod_grpc {
         stop();
     }
 
-    Cluster::Cluster(const std::string &server, const std::string &address, const int &port, const int &ttl, const int &deregister_ttl) : address_(address), port_(port) {
-
+    Cluster::Cluster(const std::string &server, const std::string &address, const int &port, const int &ttl,
+                     const int &deregister_ttl) : address_(address), port_(port) {
         timer_ = new Timer();
         id_ = std::string(switch_core_get_switchname());
 
         cm = new CallManager();
 
-        register_uri =  server + REGISTER_PATH;
-        deregister_uri =  server + UN_REGISTER_PATH;
-        check_uri =  server + CHECK_PATH + id_;
+        register_uri = server + REGISTER_PATH;
+        deregister_uri = server + UN_REGISTER_PATH;
+        check_uri = server + CHECK_PATH + id_;
 
         registerService(ttl, deregister_ttl);
     }
@@ -72,8 +69,8 @@ namespace mod_grpc {
     }
 
     void Cluster::registerService(const int &ttl_s, const int &deregister_ttl) {
-
-        std::string body = R"({"Name" : ")" + std::string(SERVICE_NAME) + R"(", "ID": ")" + id_ + R"(", "Address": ")" + address_ +
+        std::string body = R"({"Name" : ")" + std::string(SERVICE_NAME) + R"(", "ID": ")" + id_ + R"(", "Address": ")" +
+                           address_ +
                            R"(", "Port": )" + std::to_string(port_) + ","
                            "\"Check\": {\"DeregisterCriticalServiceAfter\": \"" + std::to_string(deregister_ttl) +
                            R"(s","TTL": ")" + std::to_string(ttl_s) + "s\"}" + "}";
@@ -99,13 +96,13 @@ namespace mod_grpc {
     }
 
     static long sendRequest(const char *uri, const char *body) {
-        switch_CURL  *cli = switch_curl_easy_init();
+        switch_CURL *cli = switch_curl_easy_init();
         long response_code = -1;
 
         if (cli) {
             switch_CURLcode res;
             switch_curl_slist_t *headers = nullptr;
-            switch_curl_easy_setopt(cli, CURLOPT_URL,  uri);
+            switch_curl_easy_setopt(cli, CURLOPT_URL, uri);
             headers = switch_curl_slist_append(headers, "Content-Type: application/json");
             switch_curl_easy_setopt(cli, CURLOPT_HTTPHEADER, headers);
 
@@ -119,7 +116,7 @@ namespace mod_grpc {
             }
 
             res = switch_curl_easy_perform(cli);
-            if(res == CURLE_OK) {
+            if (res == CURLE_OK) {
                 curl_easy_getinfo(cli, CURLINFO_RESPONSE_CODE, &response_code);
             }
 
@@ -129,5 +126,4 @@ namespace mod_grpc {
 
         return response_code;
     }
-
 }

@@ -21,7 +21,6 @@ extern "C" {
 
 
 namespace mod_grpc {
-
     struct PushData {
         std::string call_id;
         std::string from_number;
@@ -34,12 +33,13 @@ namespace mod_grpc {
 
     class PushClient {
     public:
-        PushClient(const std::string& endpoint) {
-            this->client = ::engine::PushService::NewStub(grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials()));
-
+        PushClient(const std::string &endpoint) {
+            this->client = ::engine::PushService::NewStub(
+                grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials()));
         }
 
-        int Send(std::vector<std::string> &android, std::vector<std::string> &apple, switch_core_session_t *session, int ttl, PushData *d) {
+        int Send(std::vector<std::string> &android, std::vector<std::string> &apple, switch_core_session_t *session,
+                 int ttl, PushData *d) {
             grpc::ClientContext context;
             ::engine::SendPushResponse res;
             ::engine::SendPushRequest req;
@@ -88,7 +88,8 @@ namespace mod_grpc {
 
             auto status = this->client->SendPush(&context, req, &res);
             if (!status.ok()) {
-                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "push request error: %s [%d]\n",
+                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+                                  "push request error: %s [%d]\n",
                                   status.error_message().c_str(), status.error_code());
             }
 
@@ -98,8 +99,9 @@ namespace mod_grpc {
         ~PushClient() {
             this->client.reset();
         }
+
     private:
-        std::unique_ptr<::engine::PushService::Stub>  client;
+        std::unique_ptr<::engine::PushService::Stub> client;
     };
 }
 

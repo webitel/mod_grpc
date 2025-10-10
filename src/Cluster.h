@@ -28,8 +28,10 @@ namespace mod_grpc {
         std::condition_variable terminate;
 
         void stop();
+
     public:
         ~Timer();
+
         template<typename Function>
         void setTimeout(Function function, int interval);
     };
@@ -46,15 +48,19 @@ namespace mod_grpc {
         std::string check_uri;
 
         void ttl();
+
         void registerService(const int &ttl, const int &deregister_ttl);
+
         void unregisterService();
 
         CallManager *cm;
+
     public:
-        explicit Cluster(const std::string &server, const std::string &address, const int &port, const int &ttl, const int &deregister_ttl);
+        explicit Cluster(const std::string &server, const std::string &address, const int &port, const int &ttl,
+                         const int &deregister_ttl);
+
         ~Cluster();
     };
-
 }
 
 

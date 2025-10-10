@@ -47,10 +47,13 @@ extern "C" {
 
 #define get_str(c) c ? std::string(c) : std::string()
 
-enum CallActions { Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup, Eavesdrop, Heartbeat, Transcript };
+enum CallActions {
+    Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup,
+    Eavesdrop, Heartbeat, Transcript
+};
 
 //TODO
-static const char* callEventStr(CallActions e) {
+static const char *callEventStr(CallActions e) {
     switch (e) {
         case Ringing:
             return "ringing";
@@ -128,7 +131,8 @@ public:
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_ID, uuid_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_NODE_NAME, node_.c_str());
         switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DOMAIN_ID, domain_id_.c_str());
-        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_TIMESTAMP, std::to_string(mod_grpc::unixTimestamp()).c_str());
+        switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_TIMESTAMP,
+                                       std::to_string(mod_grpc::unixTimestamp()).c_str());
 
         if (!user_id_.empty()) {
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_USER_ID, user_id_.c_str());
@@ -171,7 +175,9 @@ public:
         cJSON *arr = cJSON_CreateArray();
         if (e->idx) {
             for (int i = 0; i < e->idx; i++) {
-                cJSON_AddItemToArray(arr, number ? cJSON_CreateNumber(std::atof(e->array[i])) : cJSON_CreateString(e->array[i]));
+                cJSON_AddItemToArray(arr, number
+                                              ? cJSON_CreateNumber(std::atof(e->array[i]))
+                                              : cJSON_CreateString(e->array[i]));
             }
         } else if (e->value) {
             cJSON_AddItemToArray(arr, number ? cJSON_CreateNumber(std::atof(e->value)) : cJSON_CreateString(e->value));
@@ -179,17 +185,20 @@ public:
         addAttribute(var_name, arr);
     }
 
-    void notifyEavesdropPartner(const std::string& type) {
+    void notifyEavesdropPartner(const std::string &type) {
         auto agentCallId = event_->getVar("variable_wbt_eavesdrop_agent_id");
         if (!agentCallId.empty()) {
             switch_core_session_t *other_session;
             other_session = switch_core_session_locate(agentCallId.c_str());
             if (other_session) {
                 switch_event_t *other_event;
-                if (switch_event_create_subclass(&other_event, SWITCH_EVENT_CUSTOM, EAVESDROP_EVENT_NAME) == SWITCH_STATUS_SUCCESS) {
+                if (switch_event_create_subclass(&other_event, SWITCH_EVENT_CUSTOM,
+                                                 EAVESDROP_EVENT_NAME) == SWITCH_STATUS_SUCCESS) {
                     switch_channel_event_set_data(switch_core_session_get_channel(other_session), other_event);
-                    switch_event_add_header_string(other_event, SWITCH_STACK_BOTTOM, "variable_" WBT_EAVESDROP_STATE, eavesdropStateName().c_str());
-                    switch_event_add_header_string(other_event, SWITCH_STACK_BOTTOM, "variable_wbt_eavesdrop_type", type.c_str());
+                    switch_event_add_header_string(other_event, SWITCH_STACK_BOTTOM, "variable_" WBT_EAVESDROP_STATE,
+                                                   eavesdropStateName().c_str());
+                    switch_event_add_header_string(other_event, SWITCH_STACK_BOTTOM, "variable_wbt_eavesdrop_type",
+                                                   type.c_str());
                 }
                 switch_core_session_rwunlock(other_session);
 
@@ -207,7 +216,7 @@ public:
             b = cJSON_PrintUnformatted(body_);
             switch_event_add_header_string(out, SWITCH_STACK_BOTTOM, HEADER_NAME_DATA, b);
         }
-//        DUMP_EVENT(out)
+        //        DUMP_EVENT(out)
         switch_event_fire(&out);
         if (b) {
             cJSON_free(b);
@@ -220,9 +229,11 @@ protected:
         explicit Event(switch_event_t *e) {
             e_ = e;
         }
+
         ~Event() {
             e_ = nullptr;
         }
+
         inline std::string getVar(const char *name) {
             return get_str(switch_event_get_header(e_, name));
         }
@@ -253,7 +264,7 @@ protected:
         bool DisableStun;
     };
 
-    static cJSON* toJson(CallEndpoint *e) {
+    static cJSON *toJson(CallEndpoint *e) {
         auto j = cJSON_CreateObject();
         cJSON_AddItemToObject(j, "type", cJSON_CreateString(e->type.c_str()));
         cJSON_AddItemToObject(j, "number", cJSON_CreateString(e->number.c_str()));
@@ -262,7 +273,7 @@ protected:
         return j;
     }
 
-    static cJSON* toJson(OutboundCallParameters *e) {
+    static cJSON *toJson(OutboundCallParameters *e) {
         auto j = cJSON_CreateObject();
         cJSON_AddItemToObject(j, "video", e->Video ? cJSON_CreateTrue() : cJSON_CreateFalse());
         cJSON_AddItemToObject(j, "screen", e->Screen ? cJSON_CreateTrue() : cJSON_CreateFalse());
@@ -370,8 +381,8 @@ protected:
         }
 
         auto contact = event_->getVar("variable_wbt_contact_id");
-        if (!contact.empty()){
-            addAttribute("contact_id", std::stoi( contact ));
+        if (!contact.empty()) {
+            addAttribute("contact_id", std::stoi(contact));
         }
     }
 
@@ -385,7 +396,7 @@ protected:
         auto logicalDirection = event_->getVar("Call-Direction");
         auto isOriginate = isOriginateRequest();
 
-        if (info.direction == "internal" ){
+        if (info.direction == "internal") {
             info.direction = logicalDirection == "outbound" && !isOriginate ? "inbound" : "outbound";
         }
 
@@ -423,18 +434,18 @@ protected:
                 info.to->number = event_->getVar("variable_wbt_to_number");
                 info.to->type = toType;
             }
-        } else if ( !gateway.empty() && user.empty()) {
+        } else if (!gateway.empty() && user.empty()) {
             addAttribute(HEADER_NAME_GATEWAY_ID, static_cast<double>(std::stoi(gateway)));
             if (info.direction == "inbound") {
                 info.from->type = "dest";
                 info.from->name = event_->getVar("Caller-Caller-ID-Name");
                 info.from->number = event_->getVar("Caller-Caller-ID-Number");
 
-//                info.to = new CallEndpoint;
-//                info.to->type = "gateway";
-//                info.to->id = gateway;
-//                info.to->name = event_->getVar("variable_sip_h_X-Webitel-Gateway");
-//                info.to->number = event_->getVar("Caller-Caller-ID-Number");
+                //                info.to = new CallEndpoint;
+                //                info.to->type = "gateway";
+                //                info.to->id = gateway;
+                //                info.to->name = event_->getVar("variable_sip_h_X-Webitel-Gateway");
+                //                info.to->number = event_->getVar("Caller-Caller-ID-Number");
             } else {
                 info.from->id = event_->getVar("variable_wbt_from_id");
                 info.from->number = event_->getVar("variable_wbt_from_number");
@@ -504,11 +515,11 @@ protected:
         addIfExists(body_, "sip_id", "variable_sip_h_X-Webitel-Uuid");
         auto grantee = get_str(switch_event_get_header(e_, "variable_wbt_grantee_id"));
         if (!grantee.empty()) {
-            addAttribute("grantee_id", std::stoi( grantee ));
+            addAttribute("grantee_id", std::stoi(grantee));
         }
     }
 
-    void addIfExists(cJSON *cj, const char *name, const char *varName ) {
+    void addIfExists(cJSON *cj, const char *name, const char *varName) {
         auto tmp = get_str(switch_event_get_header(e_, varName));
         if (!tmp.empty()) {
             cJSON_AddItemToObject(cj, name, cJSON_CreateString(tmp.c_str()));
@@ -527,8 +538,7 @@ protected:
         cj = cJSON_CreateObject();
 
         for (hp = event->headers; hp; hp = hp->next) {
-
-            if (!prefix("variable_cc_", hp->name) ) {
+            if (!prefix("variable_cc_", hp->name)) {
                 continue;
             }
             found = true;
@@ -540,12 +550,11 @@ protected:
                 cJSON *a = cJSON_CreateArray();
                 int i;
 
-                for(i = 0; i < hp->idx; i++) {
+                for (i = 0; i < hp->idx; i++) {
                     cJSON_AddItemToArray(a, cJSON_CreateString(hp->array[i]));
                 }
 
                 cJSON_AddItemToObject(cj, name.c_str(), a);
-
             } else {
                 cJSON_AddItemToObject(cj, name.c_str(), cJSON_CreateString(hp->value));
             }
@@ -556,7 +565,7 @@ protected:
         }
     }
 
-    void setVariables (const char *pref, const char *fieldName, switch_event_t *event) {
+    void setVariables(const char *pref, const char *fieldName, switch_event_t *event) {
         switch_event_header_t *hp;
         cJSON *cj;
         const size_t len = strlen(pref);
@@ -565,8 +574,7 @@ protected:
         cj = cJSON_CreateObject();
 
         for (hp = event->headers; hp; hp = hp->next) {
-
-            if (!prefix(pref, hp->name) ) {
+            if (!prefix(pref, hp->name)) {
                 continue;
             }
             found = true;
@@ -578,12 +586,11 @@ protected:
                 cJSON *a = cJSON_CreateArray();
                 int i;
 
-                for(i = 0; i < hp->idx; i++) {
+                for (i = 0; i < hp->idx; i++) {
                     cJSON_AddItemToArray(a, cJSON_CreateString(hp->array[i]));
                 }
 
                 cJSON_AddItemToObject(cj, name.c_str(), a);
-
             } else {
                 cJSON_AddItemToObject(cj, name.c_str(), cJSON_CreateString(hp->value));
             }
@@ -595,17 +602,18 @@ protected:
         } else {
             cJSON_Delete(cj);
         }
-
     }
 };
 
 
-template <CallActions F> class CallEvent {
+template<CallActions F>
+class CallEvent {
 public:
     CallEvent() = default;
 };
 
-template <> class CallEvent<Ringing> : public BaseCallEvent {
+template<>
+class CallEvent<Ringing> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Ringing, e) {
         setOnCreateAttr();
@@ -623,7 +631,7 @@ public:
         auto wbt_heartbeat = event_->getVar("variable_wbt_heartbeat");
         if (!wbt_heartbeat.empty()) {
             int sec = 0;
-            sscanf( wbt_heartbeat.c_str(), "%d", &sec );
+            sscanf(wbt_heartbeat.c_str(), "%d", &sec);
             if (sec) {
                 addAttribute("heartbeat", sec);
             }
@@ -642,7 +650,7 @@ public:
 
         setVariables("variable_usr_", "payload", e_);
 
-        if ( auto t = switch_event_get_header(e, "variable_usr_wbt_ivr_log")) {
+        if (auto t = switch_event_get_header(e, "variable_usr_wbt_ivr_log")) {
             auto j = cJSON_Parse(t);
             if (j) {
                 cJSON_AddItemToObject(body_, "ivr", j);
@@ -659,10 +667,10 @@ public:
             setCallParameters(body_, &params);
         }
     };
-
 };
 
-template <> class CallEvent<Active> : public BaseCallEvent {
+template<>
+class CallEvent<Active> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Active, e) {
         auto eavesdrop = event_->getVar("variable_wbt_eavesdrop_type");
@@ -672,7 +680,8 @@ public:
     };
 };
 
-template <> class CallEvent<Bridge> : public BaseCallEvent {
+template<>
+class CallEvent<Bridge> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Bridge, e) {
         auto direction = event_->getVar("variable_sip_h_X-Webitel-Direction");
@@ -682,7 +691,7 @@ public:
             signalBond = event_->getVar("Other-Leg-Unique-ID");
         }
 
-        if (direction == "internal" ){
+        if (direction == "internal") {
             direction = logicalDirection == "outbound" ? "inbound" : "outbound";
         }
         //fixme: hold ui!!!
@@ -690,13 +699,13 @@ public:
         initContact();
         setVariables("variable_usr_", "payload", e_);
 
-//        DUMP_EVENT(e);
+        //        DUMP_EVENT(e);
 
-//        auto to = new CallEndpoint;
-//        to->number = event_->getVar("Caller-Callee-ID-Number");
-//        to->name = event_->getVar("Caller-Callee-ID-Name");
+        //        auto to = new CallEndpoint;
+        //        to->number = event_->getVar("Caller-Callee-ID-Number");
+        //        to->name = event_->getVar("Caller-Callee-ID-Name");
         auto to = new CallEndpoint;
-        if (signalBond == uuid_ ) {
+        if (signalBond == uuid_) {
             to->number = event_->getVar("Caller-Caller-ID-Number");
             to->name = event_->getVar("Caller-Caller-ID-Name");
         } else {
@@ -719,43 +728,46 @@ public:
     };
 };
 
-template <> class CallEvent<Hold> : public BaseCallEvent {
+template<>
+class CallEvent<Hold> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Hold, e) {
-
     };
 };
 
-template <> class CallEvent<Voice> : public BaseCallEvent {
+template<>
+class CallEvent<Voice> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Voice, e) {
-
     };
 };
 
-template <> class CallEvent<Silence> : public BaseCallEvent {
+template<>
+class CallEvent<Silence> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Silence, e) {
-
     };
 };
 
-template <> class CallEvent<DTMF> : public BaseCallEvent {
+template<>
+class CallEvent<DTMF> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(DTMF, e) {
-        auto digit =  get_str(switch_event_get_header(e, "DTMF-Digit"));
+        auto digit = get_str(switch_event_get_header(e, "DTMF-Digit"));
         addAttribute(HEADER_NAME_DTMF_DIGIT, digit);
     };
 };
 
-template <> class CallEvent<Update> : public BaseCallEvent {
+template<>
+class CallEvent<Update> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Update, e) {
         std::cout << "Update" << this->uuid_ << std::endl;
     };
 };
 
-template <> class CallEvent<Hangup> : public BaseCallEvent {
+template<>
+class CallEvent<Hangup> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Hangup, e) {
         auto cause_ = get_str(switch_event_get_header(e, "variable_hangup_cause"));
@@ -768,7 +780,7 @@ public:
         auto wbt_transfer_from_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_from_attempt"));
         auto wbt_transfer_to_attempt = get_str(switch_event_get_header(e, "variable_wbt_transfer_to_attempt"));
         auto wbt_talk_sec = get_str(switch_event_get_header(e, "variable_wbt_talk_sec"));
-        auto wbt_amd = get_str(switch_event_get_header(e, "variable_"  WBT_AMD_AI));
+        auto wbt_amd = get_str(switch_event_get_header(e, "variable_" WBT_AMD_AI));
         auto skip_cdr = switch_false(switch_event_get_header(e, "variable_" SKIP_EVENT_VARIABLE));
         auto sip_hangup_phrase = get_str(switch_event_get_header(e, "variable_sip_hangup_phrase"));
         if (sip_hangup_phrase.empty()) {
@@ -780,7 +792,8 @@ public:
         if (cause_ == "ATTENDED_TRANSFER" && wbt_transfer_from.empty() && !variable_last_bridge_to.empty()) {
             auto session = switch_core_session_locate(variable_last_bridge_to.c_str());
             if (session) {
-                wbt_transfer_from = get_str(switch_channel_get_variable(switch_core_session_get_channel(session), "bridge_uuid"));
+                wbt_transfer_from = get_str(
+                    switch_channel_get_variable(switch_core_session_get_channel(session), "bridge_uuid"));
                 switch_core_session_rwunlock(session);
             }
         }
@@ -790,7 +803,7 @@ public:
             notifyEavesdropPartner("leave");
         }
 
-//        DUMP_EVENT(e);
+        //        DUMP_EVENT(e);
         if (skip_cdr) {
             addAttribute("cdr", false);
         }
@@ -847,7 +860,7 @@ public:
             addAttribute("hangup_by", parent_ ? "A" : "B");
         }
 
-//        DUMP_EVENT(e)
+        //        DUMP_EVENT(e)
 
         if (cc_reporting_at_) {
             addAttribute("reporting_at", cc_reporting_at_);
@@ -862,7 +875,7 @@ public:
         int num = 0;
 
         if (!sip_code_.empty()) {
-            sscanf( sip_code_.c_str(), "sip:%d", &num );
+            sscanf(sip_code_.c_str(), "sip:%d", &num);
         } else {
             sip_code_ = get_str(switch_event_get_header(e, "variable_sip_invite_failure_status"));
             if (sip_code_.empty()) {
@@ -870,7 +883,7 @@ public:
             }
 
             if (!sip_code_.empty()) {
-                sscanf( sip_code_.c_str(), "%d", &num );
+                sscanf(sip_code_.c_str(), "%d", &num);
             }
         }
 
@@ -893,7 +906,7 @@ public:
         if (!wbt_amd.empty()) {
             auto positive = get_str(switch_event_get_header(e, "variable_" WBT_AMD_AI_POSITIVE));
             addAttribute("amd_ai_result", wbt_amd);
-            addAttribute( "amd_ai_positive", positive == "true");
+            addAttribute("amd_ai_positive", positive == "true");
             hp = switch_event_get_header_ptr(e, "variable_" WBT_AMD_AI_LOG);
             if (hp) {
                 addArrayValue(hp, "amd_ai_logs", false);
@@ -906,7 +919,8 @@ public:
     };
 };
 
-template <> class CallEvent<Execute> : public BaseCallEvent {
+template<>
+class CallEvent<Execute> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Execute, e) {
         auto app_ = get_str(switch_event_get_header(e, "Application"));
@@ -914,31 +928,34 @@ public:
     };
 };
 
-template <> class CallEvent<JoinQueue> : public BaseCallEvent {
+template<>
+class CallEvent<JoinQueue> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(JoinQueue, e) {
         set_queue_data(e);
     };
 };
 
-template <> class CallEvent<LeavingQueue> : public BaseCallEvent {
+template<>
+class CallEvent<LeavingQueue> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(LeavingQueue, e) {
-
     };
 };
 
-template <> class CallEvent<AMD> : public BaseCallEvent {
+template<>
+class CallEvent<AMD> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(AMD, e) {
-        addIfExists(body_, "ai_result", "variable_"  WBT_AMD_AI);
-        addIfExists(body_, "ai_error", "variable_"  WBT_AMD_AI_ERROR);
+        addIfExists(body_, "ai_result", "variable_" WBT_AMD_AI);
+        addIfExists(body_, "ai_error", "variable_" WBT_AMD_AI_ERROR);
         addIfExists(body_, "result", "variable_amd_result");
         addIfExists(body_, "cause", "variable_amd_cause");
     };
 };
 
-template <> class CallEvent<Eavesdrop> : public BaseCallEvent {
+template<>
+class CallEvent<Eavesdrop> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Eavesdrop, e) {
         auto state = eavesdropStateName();
@@ -948,19 +965,20 @@ public:
     };
 };
 
-template <> class CallEvent<Heartbeat> : public BaseCallEvent {
+template<>
+class CallEvent<Heartbeat> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Heartbeat, e) {
-
     };
 };
 
-template <> class CallEvent<Transcript> : public BaseCallEvent {
+template<>
+class CallEvent<Transcript> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Transcript, e) {
-        const char* tjson = switch_event_get_body(e);
+        const char *tjson = switch_event_get_body(e);
         if (tjson) {
-            cJSON  *json = cJSON_Parse(tjson);
+            cJSON *json = cJSON_Parse(tjson);
             addAttribute("transcript", json);
         }
     };

@@ -29,7 +29,6 @@ public:
             // mutex ?
             dataReady = true;
         });
-
     };
 
     bool Finished() const {
@@ -72,13 +71,13 @@ public:
     std::thread rt;
 
     bool dataReady = false;
-    std::unique_ptr<::grpc::ClientReaderWriter<::amd::StreamPCMRequest, amd::StreamPCMResponse>> rw;
+    std::unique_ptr<::grpc::ClientReaderWriter<::amd::StreamPCMRequest, amd::StreamPCMResponse> > rw;
 };
 
 class AMDClient {
 public:
     explicit AMDClient(std::shared_ptr<grpc::Channel> channel)
-            : stub_(::amd::Api::NewStub(channel)) {
+        : stub_(::amd::Api::NewStub(channel)) {
     }
 
     ~AMDClient() {

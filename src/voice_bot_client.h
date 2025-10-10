@@ -53,12 +53,13 @@ public:
                                        out_rate,
                                        channel_rate,
                                        320, SWITCH_RESAMPLE_QUALITY, 1);
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "resample reader from %d to %d\n", out_rate, channel_rate);
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "resample reader from %d to %d\n", out_rate,
+                                  channel_rate);
             }
 
             while (rw->Read(&reply)) {
                 const auto &chunk = reply.audio_data();
-                static const int MAX_CHUNK_SIZE = 13*8024;
+                static const int MAX_CHUNK_SIZE = 13 * 8024;
 
                 if (chunk.size() > MAX_CHUNK_SIZE) {
                     switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "skip chunk %ld, size > %d\n",
@@ -111,7 +112,6 @@ public:
     };
 
     bool Finish() {
-
         context.TryCancel();
         rw->WritesDone();
         auto status = rw->Finish();
@@ -138,9 +138,9 @@ public:
             ::ai_bots::ConverseRequest req;
             auto input = req.mutable_input();
             input->set_audio_data(send_buffer.data(), send_buffer.size());
-//            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::Write\n");
+            //            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::Write\n");
             ok = rw->Write(req);
-//            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::WriteEnd\n");
+            //            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AiClientCall::WriteEnd\n");
             audio_buffer.erase(audio_buffer.begin(), audio_buffer.begin() + target_frame_size);
         }
         return ok;
@@ -200,13 +200,13 @@ public:
     int32_t model_rate;
     int32_t channel_rate;
 
-    std::unique_ptr<::grpc::ClientReaderWriter<::ai_bots::ConverseRequest, ai_bots::ConverseResponse>> rw;
+    std::unique_ptr<::grpc::ClientReaderWriter<::ai_bots::ConverseRequest, ai_bots::ConverseResponse> > rw;
 };
 
 class RecognizeCall {
-    public:
+public:
     RecognizeCall(std::string dialogId, int32_t _out_rate, int32_t channel_rate_,
-                          std::unique_ptr<::ai_bots::ConverseService::Stub> &stub_) {
+                  std::unique_ptr<::ai_bots::ConverseService::Stub> &stub_) {
         out_rate = _out_rate;
         channel_rate = channel_rate_;
         id = std::move(dialogId);
@@ -251,7 +251,7 @@ class RecognizeCall {
         ::ai_bots::RecognizeRequest req;
         auto input = req.mutable_input();
         input->set_audio_data(data, datalen);
-        return  rw->Write(req);
+        return rw->Write(req);
     }
 
     inline bool Write(void *data, uint32_t len) {
@@ -284,12 +284,10 @@ class RecognizeCall {
                 if (reply.is_final()) {
                     break;
                 }
-
             }
 
             setBreak();
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "close reader\n");
-
         });
 
         std::unique_lock<std::mutex> lock(readyMutex);
@@ -298,7 +296,6 @@ class RecognizeCall {
         });
 
         return ready;
-
     };
 
     bool Finish() {
@@ -315,12 +312,13 @@ class RecognizeCall {
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "finish\n");
         return true;
     }
+
     int32_t out_rate;
     int32_t channel_rate;
     bool interrupted = false;
 
 private:
-    std::unique_ptr<::grpc::ClientReaderWriter<::ai_bots::RecognizeRequest, ai_bots::RecognizeResponse>> rw;
+    std::unique_ptr<::grpc::ClientReaderWriter<::ai_bots::RecognizeRequest, ai_bots::RecognizeResponse> > rw;
     grpc::ClientContext context;
     std::mutex stopMutex;
     bool isBreak = false;
@@ -377,7 +375,6 @@ public:
         }
         return call;
     }
-
 
 private:
     std::shared_ptr<grpc::Channel> channel;

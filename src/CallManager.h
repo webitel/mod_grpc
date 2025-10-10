@@ -13,10 +13,10 @@ extern "C" {
 #include "Call.h"
 
 namespace mod_grpc {
-
     class CallManager {
     public:
         explicit CallManager();
+
         ~CallManager();
 
     protected:
