@@ -25,6 +25,8 @@ mod_grpc::CallManager::CallManager() {
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, AMD_EVENT_NAME, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, EAVESDROP_EVENT_NAME, CallManager::handle_call_event,
                       nullptr);
+    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, WBT_UPDATE_EVENT_NAME, CallManager::handle_call_event,
+                      nullptr);
     auto status = switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CUSTOM, TRANSCRIBE_EVENT_END_OF_TRANSCRIPT,
                                     CallManager::handle_call_event, nullptr);
     if (status != SWITCH_STATUS_SUCCESS) {
@@ -176,6 +178,8 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                     } else if (strcmp(action, "exit") == 0) {
                         CallEvent<LeavingQueue>(event).fire();
                     }
+                } else if (strcmp(WBT_UPDATE_EVENT_NAME, event->subclass_name) == 0) {
+                    CallEvent<Update>(event).fire();
                 } else {
                     switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "Unhandled custom event: %s\n",
                                       event->subclass_name);

@@ -2241,6 +2241,11 @@ namespace mod_grpc {
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_CRIT, "BLIND TRANSFER\n");
     }
 
+    SWITCH_STANDARD_APP(wbt_update_call_function) {
+        auto channel = switch_core_session_get_channel(session);
+        // todo - set var ?
+        fire_event(channel, WBT_UPDATE_EVENT_NAME);
+    }
 
     static switch_bool_t wbt_ai_cast_callback(switch_media_bug_t *bug, void *user_data, switch_abc_type_t type) {
         switch_buffer_t *buffer = (switch_buffer_t *) user_data;
@@ -2809,6 +2814,8 @@ namespace mod_grpc {
                            SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_send_hook", "wbt_send_hook", "wbt_send_hook", wbr_send_hook_function, "",
                            SAF_NONE | SAF_SUPPORT_NOMEDIA);
+            SWITCH_ADD_APP(app_interface, "wbt_update_call", "wbt_update_call", "wbt_update_call", wbt_update_call_function, "",
+               SAF_NONE | SAF_SUPPORT_NOMEDIA);
             SWITCH_ADD_APP(app_interface, "wbt_voice_bot", "wbt_voice_bot", "wbt_voice_bot", wbt_voice_bot_function2,
                            "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_blind_transfer", "wbt_blind_transfer", "wbt_blind_transfer",

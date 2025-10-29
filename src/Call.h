@@ -44,6 +44,7 @@ extern "C" {
 #define WBT_AMD_AI_ERROR  "wbt_amd_ai_error"
 #define WBT_AMD_AI_POSITIVE  "wbt_amd_ai_positive"
 #define WBT_EAVESDROP_STATE  "wbt_eavesdrop_state"
+#define WBT_UPDATE_EVENT_NAME  "wbt::update"
 
 #define get_str(c) c ? std::string(c) : std::string()
 
@@ -762,7 +763,15 @@ template<>
 class CallEvent<Update> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Update, e) {
-        std::cout << "Update" << this->uuid_ << std::endl;
+        if (event_->getVar("variable_wbt_hide_number") == "true") {
+            addAttribute("hideNumber", true);
+        }
+
+        if (event_->getVar("variable_wbt_record_screen") == "true") {
+            addAttribute("record_screen", true);
+        }
+        setVariables("variable_usr_", "payload", e_);
+        set_queue_data(e);
     };
 };
 
