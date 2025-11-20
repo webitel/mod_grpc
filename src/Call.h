@@ -520,6 +520,19 @@ protected:
         }
     }
 
+    void setVideoMediaFlow() {
+        auto video = event_->getVar("variable_video_media_flow");
+        if (video.empty()) {
+            video = event_->getVar("variable_wbt_video_flow");
+        }
+
+        if (!video.empty()) {
+            addAttribute("video", video);
+        }
+
+        addIfExists(body_, "remote_video", "variable_remote_video_media_flow");
+    }
+
     void addIfExists(cJSON *cj, const char *name, const char *varName) {
         auto tmp = get_str(switch_event_get_header(e_, varName));
         if (!tmp.empty()) {
@@ -667,6 +680,8 @@ public:
             auto params = getCallParams();
             setCallParameters(body_, &params);
         }
+
+        setVideoMediaFlow();
     };
 };
 
@@ -678,6 +693,8 @@ public:
         if (!eavesdrop.empty()) {
             notifyEavesdropPartner("joined");
         }
+
+        setVideoMediaFlow();
     };
 };
 
@@ -726,6 +743,8 @@ public:
         if (!signalBond.empty()) {
             addAttribute("bridged_id", signalBond);
         }
+
+        setVideoMediaFlow();
     };
 };
 
