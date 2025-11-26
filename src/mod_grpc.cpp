@@ -1676,6 +1676,7 @@ namespace mod_grpc {
                     }
 
                     if (ud->client_) {
+                        switch_channel_set_variable(ud->channel, "wbt_stt_final", "true");
                         if (ud->client_->interrupted) {
                             switch_log_printf(
                                 SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_DEBUG,
