@@ -1755,6 +1755,8 @@ namespace mod_grpc {
                                     switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_INFO,
                                                       "break talking... timeout silence %d\n", ud->silence_ms);
 
+                                    switch_channel_set_variable_printf(switch_core_session_get_channel(ud->session), "wbt_stt_error", "vad_break");
+
 
                                     switch_channel_t *channel = switch_core_session_get_channel(ud->session);
                                     if (switch_channel_test_flag(channel, CF_BROADCAST)) {
