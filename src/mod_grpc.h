@@ -20,6 +20,7 @@ extern "C" {
 #include "amd_client.h"
 #include "push_client.h"
 #include "voice_bot_client.h"
+#include <filesystem>
 
 #define GRPC_SUCCESS_ORIGINATE "grpc_originate_success"
 #define STT_BUG_NAME "wbt_stt_bug"
@@ -67,6 +68,10 @@ namespace mod_grpc {
         switch_channel_t *channel;
         RecognizeCall *client_;
         SpeexResamplerState *rresampler;
+        switch_vad_t * vad;
+        int vad_timeout;
+        int sample_rate;
+        unsigned int silence_ms;
     };
 
     static char *wbt_cache_supported_formats[] = {"wbt_prepare", NULL};

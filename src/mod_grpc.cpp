@@ -1670,6 +1670,11 @@ namespace mod_grpc {
                         ud->rresampler = nullptr;
                     }
 
+                    if (ud->vad) {
+                        switch_vad_destroy(&ud->vad);
+                        ud->vad = nullptr;
+                    }
+
                     if (ud->client_) {
                         if (ud->client_->interrupted) {
                             switch_log_printf(
@@ -1731,17 +1736,50 @@ namespace mod_grpc {
                             "switch_core_media_bug_read SWITCH_TRUE \n");
                         return SWITCH_TRUE;
                     };
+
+                    if (ud->vad) {
+                        auto frame_ms = 1000 / (ud->sample_rate / read_frame.samples);
+                        if (ud->vad_timeout > -1) {
+                            switch_vad_state_t state = switch_vad_process(ud->vad, static_cast<int16_t *>(read_frame.data),
+                                                                          read_frame.datalen / 2);
+
+//                            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "amd vad reset: %s\n",
+//                                              switch_vad_state2str(state));
+                            if (state == SWITCH_VAD_STATE_START_TALKING) {
+                                switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_INFO,
+                                                  "detect talking...\n");
+                                ud->vad_timeout = -1;
+                            } else {
+                                ud->silence_ms += frame_ms;
+                                if (ud->silence_ms >= ud->vad_timeout) {
+                                    switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_INFO,
+                                                      "break talking... timeout silence %d\n", ud->silence_ms);
+
+
+                                    switch_channel_t *channel = switch_core_session_get_channel(ud->session);
+                                    if (switch_channel_test_flag(channel, CF_BROADCAST)) {
+                                        switch_channel_stop_broadcast(channel);
+                                    } else {
+                                        switch_channel_set_flag_value(channel, CF_BREAK, 1);
+                                    }
+
+
+                                    return SWITCH_FALSE;
+                                }
+                            }
+                        }
+                    }
+
                     //
                     if (ud->rresampler) {
                         spx_int16_t out[SWITCH_RECOMMENDED_BUFFER_SIZE];
                         spx_uint32_t out_len = SWITCH_RECOMMENDED_BUFFER_SIZE;
                         spx_uint32_t in_len = read_frame.samples;
-                        size_t written;
 
                         speex_resampler_process_interleaved_int(
                             ud->rresampler,
-                            (const spx_int16_t *) read_frame.data,
-                            (spx_uint32_t *) &in_len,
+                            static_cast<const spx_int16_t *>(read_frame.data),
+                            &in_len,
                             &out[0],
                             &out_len);
                         ok = ud->client_->Write(&out[0], sizeof(spx_int16_t) * out_len);
@@ -2667,7 +2705,7 @@ namespace mod_grpc {
 
 #define WBT_STT_API_SYNTAX "<uuid> [start|stop] <conn> <dialog_id> <rate>"
     SWITCH_STANDARD_API(stt_api_function) {
-        char *mycmd = NULL, *argv[5] = {0};
+        char *mycmd = NULL, *argv[6] = {0};
         int argc = 0;
         switch_status_t status = SWITCH_STATUS_FALSE;
 
@@ -2741,6 +2779,58 @@ namespace mod_grpc {
 
                         ud->session = lsession;
                         ud->channel = channel;
+                        ud->vad = nullptr;
+                        ud->vad_timeout = 0;
+                        ud->silence_ms = 0;
+                        ud->sample_rate = imp.samples_per_second;
+
+                        if (argc >= 6) {
+                            ud->vad_timeout = atoi(argv[5]);
+                            switch_log_printf(
+                                SWITCH_CHANNEL_SESSION_LOG(lsession), SWITCH_LOG_DEBUG, "vadTimeout %d\n", ud->vad_timeout);
+                        }
+
+                        if (ud->vad_timeout) {
+                            ud->vad = switch_vad_init(imp.samples_per_second, imp.number_of_channels);
+                            if (ud->vad) {
+                                int mode = 1;
+                                int silence_ms = 400;
+                                int thresh = 200;
+                                int voice_ms = 250;
+                                int debug = 0;
+
+                                const char *var = switch_channel_get_variable(channel, "RECOGNIZER_VAD_MODE");
+                                if (var) {
+                                    mode = atoi(var);
+                                }
+                                var = switch_channel_get_variable(channel, "RECOGNIZER_VAD_SILENCE_MS");
+                                if (var) {
+                                    silence_ms = atoi(var);
+                                }
+                                var = switch_channel_get_variable(channel, "RECOGNIZER_VAD_VOICE_MS");
+                                if (var) {
+                                    voice_ms = atoi(var);
+                                }
+                                var = switch_channel_get_variable(channel, "RECOGNIZER_VAD_THRESH");
+                                if (var) {
+                                    thresh = atoi(var);
+                                }
+                                var = switch_channel_get_variable(channel, "RECOGNIZER_VAD_DEBUG");
+                                if (var) {
+                                    debug = atoi(var);
+                                }
+                                switch_vad_set_mode(ud->vad, mode);
+                                switch_vad_set_param(ud->vad, "silence_ms", silence_ms);
+                                switch_vad_set_param(ud->vad, "voice_ms", voice_ms);
+                                switch_vad_set_param(ud->vad, "thresh", thresh);
+                                switch_vad_set_param(ud->vad, "debug", debug);
+
+                                switch_log_printf(
+                                        SWITCH_CHANNEL_SESSION_LOG(session),
+                                        SWITCH_LOG_DEBUG,
+                                        "use vad thresh %d \n", thresh);
+                            }
+                        }
 
                         if (!ud->client_->Listen(5)) {
                             ud->client_->Finish();
@@ -2789,6 +2879,74 @@ namespace mod_grpc {
         return SWITCH_STATUS_SUCCESS;
     }
 
+#define SWITCH_REWIND_STREAM(s) s.end = s.data
+#define WBT_SCREENSHOT_API_SYNTAX "<uuid> name"
+    SWITCH_STANDARD_API(screenshot_api_function) {
+
+        // SWITCH_GLOBAL_dirs.cache_dir;
+        switch_stream_handle_t stream_png = { 0 };
+        SWITCH_STANDARD_STREAM(stream_png);
+
+        char tempt_file[512], write_cmd[512], http[1024];
+        switch_snprintf(tempt_file, sizeof(tempt_file), "%s/wbt_%s",SWITCH_GLOBAL_dirs.temp_dir, "xxx.png");
+        switch_snprintf(write_cmd, sizeof(write_cmd), "%s %s", cmd, tempt_file);
+        switch_snprintf(http, sizeof(http), "%s %s", "http://localhost:10021/sys/recordings?domain=1&id=326460cf-b4fa-4315-a651-191390dab020&name=sss&.png", tempt_file);
+
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+            "tempt_file = [%s]\nwrite_cmd = [%s]\n", tempt_file, write_cmd);
+
+        switch_status_t status = switch_api_execute(
+            "uuid_write_png",
+            write_cmd,
+            nullptr,
+            &stream_png
+        );
+
+        if (status != SWITCH_STATUS_SUCCESS) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+                "error uuid_write_png %s\n", cmd);
+            return status;
+        }
+
+        if (stream_png.data) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_INFO,
+                "result uuid_write_png:\n%s\n", (char *) stream_png.data);
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_WARNING,
+                "uuid_write_png unknown response\n");
+        }
+
+        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+        "tempt_file = [%s]\nwrite_cmd = [%s]\n", tempt_file, write_cmd);
+
+        SWITCH_REWIND_STREAM(stream_png);
+
+        status = switch_api_execute(
+            "http_put",
+            http,
+            nullptr,
+            &stream_png
+        );
+
+        if (status != SWITCH_STATUS_SUCCESS) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
+                "http_put %s\n", cmd);
+            return status;
+        }
+
+        if (stream_png.data) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_INFO,
+                "http_put response:\n%s\n", (char *) stream_png.data);
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_WARNING,
+                "http_put unknown response.\n");
+        }
+
+        unlink(tempt_file);
+        switch_safe_free(stream_png.data);
+
+        return SWITCH_STATUS_SUCCESS;
+    }
 
     SWITCH_MODULE_LOAD_FUNCTION(mod_grpc_load) {
         try {
@@ -2807,7 +2965,9 @@ namespace mod_grpc {
             switch_core_add_state_handler(&wbt_state_handlers);
             SWITCH_ADD_API(api_interface, "wbt_version", "Show build version", version_api_function, "");
             SWITCH_ADD_API(api_interface, "uuid_wbt_stt", "STT", stt_api_function, WBT_STT_API_SYNTAX);
+            SWITCH_ADD_API(api_interface, "uuid_wbt_screenshot", "Screenshot", screenshot_api_function, WBT_SCREENSHOT_API_SYNTAX);
             switch_console_set_complete("add uuid_wbt_stt ::console::list_uuid ");
+            switch_console_set_complete("add uuid_wbt_screenshot ::console::list_uuid ");
 
             SWITCH_ADD_APP(app_interface, "wbt_queue", "wbt_queue", "wbt_queue", wbr_queue_function, "", SAF_NONE);
             SWITCH_ADD_APP(app_interface, "wbt_background", "wbt_background", "wbt_background", wbt_background, "",
