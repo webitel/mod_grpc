@@ -1624,6 +1624,7 @@ namespace mod_grpc {
             case SWITCH_ABC_TYPE_INIT: {
                 // connect
                 try {
+                    switch_channel_set_variable(ud->channel, "wbt_stt_final", "false");
                     if (switch_core_media_bug_test_flag(bug, SMBF_ANSWER_REQ)) {
                         switch_core_media_bug_clear_flag(bug, SMBF_ANSWER_REQ);
                     }
