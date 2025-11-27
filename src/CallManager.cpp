@@ -40,6 +40,24 @@ mod_grpc::CallManager::~CallManager() {
     switch_event_unbind_callback(CallManager::handle_call_event);
 }
 
+static std::string extract_rec_filename(const char *data) {
+    const auto &url = std::string(data);
+    size_t start_pos = url.rfind('=');
+
+    if (start_pos == std::string::npos) {
+        return "";
+    }
+
+    start_pos += 1;
+    size_t end_pos = url.find('&', start_pos);
+
+    if (end_pos == std::string::npos) {
+        return url.substr(start_pos);
+    } else {
+        return url.substr(start_pos, end_pos - start_pos);
+    }
+}
+
 void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
     try {
         if (event->event_id != SWITCH_EVENT_CHANNEL_HANGUP_COMPLETE && switch_false(
@@ -147,10 +165,11 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                         switch_channel_set_variable(channel, RECORD_SESSION_START_NAME,
                                                     std::to_string(unixTimestamp()).c_str());
                     }
-                    //DUMP_EVENT(event);
 
-                    char *val = switch_core_session_sprintf(session, "%s;%s", switch_event_get_header(event, "Record-File-Path"), std::to_string(unixTimestamp()).c_str());
-                    switch_channel_add_variable_var_check(channel, "wbt_files",val, SWITCH_FALSE, SWITCH_STACK_PUSH);
+                    char *val = switch_core_session_sprintf(session, "%s;%s",
+                        extract_rec_filename(switch_event_get_header(event, "Record-File-Path")).c_str(), std::to_string(unixTimestamp()).c_str());
+
+                    switch_channel_add_variable_var_check(channel, "wbt_rec_start",val, SWITCH_FALSE, SWITCH_STACK_PUSH);
 
                     switch_core_session_rwunlock(session);
                 }
@@ -163,6 +182,12 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                 if (session) {
                     switch_channel_set_variable(switch_core_session_get_channel(session), RECORD_SESSION_STOP_NAME,
                                                 std::to_string(unixTimestamp()).c_str());
+
+                    char *val = switch_core_session_sprintf(session, "%s;%s",
+                        extract_rec_filename(switch_event_get_header(event, "Record-File-Path")).c_str(), std::to_string(unixTimestamp()).c_str());
+
+                    switch_channel_add_variable_var_check(switch_core_session_get_channel(session), "wbt_rec_stop",val, SWITCH_FALSE, SWITCH_STACK_PUSH);
+
                     switch_core_session_rwunlock(session);
                 }
                 break;

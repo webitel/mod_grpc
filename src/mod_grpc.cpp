@@ -1214,7 +1214,8 @@ namespace mod_grpc {
                 name = number;
             }
         }
-        if (autoDelayTime > 0 && !switch_false(wbt_auto_answer)) {
+        // WMA-158
+        if (autoDelayTime > 0 && wbt_auto_answer && !switch_false(wbt_auto_answer)) {
             pData->auto_answer = autoDelayTime;
         } else {
             pData->auto_answer = 0;
@@ -2884,17 +2885,34 @@ namespace mod_grpc {
     }
 
 #define SWITCH_REWIND_STREAM(s) s.end = s.data
-#define WBT_SCREENSHOT_API_SYNTAX "<uuid> name"
+#define WBT_SCREENSHOT_API_SYNTAX "<uuid> name path"
     SWITCH_STANDARD_API(screenshot_api_function) {
 
         // SWITCH_GLOBAL_dirs.cache_dir;
         switch_stream_handle_t stream_png = { 0 };
         SWITCH_STANDARD_STREAM(stream_png);
 
+        char *mycmd = NULL, *argv[6] = {0};
+        int argc = 0;
+
+        if (!zstr(cmd) && (mycmd = strdup(cmd))) {
+            argc = switch_separate_string(mycmd, ' ', argv, (sizeof(argv) / sizeof(argv[0])));
+        }
+
+        if (zstr(cmd) ||
+                    (argc < 2) ||
+                    zstr(argv[0])) {
+            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR, "Error with command %s.\n", cmd);
+            stream->write_function(stream, "-USAGE: %s\n", WBT_SCREENSHOT_API_SYNTAX);
+            return SWITCH_STATUS_FALSE;
+        }
+
+
         char tempt_file[512], write_cmd[512], http[1024];
-        switch_snprintf(tempt_file, sizeof(tempt_file), "%s/wbt_%s",SWITCH_GLOBAL_dirs.temp_dir, "xxx.png");
-        switch_snprintf(write_cmd, sizeof(write_cmd), "%s %s", cmd, tempt_file);
-        switch_snprintf(http, sizeof(http), "%s %s", "http://localhost:10021/sys/recordings?domain=1&id=326460cf-b4fa-4315-a651-191390dab020&name=sss&.png", tempt_file);
+        switch_snprintf(tempt_file, sizeof(tempt_file), "%s/wbt_%s.png",SWITCH_GLOBAL_dirs.temp_dir, argv[0]);
+
+        switch_snprintf(write_cmd, sizeof(write_cmd), "%s %s", argv[0], tempt_file);
+        switch_snprintf(http, sizeof(http), "%s %s", argv[1], tempt_file);
 
         switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_ERROR,
             "tempt_file = [%s]\nwrite_cmd = [%s]\n", tempt_file, write_cmd);
@@ -2948,6 +2966,7 @@ namespace mod_grpc {
 
         unlink(tempt_file);
         switch_safe_free(stream_png.data);
+        switch_safe_free(mycmd);
 
         return SWITCH_STATUS_SUCCESS;
     }
