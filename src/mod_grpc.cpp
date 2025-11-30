@@ -1626,6 +1626,8 @@ namespace mod_grpc {
                 // connect
                 try {
                     switch_channel_set_variable(ud->channel, "wbt_stt_final", "false");
+                    switch_channel_set_variable(ud->channel, "wbt_play_sleep_timeout", nullptr);
+                    switch_channel_set_variable(ud->channel, "wbt_stt_error", nullptr);
                     if (switch_core_media_bug_test_flag(bug, SMBF_ANSWER_REQ)) {
                         switch_core_media_bug_clear_flag(bug, SMBF_ANSWER_REQ);
                     }
