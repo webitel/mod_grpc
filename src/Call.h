@@ -945,6 +945,8 @@ public:
         if (!sip_hangup_phrase.empty()) {
             addAttribute("hangup_phrase", sip_hangup_phrase);
         }
+
+        addIfExists(body_,"meeting_id", "variable_sip_h_X-Webitel-Meeting");
     };
 };
 
