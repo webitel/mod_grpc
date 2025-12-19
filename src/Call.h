@@ -947,6 +947,9 @@ public:
         }
 
         addIfExists(body_,"meeting_id", "variable_sip_h_X-Webitel-Meeting");
+        if (parent_) {
+            addAttribute("is_parent", true);
+        }
     };
 };
 
