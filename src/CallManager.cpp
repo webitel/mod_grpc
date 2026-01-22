@@ -17,6 +17,7 @@ mod_grpc::CallManager::CallManager() {
     //    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_NOTALK, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_RECORD_START, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_RECORD_STOP, nullptr, CallManager::handle_call_event, nullptr);
+    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_RECV_INFO, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_SESSION_HEARTBEAT, nullptr, CallManager::handle_call_event,
                       nullptr);
 
@@ -189,6 +190,38 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                     switch_channel_add_variable_var_check(switch_core_session_get_channel(session), "wbt_rec_stop",val, SWITCH_FALSE, SWITCH_STACK_PUSH);
 
                     switch_core_session_rwunlock(session);
+                }
+                break;
+            }
+            // WTEL-8394
+            case SWITCH_EVENT_RECV_INFO: {
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Received SIP INFO\n");
+                char *content_type = switch_event_get_header(event, "SIP-Content-Type");
+                char *body = switch_event_get_body(event);
+                const char *id = switch_event_get_header(event, "Other-Leg-Unique-ID");
+
+                if (id && content_type && strcmp(content_type, "application/json") == 0 && body) {
+                    switch_status_t status = SWITCH_STATUS_FALSE;
+                    switch_core_session_message_t msg = { 0 };
+                    switch_core_session_t *lsession = NULL;
+
+                    msg.message_id = SWITCH_MESSAGE_INDICATE_INFO;
+                    msg.string_array_arg[0] = "application";
+                    msg.string_array_arg[1] = "json";
+                    msg.string_array_arg[2] = body;
+                    msg.from = (char *) __FILE__;
+
+                    if ((lsession = switch_core_session_locate(id))) {
+                        status = switch_core_session_receive_message(lsession, &msg);
+                        switch_core_session_rwunlock(lsession);
+
+                        if (status == SWITCH_STATUS_SUCCESS) {
+                            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "relay SIP INFO JSON: %s\n", body);
+                        } else {
+                            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "error SIP INFO JSON: %s\n", body);
+                        }
+                    }
+
                 }
                 break;
             }
