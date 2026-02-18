@@ -195,11 +195,22 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
             }
             // WTEL-8394
             case SWITCH_EVENT_RECV_INFO: {
-                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Received SIP INFO\n");
+                switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "Received SIP INFO\n");
                 char *content_type = switch_event_get_header(event, "SIP-Content-Type");
                 char *body = switch_event_get_body(event);
                 const char *id = switch_event_get_header(event, "Other-Leg-Unique-ID");
+                if (!id) {
+                    auto session = switch_core_session_locate(switch_event_get_header(event, "Unique-ID"));
+                    if (session) {
+                        auto channel = switch_core_session_get_channel(session);
+                        id = switch_channel_get_variable(channel, "wbt_parent_id");
+                        switch_core_session_rwunlock(session);
+                    }
+                }
 
+                if (!id) {
+                    DUMP_EVENT(event)
+                }
                 if (id && content_type && strcmp(content_type, "application/json") == 0 && body) {
                     switch_status_t status = SWITCH_STATUS_FALSE;
                     switch_core_session_message_t msg = { 0 };
