@@ -160,8 +160,8 @@ namespace mod_grpc {
             reply->mutable_error()->set_message(switch_channel_cause2str(cause));
             reply->set_error_code(static_cast<::google::protobuf::int32>(cause));
 
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Originate error %s\n",
-                              switch_channel_cause2str(cause));
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING, "Originate error %s [cs %d]\n",
+                              switch_channel_cause2str(cause), caller_session ? 1 : 0);
             goto done;
         }
 

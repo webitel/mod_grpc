@@ -896,8 +896,6 @@ public:
         }
 
         setVariables("variable_usr_", "payload", e_);
-
-        addAttribute(HEADER_NAME_HANGUP_CAUSE, cause_);
         addAttribute("originate_success",
                      switch_event_get_header(e, "variable_grpc_originate_success") != nullptr);
 
@@ -915,6 +913,22 @@ public:
                 sscanf(sip_code_.c_str(), "%d", &num);
             }
         }
+
+        if (cause_ == "ALLOTTED_TIMEOUT" || cause_ == "RECOVERY_ON_TIMER_EXPIRE") {
+            cause_ = "NO_ANSWER";
+            num = 487;
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+                "[%s] timeout detected: changing cause [%s] to [NO_ANSWER] and SIP [%d] to [487]\n",
+                    uuid_.c_str(), cause_.c_str(), num);
+
+        } else if (num != 200 && cause_ == "NORMAL_CLEARING") {
+            cause_ = "NO_USER_RESPONSE";
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+                    "[%s] normal clearing on failed call: remapping [%s] to [NO_USER_RESPONSE]\n",
+                    uuid_.c_str(), cause_.c_str());
+        }
+
+        addAttribute(HEADER_NAME_HANGUP_CAUSE, cause_);
 
         if (num == 0) {
             addAttribute("sip", cause_ == "ORIGINATOR_CANCEL" ? 487 : 200);
