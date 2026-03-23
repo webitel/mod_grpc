@@ -915,12 +915,11 @@ public:
         }
 
         if (cause_ == "ALLOTTED_TIMEOUT" || cause_ == "RECOVERY_ON_TIMER_EXPIRE") {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
+            "[%s] timeout detected: changing cause [%s] to [NO_ANSWER] and SIP [%d] to [487]\n",
+                uuid_.c_str(), cause_.c_str(), num);
             cause_ = "NO_ANSWER";
             num = 487;
-            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
-                "[%s] timeout detected: changing cause [%s] to [NO_ANSWER] and SIP [%d] to [487]\n",
-                    uuid_.c_str(), cause_.c_str(), num);
-
         } else if (num != 200 && cause_ == "NORMAL_CLEARING") {
             cause_ = "NO_USER_RESPONSE";
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
