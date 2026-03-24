@@ -1294,8 +1294,8 @@ namespace mod_grpc {
 
                     switch_core_session_get_read_impl(ud->session, &ud->read_impl);
 
-                    auto var = switch_channel_get_variable(ud->channel, "wbt_ai_vad_threshold");
-                    if (var) {
+                    auto var = switch_channel_get_variable(ud->channel, "wbt_ai_vad_threshold_deprecated");
+                    if (false && var) {
                         auto tmp = atoi(var);
                         if (tmp) {
                             ud->vad = switch_vad_init((int) ud->read_impl.actual_samples_per_second, 1);
@@ -1452,6 +1452,13 @@ namespace mod_grpc {
 
                     switch_vad_state_t vad_state = SWITCH_VAD_STATE_ERROR;
 
+                    if (!ud->answered) {
+                        ud->answered = switch_channel_test_flag(ud->channel, CF_ANSWERED) ? true : false;
+                        if (ud->answered) {
+                            switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session), SWITCH_LOG_NOTICE, "set answered channel %d\n", ud->answered ? 1 : 0);
+                        }
+                    }
+
                     if (ud->vad) {
                         if (!ud->answered) {
                             ud->answered = switch_channel_test_flag(ud->channel, CF_ANSWERED);
@@ -1492,9 +1499,9 @@ namespace mod_grpc {
                         switch_resample_process(ud->resampler, data, (int) read_frame.datalen / 2);
                         auto linear_len = ud->resampler->to_len * 2;
                         memcpy(resample_data, ud->resampler->to, linear_len);
-                        ud->client_->Write(resample_data, linear_len, vad_state);
+                        ud->client_->Write(resample_data, linear_len, ud->answered);
                     } else {
-                        ud->client_->Write(read_frame.data, read_frame.datalen, vad_state);
+                        ud->client_->Write(read_frame.data, read_frame.datalen,  ud->answered);
                     }
 
                     if (ud->client_->Finished()) {
@@ -2017,6 +2024,7 @@ namespace mod_grpc {
         ud->vad = nullptr;
         ud->max_silence_sec = 0;
         ud->silence_ms = 0;
+        ud->answered = false;
 
         if (!ud->client_) {
             err = "ai_create_client";
