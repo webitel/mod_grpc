@@ -49,7 +49,7 @@ extern "C" {
 #define get_str(c) c ? std::string(c) : std::string()
 
 enum CallActions {
-    Ringing, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup,
+    Ringing, Progress, Active, Bridge, Hold, DTMF, Voice, Silence, Execute, Update, JoinQueue, LeavingQueue, AMD, Hangup,
     Eavesdrop, Heartbeat, Transcript
 };
 
@@ -60,6 +60,8 @@ static const char *callEventStr(CallActions e) {
             return "ringing";
         case Active:
             return "active";
+        case Progress:
+            return "progress";
         case Bridge:
             return "bridge";
         case Hold:
@@ -683,6 +685,24 @@ public:
 
         setVideoMediaFlow();
         addIfExists(body_,"meeting_id", "variable_sip_h_X-Webitel-Meeting");
+    };
+};
+
+template<>
+class CallEvent<Progress> : public BaseCallEvent {
+public:
+    explicit CallEvent(switch_event_t *e) : BaseCallEvent(Progress, e) {
+        const char *uuid = switch_event_get_header(e, "Unique-ID");
+
+        // Важливо: для 180/183 код часто лежить у variable_sip_term_status
+        // або variable_sip_proto_status
+        const char *proto_status = switch_event_get_header(e, "variable_sip_term_status");
+
+        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+            "Call [%s] Progress Event: %s (Status: %s)\n",
+            uuid ? uuid : "null",
+            switch_event_name(e->event_id),
+            proto_status ? proto_status : "N/A");
     };
 };
 

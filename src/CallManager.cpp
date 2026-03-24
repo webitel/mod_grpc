@@ -6,6 +6,8 @@
 
 mod_grpc::CallManager::CallManager() {
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_CREATE, nullptr, CallManager::handle_call_event, nullptr);
+    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_PROGRESS, nullptr, CallManager::handle_call_event, nullptr);
+    switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_PROGRESS_MEDIA, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_ANSWER, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_HOLD, nullptr, CallManager::handle_call_event, nullptr);
     switch_event_bind(CALL_MANAGER_NAME, SWITCH_EVENT_CHANNEL_UNHOLD, nullptr, CallManager::handle_call_event, nullptr);
@@ -85,6 +87,12 @@ void mod_grpc::CallManager::handle_call_event(switch_event_t *event) {
                 }
 
                 CallEvent<Ringing>(event).fire();
+                break;
+            }
+
+            case SWITCH_EVENT_CHANNEL_PROGRESS:
+            case  SWITCH_EVENT_CHANNEL_PROGRESS_MEDIA: {
+                CallEvent<Progress>(event).fire();
                 break;
             }
 
