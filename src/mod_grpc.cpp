@@ -1417,7 +1417,10 @@ namespace mod_grpc {
                             SWITCH_LOG_WARNING,
                             "GRPC stream: skip amd event, channel state is hangup \n");
                     }
-                    if (!skip_hangup) {
+                    if (!skip_hangup && !ud->client_->isError) {
+                        switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(ud->session),
+                            SWITCH_LOG_DEBUG, "GRPC stream: send hangup \n");
+
                         switch_channel_hangup(ud->channel, SWITCH_CAUSE_NORMAL_UNSPECIFIED);
                     }
 

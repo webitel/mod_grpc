@@ -692,17 +692,6 @@ template<>
 class CallEvent<Progress> : public BaseCallEvent {
 public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Progress, e) {
-        const char *uuid = switch_event_get_header(e, "Unique-ID");
-
-        // Важливо: для 180/183 код часто лежить у variable_sip_term_status
-        // або variable_sip_proto_status
-        const char *proto_status = switch_event_get_header(e, "variable_sip_term_status");
-
-        switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
-            "Call [%s] Progress Event: %s (Status: %s)\n",
-            uuid ? uuid : "null",
-            switch_event_name(e->event_id),
-            proto_status ? proto_status : "N/A");
     };
 };
 
@@ -934,6 +923,10 @@ public:
             }
         }
 
+        if (num == 0) {
+            num = cause_ == "ORIGINATOR_CANCEL" ? 487 : 200;
+        }
+
         if (cause_ == "ALLOTTED_TIMEOUT" || cause_ == "RECOVERY_ON_TIMER_EXPIRE") {
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
             "[%s] timeout detected: changing cause [%s] to [NO_ANSWER] and SIP [%d] to [487]\n",
@@ -941,19 +934,14 @@ public:
             cause_ = "NO_ANSWER";
             num = 487;
         } else if (num != 200 && cause_ == "NORMAL_CLEARING") {
-            cause_ = "NO_USER_RESPONSE";
             switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_WARNING,
-                    "[%s] normal clearing on failed call: remapping [%s] to [NO_USER_RESPONSE]\n",
-                    uuid_.c_str(), cause_.c_str());
+                    "[%s] normal clearing on failed call: remapping [%s] to [NO_USER_RESPONSE] (%d)\n",
+                    uuid_.c_str(), cause_.c_str(), num);
+            cause_ = "NO_USER_RESPONSE";
         }
 
         addAttribute(HEADER_NAME_HANGUP_CAUSE, cause_);
-
-        if (num == 0) {
-            addAttribute("sip", cause_ == "ORIGINATOR_CANCEL" ? 487 : 200);
-        } else {
-            addAttribute("sip", num);
-        }
+        addAttribute("sip", num);
 
         auto hp = switch_event_get_header_ptr(e, "variable_wbt_tags");
         if (hp) {

@@ -37,10 +37,22 @@ public:
 
     bool Finish() {
         rw->WritesDone();
-        rw->Finish();
+        grpc::Status status = rw->Finish();
         if (rt.joinable()) {
             rt.join();
         }
+
+        if (!status.ok()) {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR,
+                "gRPC Error Code: %d, Message: %s, Details: %s\n",
+                status.error_code(),
+                status.error_message().c_str(),
+                status.error_details().c_str());
+            isError = true;
+        } else {
+            switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "stream closed normally.\n");
+        }
+
         switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "AsyncClientCall::Finish\n");
         return true;
     }
@@ -64,6 +76,7 @@ public:
     }
 
     ::amd::StreamPCMResponse reply;
+    bool isError = false;
 
     // Context for the client. It could be used to convey extra information to
     // the server and/or tweak certain RPC behaviors.
