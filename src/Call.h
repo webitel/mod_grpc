@@ -634,7 +634,7 @@ public:
     explicit CallEvent(switch_event_t *e) : BaseCallEvent(Ringing, e) {
         setOnCreateAttr();
         if (event_->getVar("variable_wbt_hide_number") == "true") {
-            addAttribute("hideNumber", true);
+            addAttribute("hide_number", true);
         }
         if (event_->getVar("variable_wbt_originate") == "true") {
             addAttribute("originate", true);
