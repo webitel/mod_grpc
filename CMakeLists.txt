@@ -82,4 +82,14 @@ target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP
 set_target_properties(mod_grpc PROPERTIES PREFIX "")
 set_target_properties(mod_grpc PROPERTIES OUTPUT_NAME "mod_grpc")
 
+# Isolate statically-linked deps (gRPC/absl/protobuf) inside this .so so they
+# don't collide with copies from other FreeSWITCH modules loaded in the same
+# process (e.g. mod_google_transcribe).
+set_target_properties(mod_grpc PROPERTIES
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON)
+target_link_options(mod_grpc PRIVATE
+    -Wl,--exclude-libs,ALL)
+
 install(TARGETS mod_grpc DESTINATION ${INSTALL_MOD_DIR})
