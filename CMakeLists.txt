@@ -79,10 +79,6 @@ add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.h src/CallM
 target_include_directories(mod_grpc PRIVATE ${WBT_GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE})
 
-# Statically link C++ runtime so the module doesn't depend on host libstdc++/libgcc_s ABI.
-# Keeps the .deb portable across Debian codenames (bookworm, trixie, ...).
-target_link_options(mod_grpc PRIVATE -static-libstdc++ -static-libgcc)
-
 set_target_properties(mod_grpc PROPERTIES PREFIX "")
 set_target_properties(mod_grpc PROPERTIES OUTPUT_NAME "mod_grpc")
 
