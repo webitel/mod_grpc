@@ -16,43 +16,55 @@ if (MOD_BUILD_VERSION)
     add_definitions ( -DMOD_BUILD_VERSION=\"${MOD_BUILD_VERSION}\" )
 endif()
 
-include(FetchContent)
-set(BUILD_TESTING OFF)
-# Вимкнути зайві компоненти
-set(gRPC_BUILD_CODEGEN OFF CACHE BOOL "Disable gRPC code generation")
-set(gRPC_BUILD_CSHARP_PLUGIN OFF CACHE BOOL "Disable C# plugin")
-set(gRPC_BUILD_PYTHON_PLUGIN OFF CACHE BOOL "Disable Python plugin")
-set(gRPC_BUILD_GRPC_CSHARP_PLUGIN OFF CACHE BOOL "Disable C# gRPC plugin")
-set(gRPC_BUILD_GRPC_NODE_PLUGIN OFF CACHE BOOL "Disable Node.js plugin")
-set(gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF CACHE BOOL "Disable Objective-C plugin")
-set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "Disable Ruby plugin")
-
-set(gRPC_BUILD_TESTS OFF CACHE BOOL "Disable gRPC tests")
-set(gRPC_BUILD_PERF_TESTS OFF CACHE BOOL "Disable gRPC performance tests")
-set(gRPC_ABSL_PROVIDER "package" CACHE STRING "Use system-provided abseil-cpp")
-set(gRPC_INSTALL OFF CACHE BOOL "Don't install gRPC")
-set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable protobuf tests")
-set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf as shared libraries")
-
 set(USE_GRPC_VERSION "v1.69.0" CACHE STRING "GRPC version")
 set(FREESWITCH_INCLUDE_DIR "/usr/local/freeswitch/include/freeswitch" CACHE PATH "Location of FreeSWITCH headers")
 set(INSTALL_MOD_DIR "/usr/local/freeswitch/mod" CACHE PATH "Location install library")
 #add_compile_definitions(DEBUG_CURL)
-set(third_party_DIR "${CMAKE_SOURCE_DIR}/third_party")
 
-file(MAKE_DIRECTORY ${third_party_DIR})
+# Prefer pre-installed gRPC/Protobuf (baked into the runner image) to avoid rebuilding from sources.
+find_package(Protobuf CONFIG QUIET)
+find_package(gRPC CONFIG QUIET)
 
-if (NOT EXISTS "${third_party_DIR}/grpc")
-    execute_process(
-            COMMAND git clone --recurse-submodules -b ${USE_GRPC_VERSION} --depth 1 --shallow-submodules "https://github.com/grpc/grpc.git" grpc
-            WORKING_DIRECTORY ${third_party_DIR})
+if (gRPC_FOUND AND Protobuf_FOUND)
+    message(STATUS "Using system gRPC ${gRPC_VERSION} and Protobuf ${Protobuf_VERSION}")
+    set(_PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
+    set(_REFLECTION gRPC::grpc++_reflection)
+    set(_GRPC_GRPCPP gRPC::grpc++)
+    set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++_unsecure)
+else()
+    message(STATUS "System gRPC not found — falling back to FetchContent build of ${USE_GRPC_VERSION}")
+
+    include(FetchContent)
+    set(BUILD_TESTING OFF)
+    set(gRPC_BUILD_CODEGEN OFF CACHE BOOL "Disable gRPC code generation")
+    set(gRPC_BUILD_CSHARP_PLUGIN OFF CACHE BOOL "Disable C# plugin")
+    set(gRPC_BUILD_PYTHON_PLUGIN OFF CACHE BOOL "Disable Python plugin")
+    set(gRPC_BUILD_GRPC_CSHARP_PLUGIN OFF CACHE BOOL "Disable C# gRPC plugin")
+    set(gRPC_BUILD_GRPC_NODE_PLUGIN OFF CACHE BOOL "Disable Node.js plugin")
+    set(gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF CACHE BOOL "Disable Objective-C plugin")
+    set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "Disable Ruby plugin")
+    set(gRPC_BUILD_TESTS OFF CACHE BOOL "Disable gRPC tests")
+    set(gRPC_BUILD_PERF_TESTS OFF CACHE BOOL "Disable gRPC performance tests")
+    set(gRPC_ABSL_PROVIDER "package" CACHE STRING "Use system-provided abseil-cpp")
+    set(gRPC_INSTALL OFF CACHE BOOL "Don't install gRPC")
+    set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable protobuf tests")
+    set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf as shared libraries")
+
+    set(third_party_DIR "${CMAKE_SOURCE_DIR}/third_party")
+    file(MAKE_DIRECTORY ${third_party_DIR})
+
+    if (NOT EXISTS "${third_party_DIR}/grpc")
+        execute_process(
+                COMMAND git clone --recurse-submodules -b ${USE_GRPC_VERSION} --depth 1 --shallow-submodules "https://github.com/grpc/grpc.git" grpc
+                WORKING_DIRECTORY ${third_party_DIR})
+    endif()
+
+    add_subdirectory(${third_party_DIR}/grpc EXCLUDE_FROM_ALL)
+    set(_PROTOBUF_LIBPROTOBUF libprotobuf)
+    set(_REFLECTION grpc++_reflection)
+    set(_GRPC_GRPCPP grpc++)
+    set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
 endif()
-
-add_subdirectory(${third_party_DIR}/grpc EXCLUDE_FROM_ALL)
-set(_PROTOBUF_LIBPROTOBUF libprotobuf)
-set(_REFLECTION grpc++_reflection)
-set(_GRPC_GRPCPP grpc++)
-set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
 
 set(WBT_GENERATED_PROTOBUF_PATH "${CMAKE_SOURCE_DIR}/src/generated")
 file(GLOB_RECURSE wbt_proto_src ${WBT_GENERATED_PROTOBUF_PATH}/*.cc)
@@ -66,6 +78,10 @@ add_library(mod_grpc SHARED src/mod_grpc.h src/mod_grpc.cpp src/Call.h src/CallM
         src/utils.h src/push_client.cpp src/push_client.h)
 target_include_directories(mod_grpc PRIVATE ${WBT_GENERATED_PROTOBUF_PATH}  ${FREESWITCH_INCLUDE_DIR} )
 target_link_libraries(mod_grpc PRIVATE  ${_PROTOBUF_LIBPROTOBUF}  ${_GRPC_GRPCPP_UNSECURE})
+
+# Statically link C++ runtime so the module doesn't depend on host libstdc++/libgcc_s ABI.
+# Keeps the .deb portable across Debian codenames (bookworm, trixie, ...).
+target_link_options(mod_grpc PRIVATE -static-libstdc++ -static-libgcc)
 
 set_target_properties(mod_grpc PROPERTIES PREFIX "")
 set_target_properties(mod_grpc PROPERTIES OUTPUT_NAME "mod_grpc")
