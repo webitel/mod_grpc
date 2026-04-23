@@ -50,7 +50,6 @@ jobs:
       package-name: freeswitch-mod-grpc
       package-description: ${{ github.event.repository.description }}
       package-contents: src=build/mod_grpc.so dst=/usr/lib/freeswitch/mod/mod_grpc.so type=file
-      upload-artifact-pattern: build/mod_grpc.so
       scripts: |
         postinstall: deploy/debian/postinst.sh
 
