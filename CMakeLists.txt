@@ -84,11 +84,8 @@ set_target_properties(mod_grpc PROPERTIES OUTPUT_NAME "mod_grpc")
 
 # Isolate statically-linked deps (gRPC/absl/protobuf) inside this .so so they
 # don't collide with copies from other FreeSWITCH modules loaded in the same
-# process (e.g. mod_google_transcribe).
-set_target_properties(mod_grpc PROPERTIES
-    C_VISIBILITY_PRESET hidden
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN ON)
+# process (e.g. mod_google_transcribe). --exclude-libs,ALL blocks re-export of
+# symbols from static archives; the module's own interface symbol stays visible.
 target_link_options(mod_grpc PRIVATE
     -Wl,--exclude-libs,ALL)
 
