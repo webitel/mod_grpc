@@ -567,6 +567,10 @@ namespace mod_grpc {
                 cc_to_agent_id = switch_channel_get_variable_dup(chan_a_s, "cc_agent_id", SWITCH_FALSE, -1);
                 cc_from_attempt_id = switch_channel_get_variable_dup(chan_a_s, "cc_attempt_id", SWITCH_FALSE, -1);
                 contact_id = switch_channel_get_variable_partner(chan_b_s, "wbt_contact_id");
+
+                if (!contact_id) {
+                    contact_id = switch_channel_get_variable_partner(chan_a_s, "wbt_contact_id");
+                }
             }
 
             auto disable_transfer_form = switch_false(
@@ -577,6 +581,7 @@ namespace mod_grpc {
             }
             if (contact_id) {
                 switch_channel_set_variable(chan_a_s, "wbt_contact_id", contact_id);
+                switch_channel_set_variable(chan_b_s, "wbt_contact_id", contact_id);
             }
 
             if (cc_from_attempt_id) {
