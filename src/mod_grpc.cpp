@@ -581,7 +581,7 @@ namespace mod_grpc {
             }
             if (contact_id) {
                 switch_channel_set_variable(chan_a_s, "wbt_contact_id", contact_id);
-                switch_channel_set_variable(chan_b_s, "wbt_contact_id", contact_id);
+                switch_channel_set_variable_partner(chan_b_s, "wbt_contact_id", contact_id);
             }
 
             if (cc_from_attempt_id) {
